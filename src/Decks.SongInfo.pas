@@ -61,8 +61,8 @@ begin
 	Result := Split(S, SL, SR);
 	if Result then
 	begin
-		L := SL.ToInteger;
-		R := SR.ToInteger;
+		L := StrToInt(SL);
+		R := StrToInt(SR);
 	end;
 end;
 
@@ -159,7 +159,7 @@ begin
 					if P <> '' then
 					begin
 						SplitInt(P, iL, iR);
-						KeywordHandler(IKW_CUE, Params.Create(iL, iR))
+						KeywordHandler(IKW_CUE, TInfoParams.Create(iL, iR))
 					end;
 				end;
 			end;
@@ -170,7 +170,7 @@ begin
 				SplitInt(P, iL, iR);
 				Result.BPM := iL + (iR / 1000);
 				if Assigned(KeywordHandler) then
-					KeywordHandler(IKW_BPM, Params.Create(iL, iR));
+					KeywordHandler(IKW_BPM, TInfoParams.Create(iL, iR));
 			end;
 
 			while Assigned(KeywordHandler) do
@@ -182,8 +182,8 @@ begin
 				if P = '' then Break;
 				sarr := P.Split(' ');
 				if High(sarr) >= 2 then
-					KeywordHandler(KW, Params.Create(
-						sarr[0].ToInteger, sarr[1].ToInteger, sarr[2].ToInteger));
+					KeywordHandler(KW, TInfoParams.Create(
+						StrToInt(sarr[0]), StrToInt(sarr[1]), StrToInt(sarr[2])));
 			end;
 
 		finally

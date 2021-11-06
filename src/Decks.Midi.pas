@@ -1,12 +1,16 @@
 unit Decks.MIDI;
 
-{$mode delphi}
+{$MODE DELPHI}
+{.$DEFINE USEMIDI}
 
 interface
 
 uses
-	Classes, SysUtils, LMessages,
-	RtMidi;
+	Classes, SysUtils,
+	{$IFDEF USEMIDI}
+	RtMidi,
+	{$ENDIF}
+	LMessages;
 
 const
 	MIDI_NOTE_ON  = $90;
@@ -119,8 +123,10 @@ type
 	end;
 
 	TMIDI = record
+		{$IFDEF USEMIDI}
 		Input:            TRtMidiIn;
 		Output:           TRtMidiOut;
+		{$ENDIF}
 		Debug:            Boolean;
 		DeviceName:       String;
 		InDevice,
@@ -148,10 +154,11 @@ type
 implementation
 
 uses
-	IniFiles, Forms, Math, dialogs,
+	IniFiles, Forms, Math, Dialogs,
 	Decks.Config,
 	Form.Main;
 
+{$IFDEF USEMIDI}
 procedure MIDIInCallback(Timestamp: Double; Data: PByte; Size: size_t; UserData: Pointer); cdecl;
 var
 	Ctrl: TMIDIControl;
@@ -194,6 +201,7 @@ begin
 	Application.RemoveAsyncCalls(MainForm);
 	Application.QueueAsyncCall(MainForm.ASyncExecute, {%H-}PtrInt(Params));
 end;
+{$ENDIF}
 
 procedure TMIDI.Init;
 
@@ -290,6 +298,7 @@ begin
 	DeviceName := Ini.ReadString('info', 'devicename', '');
 	if DeviceName <> '' then
 	begin
+		{$IFDEF USEMIDI}
 		Input := TRtMidiIn.Create();
 		InputDeviceList := Input.GetDeviceList;
 		for i := 0 to InputDeviceList.Count-1 do
@@ -310,6 +319,7 @@ begin
 				Output.OpenPort(i);
 				Break;
 			end;
+		{$ENDIF}
 
 		ReadControllerSection(Ini, 'controller.buttons',  MIDI_CTRL_BUTTON);
 		ReadControllerSection(Ini, 'controller.absolute', MIDI_CTRL_ABSOLUTE);
@@ -425,8 +435,10 @@ begin
 		for Act in TDecksActionKind do
 			SetLed(Act, i=2, False);
 
+	{$IFDEF USEMIDI}
 	Input.Free;
 	Output.Free;
+	{$ENDIF}
 	InputDeviceList.Free;
 	OutputDeviceList.Free;
 end;
@@ -435,12 +447,14 @@ procedure TMIDI.SetLed(Kind: TDecksActionKind; RightDeck: Boolean; LedState: Boo
 var
 	L: Integer;
 begin
+	{$IFDEF USEMIDI}
 	if Outdevice >= 0 then
 	begin
 		L := Leds[Kind, IfThen(RightDeck, 2, 1)];
 		if L >= 0 then
 			Output.SendMessage([MIDI_NOTE_ON, L, LedState.ToInteger]);
 	end;
+	{$ENDIF}
 end;
 
 end.

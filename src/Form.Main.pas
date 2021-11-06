@@ -458,6 +458,7 @@ begin
 	// ==========================================
 	// Init MIDI and list devices
 	//
+	{$IFDEF USEMIDI}
 	MIDI.Init;
 
 	for i := 0 to MIDI.InputDeviceList.Count-1 do
@@ -471,6 +472,7 @@ begin
 		mi.Checked := (i = MIDI.InDevice);
 		miMIDIInput.Add(mi);
 	end;
+	{$ENDIF}
 
 	EQControls[1, EQ_BAND_LOW]  := sEQ1L;
 	EQControls[1, EQ_BAND_MID]  := sEQ1M;
@@ -492,7 +494,9 @@ procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
 	Config.Save;
 
+	{$IFDEF USEMIDI}
 	MIDI.Uninit;
+	{$ENDIF}
 	PlayedFilenames.Free;
 	MasterDeck := nil;
 	//FileList.Free;

@@ -16,6 +16,8 @@ const
 	{$IFDEF MACOS}    'librtmidi.dylib';{$ENDIF}
 
 type
+	UInt = Cardinal;
+
 	CString = PAnsiChar;
 
 	// Wraps an RtMidi object for C function return statuses.

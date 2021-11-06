@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
+      <Flags>
+        <CompatibilityMode Value="True"/>
+      </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="Decks 3"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -75,7 +77,7 @@
         <IsPartOfProject Value="True"/>
         <ComponentName Value="DeckFrame"/>
         <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
+        <ResourceBaseClass Value="Frame"/>
       </Unit8>
       <Unit9>
         <Filename Value="include\hlistview.pas"/>
@@ -98,7 +100,7 @@
         <UnitName Value="hKnob"/>
       </Unit12>
       <Unit13>
-        <Filename Value="decks.midi.pas"/>
+        <Filename Value="Decks.Midi.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Decks.MIDI"/>
       </Unit13>
