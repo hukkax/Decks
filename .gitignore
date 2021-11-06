@@ -58,6 +58,7 @@ Image1.png
 Image4.png
 basszxtune.dll
 libbasszxtune.so
+decks.ini
 Form.Deck.*
 *.bpm
 *-debug.exe
