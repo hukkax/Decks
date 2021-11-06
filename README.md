@@ -33,7 +33,7 @@ Required Lazarus packages:
 
 - BASS, BASS_FX, BASSmix
 - OvoTag
-- RtMidi
+- RtMidi (if compiling with MIDI support)
 
 ## Keyboard controls
 
