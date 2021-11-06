@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="decksgui"/>
+    <Type Value="RunAndDesignTime"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Files Count="5">
+      <Item1>
+        <Filename Value="decksbutton.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="DecksButton"/>
+      </Item1>
+      <Item2>
+        <Filename Value="hslider.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="hSlider"/>
+      </Item2>
+      <Item3>
+        <Filename Value="hlistview.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="hListView"/>
+      </Item3>
+      <Item4>
+        <Filename Value="hshelltree.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="hShellTree"/>
+      </Item4>
+      <Item5>
+        <Filename Value="hknob.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="hKnob"/>
+      </Item5>
+    </Files>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="bgracontrols"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="IDEIntf"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

@@ -1,0 +1,115 @@
+[A_VOLUME]
+group=VOLUME
+kind=176
+action=6 (1)
+
+[B_VOLUME]
+group=VOLUME
+kind=176
+action=6 (2)
+
+[CROSSFADER]
+kind=176
+action=13 (0)
+
+[GAIN_PHONES]
+kind=176
+
+[A_PITCH]
+group=PITCH
+kind=176
+action=9 (1)
+
+[B_PITCH]
+group=PITCH
+kind=176
+action=9 (2)
+
+[GAIN_MASTER]
+kind=176
+
+[B_WHEEL]
+kind=176
+
+[A_WHEEL]
+kind=176
+
+[BROWSE]
+kind=176
+
+[A_CUE]
+group=CUE
+kind=144
+action=2 (1)
+
+[B_LOAD]
+group=LOAD
+kind=144
+
+[A_PLAY]
+group=PLAY
+kind=144
+action=1 (1)
+
+[B_CUE]
+group=CUE
+kind=144
+action=2 (2)
+
+[A_SYNC]
+group=SYNC
+kind=144
+action=3 (1)
+
+[B_PLAY]
+group=PLAY
+kind=144
+action=1 (2)
+
+[A_BEND_UP]
+group=BEND_UP
+kind=144
+action=7 (1)
+
+[A_BEND_DOWN]
+group=BEND_DOWN
+kind=144
+action=8 (1)
+
+[B_BEND_UP]
+group=BEND_UP
+kind=144
+action=7 (2)
+
+[B_BEND_DOWN]
+group=BEND_DOWN
+kind=144
+action=8 (2)
+
+[B_SYNC]
+group=SYNC
+kind=144
+action=3 (2)
+
+[A_LOAD]
+group=LOAD
+kind=144
+
+[BACK]
+kind=144
+action=14 (0)
+
+[ENTER]
+kind=144
+action=15 (0)
+
+[A_PFL]
+group=PFL
+kind=144
+action=12 (1)
+
+[B_PFL]
+group=PFL
+kind=144
+action=12 (2)
+
