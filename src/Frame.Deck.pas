@@ -13,6 +13,8 @@ uses
 	hKnob, hSlider, DecksButton, BCTypes;
 
 const
+	BPMStep = 0.02;
+
 	WM_ZONE = LM_USER + 2010;
 
 type
@@ -107,6 +109,8 @@ type
 		procedure SliderGraphXChange(Sender: TObject);
 		procedure SliderTempoChange(Sender: TObject);
 		procedure TimerTimer(Sender: TObject);
+		procedure pbZonesMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
+			MousePos: TPoint; var Handled: Boolean);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -133,6 +137,8 @@ type
 		PlayPosition: QWord;
 		CurrentZone: Word;
 		CurrentDevice: Integer;
+		IsShiftDown,
+		CanCreateNewZone: Boolean;
 
 		constructor Create(AOwner: TComponent); override;
 		destructor  Destroy; override;
@@ -675,6 +681,7 @@ begin
 		RightToLeft := False;
 		EndEllipsis := True;
 	end;
+	CanCreateNewZone := True;
 
 	Ruler := TBGRABitmap.Create;
 	Zoner := TBGRABitmap.Create;
@@ -695,15 +702,21 @@ begin
 	Ruler.Free;
 	Zoner.Free;
 	//Deck.Free; //owned by MainForm.DeckList
+
 	inherited Destroy;
 end;
 
 function TDeckFrame.ProcessKeyUp(var Key: Word; Shift: TShiftState): Boolean;
 begin
 	Result := True;
+
 	case Key of
+
 		VK_CONTROL:
 			bPlay.OnMouseUp(Self, mbRight, Shift, 0, 0);
+
+		VK_SHIFT:
+			IsShiftDown := False;
 
 		VK_ADD, VK_SUBTRACT,
 		VK_UP,  VK_DOWN:
@@ -716,10 +729,19 @@ end;
 function TDeckFrame.ProcessKeyDown(var Key: Word; Shift: TShiftState): Boolean;
 begin
 	Result := True;
+
 	case Key of
+
 		VK_SPACE:		bPlay.OnClick(Self);
 
 		VK_CONTROL:		bPlay.OnMouseDown(Self, mbRight, Shift, 0, 0);
+
+		VK_SHIFT:
+			if not IsShiftDown then
+			begin
+				CanCreateNewZone := True;
+				IsShiftDown := True;
+			end;
 
 		VK_ADD,
 		VK_UP:			Deck.BendStart(True,  (ssShift in Shift));
@@ -732,18 +754,28 @@ begin
 end;
 
 function TDeckFrame.ProcessKeyPress(var Key: Char): Boolean;
+var
+	Z: TZone;
 begin
 	Result := True;
 	case Key of
 
 		'+':
 		begin
-			Deck.Graph.AddZone(Deck.Graph.GraphToBar(GraphCue.x));
-			RedrawGraph;
+			Z := Deck.Graph.AddZone(Deck.Graph.GraphToBar(GraphCue.x));
+			if Z <> nil then
+			begin
+				CurrentZone := Deck.Graph.Zones.IndexOf(Z);
+				RedrawGraph;
+			end;
 		end;
 
 		'-':
-			ShowMessage('Not implemented :D');
+		if Deck.Graph.RemoveZone(CurrentZone) then
+		begin
+			if CurrentZone > 0 then Dec(CurrentZone);
+			RedrawGraph;
+		end;
 
 	else
 		Result := False;
@@ -818,13 +850,49 @@ end;
 
 procedure TDeckFrame.pbMouseWheel(Sender: TObject; Shift: TShiftState;
 	WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+var
+	B, I: Integer;
+	Z: TZone;
 begin
 	Handled := True;
-	if WheelDelta > 0 then
-		ZoomGraph(+1)
+
+	if Shift = [ssShift] then
+	begin
+		B := Deck.Graph.GraphToBar(GraphHover.x);
+
+		I := Deck.Graph.Bars[B].Zone;
+		Z := Deck.Graph.Zones[I];
+		if Z = nil then Exit;
+
+		if (CanCreateNewZone) and (Z.barindex <> B) then
+		begin
+			Z := Deck.Graph.AddZone(B);
+			if Z <> nil then
+			begin
+				I := Deck.Graph.Zones.IndexOf(Z);
+				CurrentZone := I;
+			end;
+		end;
+
+		if WheelDelta < 0 then
+			Z.BPM := Z.BPM + BPMStep
+		else
+		if WheelDelta > 0 then
+			Z.BPM := Z.BPM - BPMStep;
+
+		ZoneChanged(I, False);
+		RedrawGraph;
+
+		CanCreateNewZone := False;
+	end
 	else
-	if WheelDelta < 0 then
-		ZoomGraph(-1);
+	begin
+		if WheelDelta > 0 then
+			ZoomGraph(+1)
+		else
+		if WheelDelta < 0 then
+			ZoomGraph(-1);
+	end;
 end;
 
 procedure TDeckFrame.pbRulerMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1307,6 +1375,29 @@ begin
 
 	end;
 end;
+
+procedure TDeckFrame.pbZonesMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
+	MousePos: TPoint; var Handled: Boolean);
+var
+	Z: TZone;
+begin
+	Handled := True;
+
+	if Shift = [ssShift] then
+	begin
+		Z := Deck.Graph.Zones[CurrentZone];
+
+		if WheelDelta < 0 then
+			Z.BPM := Z.BPM + BPMStep
+		else
+		if WheelDelta > 0 then
+			Z.BPM := Z.BPM - BPMStep;
+
+		ZoneChanged(CurrentZone, False);
+		RedrawGraph;
+	end;
+end;
+
 
 end.
 

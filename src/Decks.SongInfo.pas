@@ -28,6 +28,7 @@ type
 
 	procedure SetSongInfoPath(const Path: String);
 	function  GetSongInfo(const Filename: String; KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
+	function  GetBPMFile(const AudioFileName: String): String; inline;
 
 
 implementation
@@ -95,6 +96,11 @@ ZONE 133 657 6082036
 end;
 }
 
+function GetBPMFile(const AudioFileName: String): String;
+begin
+	Result := Config.Directory.BPM + AudioFilename + '.bpm';
+end;
+
 function GetSongInfo(const Filename: String;
 	KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 var
@@ -136,7 +142,7 @@ begin
 	Result.BPM := 0.0;
 	//Result.StartPos := 0;
 
-	Fn := Config.Directory.BPM + Filename + '.bpm';
+	Fn := GetBPMFile(Filename);
 	if not FileExists(Fn) then Exit;
 
 	Sl := TStringList.Create;

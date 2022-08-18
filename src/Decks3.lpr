@@ -8,7 +8,7 @@ uses
 	Interfaces, // this includes the LCL widgetset
 	Forms, Form.Main, Frame.Deck,
 	Decks.Audio, Decks.Song, Decks.Beatgraph,
-	Decks.SongInfo;
+	Decks.SongInfo, Decks.TagScanner;
 
 {$R *.res}
 

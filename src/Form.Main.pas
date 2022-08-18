@@ -13,6 +13,8 @@ uses
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Deck, Frame.Deck;
 
 const
+	SupportedFormats = '.mp3 .ogg .wav .mod .sid .nsf';
+
 	COLOR_FILE_DEFAULT = $AAAAAA;
 	COLOR_FILE_HASBPM  = $DDEEFF;
 	COLOR_FILE_PLAYED  = $5EB078;
@@ -49,6 +51,10 @@ type
 		SplitterV: TSplitter;
 		SplitterH: TSplitter;
 		Timer: TTimer;
+		miFileActions: TMenuItem;
+		miSep2: TMenuItem;
+		miFileRename: TMenuItem;
+		miFileDelete: TMenuItem;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -79,8 +85,12 @@ type
 		procedure sFaderMouseUp(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure TimerTimer(Sender: TObject);
+		procedure miFileRenameClick(Sender: TObject);
+		procedure miFileDeleteClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
+		IsShiftDown: Boolean;
+
 		procedure ResizeFrames;
 		function  FindFileListEntry(const Filename: String): ThListItem;
 	public
@@ -106,6 +116,9 @@ type
 		function  FindDeck(Index: Integer): TDeck;
 		function  FindDeckForm(Index: Integer): TDeckFrame;
 		procedure LoadDeck(Index: Integer = 0);
+
+		procedure OnFileItemAdded(Sender: TObject);
+		procedure OnFileTagsRead(Sender: TObject);
 	end;
 
 	TMixerDeck = record
@@ -143,9 +156,13 @@ implementation
 {$R *.lfm}
 
 uses
-	Math, FileUtil,
+	Math, FileUtil, StrUtils,
 	AudioTag, basetag, file_Wave, file_mp3, file_ogg,
+	Decks.TagScanner,
 	Decks.Song, Decks.SongInfo, Decks.Beatgraph;
+
+var
+	TagScanner: TTagScannerJob;
 
 // ================================================================================================
 // Utility
@@ -518,12 +535,13 @@ end;
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
 	Shift: TShiftState);
 begin
+	if Key = VK_SHIFT then IsShiftDown := True;
+
 	if MasterDeck = nil then Exit;
 
 	case Key of
 
 		VK_DELETE:
-		if MasterDeck <> nil then
 			CloseDeck(MasterDeck);
 
 		VK_LEFT:
@@ -540,12 +558,8 @@ begin
 		end;
 
 	else
-	if MasterDeck <> nil then
 		if MasterDeck.ProcessKeyDown(Key, Shift) then
-		begin
 			Key := 0;
-			Exit;
-		end;
 	end;
 end;
 
@@ -561,6 +575,8 @@ end;
 
 procedure TMainForm.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
+	if Key = VK_SHIFT then IsShiftDown := False;
+
 	if MasterDeck <> nil then
 		if MasterDeck.ProcessKeyUp(Key, Shift) then
 		begin
@@ -593,19 +609,6 @@ begin
 		SelectedFile := CurrentDir + Item.Caption;
 end;
 
-function ReadTags(const Filename: String): TTagReader;
-var
-	TagClass: TTagReaderClass;
-begin
-	if not FileExists(Filename) then Exit(nil);
-	TagClass := IdentifyKind(Filename);
-	Result := TagClass.Create;
-	try
-		Result.LoadFromFile(Filename);
-	except
-	end;
-end;
-
 function TMainForm.FindFileListEntry(const Filename: String): ThListItem;
 var
 	Item: ThListItem;
@@ -633,15 +636,26 @@ begin
 	end;
 end;
 
-procedure TMainForm.UpdateFileInfo(Filename: String);
+procedure TMainForm.OnFileItemAdded(Sender: TObject);
+var
+	Filename: String;
+	Item: ThListItem;
+begin
+	Filename := ExtractFileName(TagScanner.CurrentFilename);
+	Item := FileList.AddItem(Filename);
+	if PlayedFilenames.IndexOf(Filename) >= 0 then
+		Item.Color := COLOR_FILE_PLAYED;
+	FileList.Invalidate;
+	Application.ProcessMessages;
+end;
+
+procedure TMainForm.OnFileTagsRead(Sender: TObject);
 var
 	Item: ThListItem;
 	Info: TSongInfo;
-	TagReader: TTagReader;
-	Tags: TCommonTags;
-	S: String;
+	Filename, S: String;
 begin
-	Filename := ExtractFileName(Filename);
+	Filename := ExtractFileName(TagScanner.CurrentFilename);
 	Item := FindFileListEntry(Filename);
 	if Item <> nil then
 	begin
@@ -658,26 +672,9 @@ begin
 			S := '';
 		Item.SubItems.Add(S);
 
-		TagReader := ReadTags(CurrentDir + Item.Caption);
-		if Assigned(TagReader) then
-		begin
-			Tags := TagReader.GetCommonTags;
-
-			if Tags.Duration > 0 then
-				Item.SubItems.Add(
-					FormatDateTime('nn:ss', Tags.Duration / MSecsPerDay).Replace('.',':'))
-			else
-				Item.SubItems.Add('');
-
-			if TagReader.MediaProperty.BitRate > 0 then
-				Item.SubItems.Add('%d', [TagReader.MediaProperty.Bitrate])
-			else
-				Item.SubItems.Add('');
-			Item.SubItems.Add(Tags.Artist);
-			Item.SubItems.Add(Tags.Title);
-
-			TagReader.Free;
-		end;
+		if TagScanner.CurrentTags <> nil then
+			for S in TagScanner.CurrentTags do
+				Item.SubItems.Add(S);
 
 		FileList.Invalidate;
 		Application.ProcessMessages;
@@ -705,8 +702,6 @@ begin
 end;
 
 procedure TMainForm.ListFilesInDir(const Dir: String);
-const
-	SupportedFormats = '.mp3 .ogg .wav .mod .sid .nsf';
 var
 	S, Fn: String;
 	Files: TStringList;
@@ -717,31 +712,20 @@ begin
 		CurrentDir := IncludeTrailingPathDelimiter(Dir);
 		Config.Directory.Audio := CurrentDir;
 
-	//	FileList.BeginUpdate;
+		FileList.Items.Clear;
 		FileList.Tag := 0;
 
-		Files := FindAllFiles(CurrentDir, '*.*', False);
-		try
-			FileList.Items.Clear;
-			for S in Files do
-			begin
-				Fn := LowerCase(ExtractFileExt(S));
-				if Pos(Fn, SupportedFormats) < 1 then Continue;
-				Fn := ExtractFilename(S);
-				Item := FileList.AddItem(Fn);
-				if PlayedFilenames.IndexOf(S) >= 0 then
-					Item.Color := COLOR_FILE_PLAYED;
-			end;
-		finally
-			Files.Free;
-		end;
+		if Assigned(TagScanner) then TagScanner.Terminate;
 
-	//	FileList.EndUpdate;
-		FileList.Invalidate;
+		TagScanner := TTagScannerJob.Create;
+		TagScanner.Directory   := CurrentDir;
+		TagScanner.Extensions  := SupportedFormats;
+		TagScanner.OnFileAdded := OnFileItemAdded;
+		TagScanner.OnTagsRead  := OnFileTagsRead;
+		TagScanner.Execute(True);
 	end;
 
 	FileList.Tag := 1;
-	UpdateFileInfos;
 end;
 
 procedure TMainForm.ListDirsCollapsed(Sender: TObject; Node: TTreeNode);
@@ -899,7 +883,7 @@ begin
 
 	mi := TMenuItem.Create(PopupFile);
 	mi.OnClick := miLoadFileClick;
-	PopupFile.Items.Insert(PopupFile.Items.Count - 2, mi);
+	PopupFile.Items.Insert(PopupFile.Items.Count - 4, mi);
 	Result.MenuItem := mi;
 	Result.UpdateMenuItem;
 
@@ -1059,6 +1043,117 @@ end;
 procedure TMainForm.sDirsChange(Sender: TObject);
 begin
 	ListDirs.ScrollY := Trunc(sDirs.Position);
+end;
+
+procedure TMainForm.UpdateFileInfo(Filename: String);
+var
+	Item: ThListItem;
+	Info: TSongInfo;
+	S: String;
+begin
+	Filename := ExtractFileName(Filename);
+	Item := FindFileListEntry(Filename);
+	if Item = nil then Exit;
+
+	Info := GetSongInfo(Filename);
+	if Info.BPM > 1 then
+	begin
+		S := Format('%.2f', [Info.BPM]);
+		if Item.Color = clNone then
+			Item.Color := COLOR_FILE_HASBPM;
+	end
+	else
+		S := '';
+	Item.SubItems[0] := S;
+
+	FileList.Invalidate;
+	Application.ProcessMessages;
+end;
+
+procedure ErrorMessage(const MsgText: String);
+begin
+	MessageDlg('Error', MsgText, mtError, [mbOK], '');
+end;
+
+procedure TMainForm.miFileRenameClick(Sender: TObject);
+var
+	Path, Fn, Ext, NewName: String;
+	ListItem: ThListItem;
+begin
+	if SelectedFile.IsEmpty then Exit;
+
+	Path := ExtractFilePath(SelectedFile);
+	Ext  := ExtractFileExt(SelectedFile);
+	Fn   := ExtractFileNameWithoutExt(ExtractFileName(SelectedFile));
+	NewName := Fn;
+
+	if not IsShiftDown then
+	begin
+		NewName := Trim(NewName);
+		NewName := NewName.Replace('_', ' ', [rfReplaceAll]);
+		while NewName.Contains('  ') do
+			NewName := NewName.Replace('  ', ' ', [rfReplaceAll]);
+		NewName := AnsiProperCase(NewName, [' ', '-', '(', '[']);
+	end;
+
+	NewName := InputBox('Rename File', 'Type a new filename:', NewName);
+	if NewName = Fn then Exit;
+	NewName := NewName + Ext;
+
+	ListItem := FindFileListEntry(Fn + Ext);
+	Fn := IncludeTrailingPathDelimiter(Path) + NewName;
+
+	if not RenameFile(SelectedFile, Fn) then
+	begin
+		ErrorMessage('Could not rename the file.');
+		Exit;
+	end;
+
+	Path := GetBPMFile(ExtractFileName(SelectedFile));
+	if FileExists(Path) then
+		RenameFile(Path, GetBPMFile(NewName));
+
+	if ListItem <> nil then
+	begin
+		ListItem.Caption := NewName;
+		FileList.Invalidate;
+	end;
+
+	SelectedFile := Fn;
+end;
+
+procedure TMainForm.miFileDeleteClick(Sender: TObject);
+var
+	ListItem: ThListItem;
+begin
+	if SelectedFile.IsEmpty then Exit;
+
+	if MessageDlg('Delete File', 'Are you sure?', mtConfirmation, mbYesNo, '') = mrYes then
+	begin
+		if not DeleteFile(SelectedFile) then
+		begin
+			ErrorMessage('Could not delete the file.');
+			Exit;
+		end;
+
+		ListItem := FindFileListEntry(ExtractFileName(SelectedFile));
+
+		SelectedFile := GetBPMFile(ExtractFileName(SelectedFile));
+		if FileExists(SelectedFile) then
+		begin
+			if MessageDlg('Delete Metadata', 'Also delete the associated .BPM file?',
+				mtConfirmation, mbYesNo, '') = mrYes then
+					DeleteFile(SelectedFile);
+		end;
+
+		if ListItem <> nil then
+		begin
+			FileList.Items.Remove(ListItem);
+			FileList.Invalidate;
+		end;
+
+		SelectedFile := '';
+	end;
 end;
 
 end.

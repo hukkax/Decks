@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="Decks3.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -100,10 +100,14 @@
         <UnitName Value="hKnob"/>
       </Unit12>
       <Unit13>
-        <Filename Value="Decks.Midi.pas"/>
+        <Filename Value="Decks.MIDI.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Decks.MIDI"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="decks.tagscanner.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Decks.TagScanner"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

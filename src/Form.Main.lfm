@@ -21,7 +21,6 @@ object MainForm: TMainForm
   OnResize = FormResize
   ParentDoubleBuffered = False
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
   object PanelTop: TPanel
     Left = 0
     Height = 48
@@ -537,6 +536,21 @@ object MainForm: TMainForm
       Caption = 'New deck'
       ImageIndex = 3
       OnClick = miLoadFileClick
+    end
+    object miSep2: TMenuItem
+      Caption = '-'
+    end
+    object miFileActions: TMenuItem
+      Caption = 'File Actions'
+      object miFileRename: TMenuItem
+        Caption = 'Rename'
+        ShortCut = 16466
+        OnClick = miFileRenameClick
+      end
+      object miFileDelete: TMenuItem
+        Caption = 'Delete'
+        OnClick = miFileDeleteClick
+      end
     end
   end
   object ImageListIcons: TImageList

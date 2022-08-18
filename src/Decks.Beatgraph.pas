@@ -91,6 +91,7 @@ type
 		procedure 	ZonesChanged;
 		procedure 	ZonesLoaded;
 		function 	AddZone(Barpos: QWord; BPM: Single = 0; IsSongPos: Boolean = False): TZone;
+		function	RemoveZone(ZoneIndex: Word): Boolean;
 
 		function	BytesPerSample: Byte; inline;
 		function	GetFreq(ForGraph: Boolean): Word; inline;
@@ -123,6 +124,7 @@ var
 implementation
 
 uses
+	Dialogs,
 	Decks.Audio;
 
 {$IFDEF DEBUGLOG}
@@ -321,6 +323,26 @@ begin
 	{$IFDEF DEBUGLOG} Log('[ZonesLoaded]', True); {$ENDIF}
 	ZonesChanged;
 	NeedRecalc := True;
+end;
+
+function TBeatGraph.RemoveZone(ZoneIndex: Word): Boolean;
+var
+	X, BI: Integer;
+	P: QWord;
+begin
+	if (Zones.Count <= 1) or (ZoneIndex >= Zones.Count) then Exit(False);
+
+	ShowMessage(Format('Delete Zone %d (%f BPM)', [ZoneIndex, Zones[ZoneIndex].BPM]));
+
+	P := Zones[ZoneIndex].Pos;
+	BI := Zones[ZoneIndex].barindex;
+	for X := BI to amount_bars do
+		Bars[X].Zone -= 1;
+	Zones.Delete(ZoneIndex);
+	Zones[ZoneIndex].Pos := P;
+
+	ZonesLoaded;
+	Result := True;
 end;
 
 function TBeatGraph.AddZone(Barpos: QWord; BPM: Single = 0; IsSongPos: Boolean = False): TZone;
