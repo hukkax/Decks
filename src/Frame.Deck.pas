@@ -886,6 +886,18 @@ begin
 		CanCreateNewZone := False;
 	end
 	else
+	if Shift = [ssAlt] then
+	begin
+		I := Trunc(Deck.Graph.GetBarLength(False, 0) / pb.ClientHeight);
+		if WheelDelta > 0 then
+			Deck.Graph.StartPos += I
+		else
+		if WheelDelta < 0 then
+			Deck.Graph.StartPos := Max(0, Deck.Graph.StartPos - I);
+		Deck.Graph.ZonesLoaded;
+		RedrawGraph;
+	end
+	else
 	begin
 		if WheelDelta > 0 then
 			ZoomGraph(+1)
