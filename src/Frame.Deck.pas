@@ -111,6 +111,10 @@ type
 		procedure TimerTimer(Sender: TObject);
 		procedure pbZonesMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
 			MousePos: TPoint; var Handled: Boolean);
+		procedure SliderTempoFracMouseWheelDown(Sender: TObject; Shift: TShiftState;
+			MousePos: TPoint; var Handled: Boolean);
+		procedure SliderTempoFracMouseWheelUp(Sender: TObject; Shift: TShiftState;
+			MousePos: TPoint; var Handled: Boolean);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -856,6 +860,7 @@ var
 begin
 	Handled := True;
 
+	// shift+wheel to add/modify zone at cursor pos
 	if Shift = [ssShift] then
 	begin
 		B := Deck.Graph.GraphToBar(GraphHover.x);
@@ -886,18 +891,21 @@ begin
 		CanCreateNewZone := False;
 	end
 	else
+	// alt+wheel to adjust song start position
 	if Shift = [ssAlt] then
 	begin
-		I := Trunc(Deck.Graph.GetBarLength(False, 0) / pb.ClientHeight);
+		I := Trunc(Deck.Graph.GetBarLength(False, 0) / pb.ClientHeight); // shift by 1 graph pixel
 		if WheelDelta > 0 then
 			Deck.Graph.StartPos += I
 		else
 		if WheelDelta < 0 then
 			Deck.Graph.StartPos := Max(0, Deck.Graph.StartPos - I);
+
 		Deck.Graph.ZonesLoaded;
 		RedrawGraph;
 	end
 	else
+	// zoom graph with wheel
 	begin
 		if WheelDelta > 0 then
 			ZoomGraph(+1)
@@ -1234,7 +1242,7 @@ procedure TDeckFrame.RedrawGraph;
 var
 	BPM: Single;
 begin
-	BPM := SliderTempo.Position + (SliderTempoFrac.Position / 999);
+	BPM := SliderTempo.Position + (SliderTempoFrac.Position / 1000);
 
 	if CurrentZone = 0 then
 		Deck.OrigBPM := BPM;
@@ -1410,6 +1418,27 @@ begin
 	end;
 end;
 
+procedure TDeckFrame.SliderTempoFracMouseWheelDown(Sender: TObject; Shift: TShiftState;
+	MousePos: TPoint; var Handled: Boolean);
+begin
+	if SliderTempoFrac.Position <= SliderTempoFrac.Min then
+	begin
+		SetSlider(SliderTempoFrac, 990);
+		SliderTempo.Position := SliderTempo.Position - 1;
+		Handled := True;
+	end;
+end;
+
+procedure TDeckFrame.SliderTempoFracMouseWheelUp(Sender: TObject; Shift: TShiftState;
+	MousePos: TPoint; var Handled: Boolean);
+begin
+	if SliderTempoFrac.Position >= 990 then
+	begin
+		SetSlider(SliderTempoFrac, SliderTempoFrac.Min);
+		SliderTempo.Position := SliderTempo.Position + 1;
+		Handled := True;
+	end;
+end;
 
 end.
 

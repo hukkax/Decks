@@ -280,6 +280,8 @@ object DeckFrame: TDeckFrame
     Max = 999
     Position = 0
     OnChange = SliderTempoChange
+    OnMouseWheelUp = SliderTempoFracMouseWheelUp
+    OnMouseWheelDown = SliderTempoFracMouseWheelDown
   end
   object SliderAmp: ThKnob
     Left = 378
