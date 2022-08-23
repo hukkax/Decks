@@ -69,6 +69,7 @@ type
 		FKind: TScrollBarKind;
 		FShowArrows: Boolean;
 		FFlat: Boolean;
+		FWrapAround: Boolean;
 		FOnChange: TNotifyEvent;
 		FOnUserChange: TNotifyEvent;
 		procedure SetButtonSize(Value: Integer);
@@ -140,6 +141,7 @@ type
 		property ShadowColor: TColor read FShadowColor write SetShadowColor default clBtnShadow;
 		property LightAmount: Integer read FLightAmount write SetLightAmount default 12;
 		property Flat: Boolean read FFlat write SetFlat default True;
+		property WrapAround: Boolean read FWrapAround write FWrapAround default False;
 		property Kind: TScrollBarKind read FKind write SetKind default sbHorizontal;
 		property ShowArrows: Boolean read FShowArrows write SetShowArrows default True;
 		property OnChange: TNotifyEvent read FOnChange write FOnChange;
@@ -199,6 +201,7 @@ type
 		property Increment;
 		property Kind;
 		property Flat;
+		property WrapAround;
 		property Range;
 		property Visible;
 		property Window;
@@ -273,6 +276,7 @@ type
 		property HandleSize;
 		property Kind;
 		property Flat;
+		property WrapAround;
 		property LargeChange;
 		property Max;
 		property Min;
@@ -288,6 +292,8 @@ type
 		property OnMouseLeave;
 		property OnMouseDown;
 		property OnMouseMove;
+		property OnMouseWheelUp;
+		property OnMouseWheelDown;
 		property OnMouseUp;
 		property OnStartDrag;
 		property OnUserChange;
@@ -1426,8 +1432,8 @@ end;
 
 procedure TCustomGaugeBar.AdjustPosition;
 begin
-  if Position < Min then Position := Min
-  else if Position > Max then Position := Max;
+	if Position < Min then Position := Min
+	else if Position > Max then Position := Max;
 end;
 
 constructor TCustomGaugeBar.Create(AOwner: TComponent);
@@ -1576,14 +1582,23 @@ end;
 
 procedure TCustomGaugeBar.SetPosition(Value: Integer);
 begin
-  if Value < Min then Value := Min
-  else if Value > Max then Value := Max;
-  if Round(FPosition) <> Value then
-  begin
-    FPosition := Value;
-    Invalidate;
-    DoChange;
-  end;
+	if (FWrapAround) and (FDragZone <> zHandle) then
+	begin
+		if Value < Min then Value := Max
+		else if Value > Max then Value := Min;
+	end
+	else
+	begin
+		if Value < Min then Value := Min
+		else if Value > Max then Value := Max;
+	end;
+
+	if Round(FPosition) <> Value then
+	begin
+		FPosition := Value;
+		Invalidate;
+		DoChange;
+	end;
 end;
 
 procedure TCustomGaugeBar.SetSmallChange(Value: Integer);
