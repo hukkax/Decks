@@ -436,9 +436,15 @@ begin
 	MenuItem.Tag := Index;
 	MenuItem.Caption := 'Deck ' + MenuItem.Tag.ToString;
 	if (Self.Paused) or (not Self.Loaded) then
-		MenuItem.ImageIndex := -1
+	begin
+		MenuItem.Enabled := True;
+		MenuItem.ImageIndex := -1;
+	end
 	else
+	begin
+		MenuItem.Enabled := False;
 		MenuItem.ImageIndex := 22;
+	end;
 end;
 
 function TDeck.GetPlayPosition(FromMixer: Boolean = True): Int64;
