@@ -114,6 +114,7 @@ type
 		procedure Execute(Action: TDecksAction; Pressed: Boolean = True; Value: Integer = 0);
 		procedure UpdateController(Deck: TDeck; Event: Integer);
 
+		procedure DeckLayoutChanged;
 		function  CreateDeck: TDeck;
 		procedure CloseDeck(DeckFrame: TDeckFrame);
 		function  FindDeck(Index: Integer): TDeck;
@@ -869,6 +870,26 @@ begin
 	MixerDeck[2].Apply(ApplyEQ);
 end;
 
+procedure TMainForm.DeckLayoutChanged;
+var
+	i: Integer;
+	Deck: TDeck;
+begin
+	for i := 0 to DeckList.Count-1 do
+	begin
+		Deck := DeckList[i];
+		Deck.Index := i+1;
+		Deck.Form.Name := Deck.Form.Name + Deck.Index.ToString;
+		if i in [0,1] then
+			MixerDeck[i+1].Deck := Deck;
+	end;
+
+	if MixerDeck[1].Deck <> nil then
+		MixerDeck[1].Deck.OtherDeck := MixerDeck[2].Deck;
+	if MixerDeck[2].Deck <> nil then
+		MixerDeck[2].Deck.OtherDeck := MixerDeck[1].Deck;
+end;
+
 function TMainForm.CreateDeck: TDeck;
 var
 	mi: TMenuItem;
@@ -879,18 +900,11 @@ begin
 	Result.Form.Deck := Result;
 	Result.Form.Parent := DeckPanel;
 	TDeckFrame(Result.Form).Init(Result);
-	Result.Form.Name := Result.Form.Name + Result.Index.ToString;
 
 	if DeckList.Count < 2 then
 		SetMaster(1);
 
-	if Result.Index in [1, 2] then
-		MixerDeck[Result.Index].Deck := Result;
-
-	if MixerDeck[1].Deck <> nil then
-		MixerDeck[1].Deck.OtherDeck := MixerDeck[2].Deck;
-	if MixerDeck[2].Deck <> nil then
-		MixerDeck[2].Deck.OtherDeck := MixerDeck[1].Deck;
+	DeckLayoutChanged;
 
 	sFaderChange(Self);
 	ResizeFrames;
@@ -912,13 +926,18 @@ begin
 	SetMaster(0);
 	DeckFrame.Timer.Enabled := False;
 	Deck := DeckFrame.Deck;
+
 	for I := 1 to 2 do
 		if MixerDeck[I].Deck = Deck then
 			MixerDeck[I].Deck := nil;
+
 	I := DeckList.IndexOf(Deck);
 	if I >= 0 then
 		DeckList.Delete(I); // destroys the frame, too
 	MasterDeck := nil;
+
+	DeckLayoutChanged;
+
 	ResizeFrames;
 end;
 
