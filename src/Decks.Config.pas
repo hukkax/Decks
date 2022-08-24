@@ -39,6 +39,7 @@ type
 		end;
 
 		Mixer: record
+			Enabled,
 			Enable_Crossfader,
 			Enable_Equalizer: Boolean;
 			EQ: record
@@ -144,6 +145,7 @@ begin
 	Controller.Config := Ini.ReadString(Sect, 'config', '');
 
 	Sect := 'mixer';
+	Mixer.Enabled := Ini.ReadBool(Sect, 'enabled', True);
 	Mixer.Enable_Crossfader := Ini.ReadBool(Sect, 'crossfader', True);
 	Mixer.Enable_Equalizer  := Ini.ReadBool(Sect, 'eq',         True);
 	Mixer.EQ.Low := Ini.ReadInteger(Sect, 'low',  125);
@@ -176,6 +178,9 @@ begin
 	Ini.WriteInteger(Sect, 'updateperiod', Audio.UpdatePeriod);
 	for i := 1 to High(Audio.Device) do
 		Ini.WriteInteger(Sect, 'device.' + IntToStr(i), Audio.Device[i]);
+
+	Sect := 'mixer';
+	Ini.WriteBool(Sect, 'enabled', Mixer.Enabled);
 
 	Ini.Free;
 end;

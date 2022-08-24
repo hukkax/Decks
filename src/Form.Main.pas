@@ -55,6 +55,7 @@ type
 		miSep2: TMenuItem;
 		miFileRename: TMenuItem;
 		miFileDelete: TMenuItem;
+		miEnableMixer: TMenuItem;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -87,6 +88,7 @@ type
 		procedure TimerTimer(Sender: TObject);
 		procedure miFileRenameClick(Sender: TObject);
 		procedure miFileDeleteClick(Sender: TObject);
+		procedure miEnableMixerClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -97,6 +99,7 @@ type
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
 
+		procedure UpdateMixerVisibility;
 		procedure ApplyMixer(ApplyEQ: Boolean = True);
 
 		procedure SetActiveList(RightList: Boolean);
@@ -497,6 +500,9 @@ begin
 	EQControls[2, EQ_BAND_LOW]  := sEQ2L;
 	EQControls[2, EQ_BAND_MID]  := sEQ2M;
 	EQControls[2, EQ_BAND_HIGH] := sEQ2H;
+
+	miEnableMixer.Checked := Config.Mixer.Enabled;
+	UpdateMixerVisibility;
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -849,8 +855,16 @@ begin
 	end;
 end;
 
+procedure TMainForm.UpdateMixerVisibility;
+begin
+	MixerPanel.Visible := Config.Mixer.Enabled;
+	MixerPanel.Enabled := MixerPanel.Visible;
+end;
+
 procedure TMainForm.ApplyMixer(ApplyEQ: Boolean = True);
 begin
+	if not Config.Mixer.Enabled then Exit;
+
 	MixerDeck[1].Apply(ApplyEQ);
 	MixerDeck[2].Apply(ApplyEQ);
 end;
@@ -971,6 +985,8 @@ end;
 
 procedure TMainForm.sFaderChange(Sender: TObject);
 begin
+	if not Config.Mixer.Enabled then Exit;
+
 	MixerDeck[1].Volume := Min((1000 - sFader.Position) * 2, 1000) / 1000;
 	MixerDeck[2].Volume := Min(sFader.Position * 2, 1000) / 1000;
 	ApplyMixer(False);
@@ -1154,6 +1170,13 @@ begin
 
 		SelectedFile := '';
 	end;
+end;
+
+procedure TMainForm.miEnableMixerClick(Sender: TObject);
+begin
+	Config.Mixer.Enabled := not Config.Mixer.Enabled;
+	miEnableMixer.Checked := Config.Mixer.Enabled;
+	UpdateMixerVisibility;
 end;
 
 end.

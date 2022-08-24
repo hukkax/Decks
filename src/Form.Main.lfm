@@ -731,5 +731,10 @@ object MainForm: TMainForm
     object miMIDIInput: TMenuItem
       Caption = 'MIDI Controller'
     end
+    object miEnableMixer: TMenuItem
+      Caption = 'Enable Mixer'
+      Checked = True
+      OnClick = miEnableMixerClick
+    end
   end
 end
