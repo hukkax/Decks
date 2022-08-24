@@ -265,7 +265,7 @@ object DeckFrame: TDeckFrame
     Left = 404
     Height = 222
     Hint = 'BPM Fractional'
-    Top = 40
+    Top = 39
     Width = 25
     Anchors = [akTop, akRight, akBottom]
     Color = 2171427

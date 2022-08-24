@@ -385,6 +385,8 @@ begin
 		lTime.Tag := time_e;
 	end;
 
+	bPlay.StateNormal.Border.Color := Grays[Deck.BeatFadeCounter];
+
 	DrawGraph;
 end;
 
@@ -397,6 +399,7 @@ begin
 		Deck.BendUpdate;
 
 	Deck.BeatFadeCounter := Max(0, Deck.BeatFadeCounter - 40);
+
 	ShowPosition;
 end;
 
@@ -477,6 +480,11 @@ end;
 
 procedure TDeckFrame.bSyncMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
+var
+	P: QWord;
+//	SrcY, BL: Single;
+//	DestY: QWord;
+	PT, CT: TPoint;
 begin
 	case Button of
 		mbLeft:
@@ -484,8 +492,38 @@ begin
 			Deck.Synced := not Deck.Synced;
 			bSync.StateNormal.Border.LightWidth := IfThen(Deck.Synced, 1, 0);
 		end;
+
 		mbRight:
-			;
+		if Deck.OtherDeck <> nil then
+		begin
+			(*
+			P := Deck.OtherDeck.GetPlayPosition;
+P := BASS_ChannelGetPosition(
+		Deck.OtherDeck.OrigStream, BASS_POS_BYTE)
+		- Deck.OtherDeck.Graph.StartPos);
+
+			SrcY  := Deck.OtherDeck.Graph.GetYPos(P);
+
+			P := Deck.Graph.GraphToSongBytes(CuePos);
+			DestY := P;
+			BL := Deck.Graph.GraphToSongBytes(Trunc(Deck.Graph.GetBarLengthAt(P)));
+			DestY += Trunc(BL * SrcY);
+
+			bMaster.Caption := Format('SrcY=%f  DestY=%d  BarLen=%f', [SrcY, DestY, BL]);
+			*)
+			CT := Deck.Graph.PosToGraph(Deck.GetPlayPosition(True), False);
+			BASS_SetDevice(CurrentDevice);
+			PT := Deck.OtherDeck.Graph.PosToGraph(Deck.OtherDeck.GetPlayPosition(False), False);
+			CT.Y := PT.Y;
+			P := Deck.Graph.GraphToPos(CT);
+
+			BASS_Mixer_ChannelSetPosition(Deck.OrigStream, P,
+				BASS_POS_BYTE or BASS_POS_MIXER_RESET);
+			if Deck.Paused then Deck.Play;
+
+			ZoneChanged(ZONECHANGE_GETPOS, False);
+			ShowPosition;
+		end;
 	end;
 end;
 
@@ -550,46 +588,10 @@ end;
 
 procedure TDeckFrame.bPlayMouseDown(Sender: TObject;
 	Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-	P: QWord;
-	SrcY, BL: Single;
-//	DestY: QWord;
-	PT, CT: TPoint;
 begin
 	case Button of
 		mbRight:  Cue(True);
-		mbMiddle:
-		if Deck.OtherDeck <> nil then
-		begin
-			(*
-			P := Deck.OtherDeck.GetPlayPosition;
-P := BASS_ChannelGetPosition(
-		Deck.OtherDeck.OrigStream, BASS_POS_BYTE)
-		- Deck.OtherDeck.Graph.StartPos);
-
-			SrcY  := Deck.OtherDeck.Graph.GetYPos(P);
-
-			P := Deck.Graph.GraphToSongBytes(CuePos);
-			DestY := P;
-			BL := Deck.Graph.GraphToSongBytes(Trunc(Deck.Graph.GetBarLengthAt(P)));
-			DestY += Trunc(BL * SrcY);
-
-			bMaster.Caption := Format('SrcY=%f  DestY=%d  BarLen=%f', [SrcY, DestY, BL]);
-			*)
-			CT := Deck.Graph.PosToGraph(Deck.GetPlayPosition(False), False);
-			BASS_SetDevice(CurrentDevice);
-			PT := Deck.OtherDeck.Graph.PosToGraph(Deck.OtherDeck.GetPlayPosition(False), False);
-			CT.Y := PT.Y;
-			P := Deck.Graph.GraphToPos(CT);
-
-			BASS_Mixer_ChannelSetPosition(Deck.OrigStream, P,
-				BASS_POS_BYTE or BASS_POS_MIXER_RESET);
-			if Deck.Paused then Deck.Play;
-
-			ZoneChanged(ZONECHANGE_GETPOS, False);
-			ShowPosition;
-		end;
-
+		mbMiddle: bSyncMouseDown(Sender, mbRight, Shift, X, Y);
 	end;
 end;
 
@@ -754,6 +756,15 @@ begin
 
 		VK_SUBTRACT,
 		VK_DOWN:		Deck.BendStart(False, (ssShift in Shift));
+
+		VK_S:
+		begin
+			if not IsShiftDown then
+				bStoreClick(Self)
+			else
+				bStartMouseDown(Self, mbRight, Shift, 0, 0);
+		end;
+
 	else
 		Result := False;
 	end;
@@ -824,6 +835,7 @@ begin
 		begin
 			GraphDragging := True;
 			pbMouseMove(Sender, Shift, X, Y);
+			SetMaster(Tag);
 		end;
 
 		mbRight:
@@ -937,10 +949,12 @@ begin
 	case Button of
 		mbLeft:
 		begin
+			SetMaster(Tag);
 			SetCaptureControl(pbWave);
 			DragWave.Dragging := True;
 			DragWave.Offset := X;
 		end;
+
 		mbRight:
 			JumpToCue;
 	end;
@@ -982,9 +996,10 @@ begin
 
 		mbLeft:
 		begin
+			SetMaster(Tag);
 			Y := Deck.Graph.GraphToBar(X + Deck.Graph.Scroll.X);
 			CurrentZone := Deck.Graph.Bars[Y].Zone;
-//bMaster.caption := format('X=%d  B=%d  Z=%d', [X, Y, CurrentZone]);
+			//bMaster.caption := format('X=%d  B=%d  Z=%d', [X, Y, CurrentZone]);
 			ZoneChanged(CurrentZone, False);
 		end;
 

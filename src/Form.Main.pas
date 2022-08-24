@@ -1040,6 +1040,8 @@ var
 	W, H: Integer;
 	Deck: TDeck;
 begin
+	if not Config.Mixer.Enabled then Exit;
+
 	W := pbBeats.ClientWidth div 2;
 	H := pbBeats.ClientHeight - 1;
 
