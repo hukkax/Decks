@@ -542,7 +542,11 @@ begin
 end;
 
 procedure TDeckFrame.ZoomGraph(Dir: Integer);
+var
+	P: QWord;
 begin
+	P := CuePos;
+
 	if Dir = 0 then
 		Deck.Graph.WantedZoom := 1
 	else
@@ -554,6 +558,9 @@ begin
 
 	SliderGraphX.Position := 0;
 	RedrawGraph;
+
+	if Dir <> 0 then
+		SetCue(P);
 end;
 
 procedure TDeckFrame.cmbDevicesChange(Sender: TObject);
