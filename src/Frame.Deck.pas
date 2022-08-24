@@ -740,6 +740,8 @@ begin
 
 		VK_CONTROL:		bPlay.OnMouseDown(Self, mbRight, Shift, 0, 0);
 
+		VK_MENU: ;
+
 		VK_SHIFT:
 			if not IsShiftDown then
 			begin
