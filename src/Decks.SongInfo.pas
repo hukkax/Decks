@@ -18,6 +18,7 @@ type
 		Initialized: Boolean;  // loaded
 		OldVersion:  Boolean;  // true=Decks 2, false=Decks 3
 		BPM:         Single;
+		Amp:         Single;
 		Length:      Single;   // song length in seconds
 		//StartPos:    QWord;    // graph start offset in songdata bytes
 	end;
@@ -104,7 +105,7 @@ end;
 function GetSongInfo(const Filename: String;
 	KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 var
-	K, P, Fn: String;
+	Ver, K, P, Fn: String;
 	i, iL, iR: Integer;
 	KW: TInfoKeyword;
 	Sl: TStringList;
@@ -140,6 +141,7 @@ begin
 	Result.Initialized := False;
 	Result.OldVersion := False;
 	Result.BPM := 0.0;
+	Result.Amp := 1.0;
 	//Result.StartPos := 0;
 
 	Fn := GetBPMFile(Filename);
@@ -150,8 +152,8 @@ begin
 		try
 			Sl.LoadFromFile(Fn);
 
-			P := GetValue('Decks');
-			Result.OldVersion := P.StartsWith('2.', True);
+			Ver := GetValue('Decks');
+			Result.OldVersion := Ver.StartsWith('2.', True);
 			if Result.OldVersion then
 				KW := IKW_ZONE_OLD
 			else
@@ -167,6 +169,16 @@ begin
 						SplitInt(P, iL, iR);
 						KeywordHandler(IKW_CUE, TInfoParams.Create(iL, iR))
 					end;
+				end;
+			end;
+
+			if (not Result.OldVersion) and (Ver <> '3.0a') then
+			begin
+				P := GetValue('AMP');
+				if P <> '' then
+				begin
+					SplitInt(P, iL, iR);
+					Result.Amp := iL + (iR / 1000);
 				end;
 			end;
 

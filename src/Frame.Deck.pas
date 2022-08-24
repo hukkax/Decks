@@ -1270,7 +1270,8 @@ begin
 	end;
 
 	Deck.BPM := MasterBPM;
-	Deck.Graph.Brightness := Deck.Graph.CalcBrightness * (SliderAmp.Position / 100);
+	Deck.Info.Amp := SliderAmp.Position / 100;
+	Deck.Graph.Brightness := Deck.Graph.CalcBrightness * Deck.Info.Amp;
 	Deck.SetVolume(-1); // update volume
 
 	Deck.Graph.Draw(pb.ClientWidth-1, pb.ClientHeight-1);
@@ -1377,6 +1378,8 @@ begin
 				SetSlider(SliderTempo, Trunc(Deck.Info.BPM));
 				SetSlider(SliderTempoFrac, Trunc(Frac(Deck.Info.BPM) * 1000));
 			end;
+
+			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
 
 			Deck.Graph.ZonesLoaded;
 			SetCue(TPoint.Zero);

@@ -411,10 +411,10 @@ ZONE 133 657 6082036
 	S := Config.Directory.BPM + ExtractFilename(Filename) + '.bpm';
 	Sl := TStringList.Create;
 	try
-		Sl.Add('Decks 3.0a');
+		Sl.Add('Decks 3.0b');
 		Sl.Add('FILENAME ' + Filename);
 		Sl.Add('BPM ' + FloatToString(OrigBPM));
-		Sl.Add('AMP ' + FloatToString(Graph.Brightness / 2));
+		Sl.Add('AMP ' + FloatToString(Info.Amp));
 		Sl.Add(Format('CUE 0 %d', [Graph.StartPos div Graph.SampleSizeMultiplier]));
 		for Z in Graph.Zones do
 			if Z <> Graph.Zones.First then
