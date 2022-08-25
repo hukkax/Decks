@@ -75,3 +75,5 @@ Form.Deck.*
 *.tar\.gz
 *.sh
 *.0
+
+*.chm
