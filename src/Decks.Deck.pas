@@ -107,7 +107,9 @@ type
 		procedure	SetVolume(NewVolume: Single);
 		procedure	ToggleEQKill(BandNum: TEQBand);
 
+		procedure	LoopZone(ZoneIndex: Word);
 		procedure	SetLoop(LoopType, LoopLength: Integer);
+		procedure	EnableLoop(LoopInfo: PLoopInfo; StartPos, EndPos: QWord);
 		procedure	SetBPM(NewBPM: Single);
 
 		procedure	SaveInfoFile;
@@ -479,6 +481,28 @@ begin
 		BASS_ChannelSetPosition(channel, Info.StartPos, BASS_POS_BYTE);
 end;
 
+procedure TDeck.EnableLoop(LoopInfo: PLoopInfo; StartPos, EndPos: QWord);
+begin
+	LoopInfo^.StartPos := StartPos;
+	LoopInfo^.EndPos := EndPos;
+	LoopInfo^.Stream := OrigStream;
+	LoopInfo^.Enabled := True;
+	LoopInfo^.Sync := BASS_ChannelSetSync(OrigStream,
+		BASS_SYNC_POS or BASS_SYNC_MIXTIME, EndPos,
+		@Audio_Callback_LoopSync, LoopInfo);
+end;
+
+procedure TDeck.LoopZone(ZoneIndex: Word);
+var
+	Z: TZone;
+	StartPos, EndPos: QWord;
+begin
+	Z := Graph.Zones[ZoneIndex];
+	StartPos := Graph.GraphToSongBytes(Z.Pos);
+	EndPos := StartPos + Graph.GraphToSongBytes(Z.length);
+	EnableLoop(@LoopInfo_Zone, StartPos, EndPos);
+end;
+
 procedure TDeck.SetLoop(LoopType, LoopLength: Integer);
 var
 	Z: TZone;
@@ -503,10 +527,8 @@ begin
 
 		LOOP_ZONE:
 		begin
-			LoopInfo := @LoopInfo_Zone;
-			Z := Graph.GetZoneAt(GetPlayPosition);
-			StartPos := Graph.GraphToSongBytes(Z.Pos);
-			EndPos := Graph.GraphToSongBytes(Z.Pos + Z.length);
+			LoopZone(Graph.GetZoneIndexAt(Graph.SongToGraphBytes(GetPlayPosition)));
+			Exit;
 		end;
 
 		LOOP_SONG:
@@ -525,17 +547,7 @@ begin
 		BASS_ChannelRemoveSync(OrigStream, LoopInfo^.Sync);
 	end
 	else
-	begin
-		//MainForm.Caption := Format('SET: %d - %d    Curr: %d', [StartPos, EndPos, GetPlayPosition]);
-		LoopInfo^.StartPos := StartPos;
-		LoopInfo^.EndPos := EndPos;
-		LoopInfo^.Stream := OrigStream;
-		LoopInfo^.Enabled := True;
-		LoopInfo^.Sync := BASS_ChannelSetSync(OrigStream,
-			BASS_SYNC_POS or BASS_SYNC_MIXTIME, EndPos,
-			@Audio_Callback_LoopSync, LoopInfo);
-	end;
-
+		EnableLoop(LoopInfo, StartPos, EndPos);
 end;
 
 
