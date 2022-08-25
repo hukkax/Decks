@@ -1,6 +1,6 @@
 {
   BASSmix 2.4 Delphi unit
-  Copyright (c) 2005-2020 Un4seen Developments Ltd.
+  Copyright (c) 2005-2022 Un4seen Developments Ltd.
 
   See the BASSMIX.CHM file for more detailed documentation
 }
@@ -22,10 +22,12 @@ const
   BASS_CONFIG_SPLIT_BUFFER  = $10610;
 
   // BASS_Mixer_StreamCreate flags
-  BASS_MIXER_END     = $10000;  // end the stream when there are no sources
-  BASS_MIXER_NONSTOP = $20000;  // don't stall when there are no sources
   BASS_MIXER_RESUME  = $1000;   // resume stalled immediately upon new/unpaused source
   BASS_MIXER_POSEX   = $2000;   // enable BASS_Mixer_ChannelGetPositionEx support
+  BASS_MIXER_NOSPEAKER = $4000; // ignore speaker arrangement
+  BASS_MIXER_QUEUE   = $8000;  // queue sources
+  BASS_MIXER_END     = $10000;  // end the stream when there are no sources
+  BASS_MIXER_NONSTOP = $20000;  // don't stall when there are no sources
 
   // BASS_Mixer_StreamAddChannel/Ex flags
   BASS_MIXER_CHAN_ABSOLUTE = $1000;  // start is an absolute position
@@ -44,6 +46,12 @@ const
 
   // Mixer attributes
   BASS_ATTRIB_MIXER_LATENCY = $15000;
+  BASS_ATTRIB_MIXER_THREADS = $15001;
+  BASS_ATTRIB_MIXER_VOL = $15002;
+
+  // Additional BASS_Mixer_ChannelIsActive return values
+  BASS_ACTIVE_WAITING = 5;
+  BASS_ACTIVE_QUEUED = 6;
 
   // BASS_Split_StreamCreate flags
   BASS_SPLIT_SLAVE   = $1000;   // only read buffered data
@@ -63,9 +71,13 @@ const
   // Additional sync types
   BASS_SYNC_MIXER_ENVELOPE = $10200;
   BASS_SYNC_MIXER_ENVELOPE_NODE = $10201;
+  BASS_SYNC_MIXER_QUEUE = $10202;
 
   // Additional BASS_Mixer_ChannelSetPosition flag
   BASS_POS_MIXER_RESET = $10000; // flag: clear mixer's playback buffer
+
+  // Additional BASS_Mixer_ChannelGetPosition mode
+  BASS_POS_MIXER_DELAY = 5;
 
   // BASS_CHANNELINFO types
   BASS_CTYPE_STREAM_MIXER = $10800;
@@ -86,8 +98,15 @@ const
 {$IFDEF LINUX}
   bassmixdll = 'libbassmix.so';
 {$ENDIF}
+{$IFDEF ANDROID}
+  bassmixdll = 'libbassmix.so';
+{$ENDIF}
 {$IFDEF MACOS}
-  bassmixdll = 'libbassmix.dylib';
+  {$IFDEF IOS}
+    bassmixdll = 'libbassmix.a';
+  {$ELSE}
+    bassmixdll = 'libbassmix.dylib';
+  {$ENDIF}
 {$ENDIF}
 
 function BASS_Mixer_GetVersion: DWORD; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassmixdll;
@@ -98,6 +117,7 @@ function BASS_Mixer_StreamAddChannelEx(handle: HSTREAM; channel, flags: DWORD; s
 function BASS_Mixer_StreamGetChannels(handle: DWORD; channels: Pointer; count: DWORD): DWORD; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassmixdll;
 
 function BASS_Mixer_ChannelGetMixer(handle: DWORD): HSTREAM; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassmixdll;
+function BASS_Mixer_ChannelIsActive(handle: DWORD): DWORD; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassmixdll;
 function BASS_Mixer_ChannelFlags(handle, flags, mask: DWORD): DWORD; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassmixdll;
 function BASS_Mixer_ChannelRemove(handle: DWORD): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassmixdll;
 function BASS_Mixer_ChannelSetPosition(handle: DWORD; pos: QWORD; mode: DWORD): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassmixdll;
