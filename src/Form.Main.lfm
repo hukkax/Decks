@@ -231,6 +231,7 @@ object MainForm: TMainForm
       OnEnter = FileListEnter
       OnExit = FileListEnter
       OnKeyDown = FileListKeyDown
+      OnMouseWheel = FileListMouseWheel
       TabOrder = 2
       TabStop = True
     end

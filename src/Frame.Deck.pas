@@ -13,7 +13,7 @@ uses
 	hKnob, hSlider, DecksButton, BCTypes;
 
 const
-	BPMStep = 0.02;
+	BPMStep = 0.01;
 
 	WM_ZONE = LM_USER + 2010;
 
@@ -179,6 +179,7 @@ implementation
 
 uses
 	Math, FileUtil,
+	MouseWheelAccelerator,
 	Form.Main,
 	Decks.Config, Decks.Song, Decks.Beatgraph;
 
@@ -877,6 +878,8 @@ procedure TDeckFrame.pbMouseWheel(Sender: TObject; Shift: TShiftState;
 	WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 var
 	B, I: Integer;
+	Step: Single;
+	Delta: Single;
 	Z: TZone;
 begin
 	Handled := True;
@@ -884,6 +887,8 @@ begin
 	// shift+wheel to add/modify zone at cursor pos
 	if Shift = [ssShift] then
 	begin
+		Delta := WheelAcceleration.Process(WHEEL_PB, WheelDelta);
+
 		B := Deck.Graph.GraphToBar(GraphHover.x);
 
 		I := Deck.Graph.Bars[B].Zone;
@@ -900,11 +905,12 @@ begin
 			end;
 		end;
 
+		Step := BPMStep * Delta;
 		if WheelDelta < 0 then
-			Z.BPM := Z.BPM + BPMStep
+			Z.BPM := Z.BPM + Step
 		else
 		if WheelDelta > 0 then
-			Z.BPM := Z.BPM - BPMStep;
+			Z.BPM := Z.BPM - Step;
 
 		ZoneChanged(I, False);
 		RedrawGraph;
@@ -915,7 +921,10 @@ begin
 	// alt+wheel to adjust song start position
 	if Shift = [ssAlt] then
 	begin
-		I := Trunc(Deck.Graph.GetBarLength(False, 0) / pb.ClientHeight); // shift by 1 graph pixel
+		Delta := WheelAcceleration.Process(WHEEL_PB, WheelDelta, 2.0);
+
+		I := Trunc(Deck.Graph.GetBarLength(False, 0) / pb.ClientHeight / 10 * Delta); // shift by 1 graph pixel
+
 		if WheelDelta > 0 then
 			Deck.Graph.StartPos += I
 		else
@@ -924,6 +933,7 @@ begin
 
 		Deck.Graph.ZonesLoaded;
 		RedrawGraph;
+		SetCue(GraphCue);
 	end
 	else
 	// zoom graph with wheel
@@ -978,6 +988,7 @@ procedure TDeckFrame.pbWaveMouseWheel(Sender: TObject; Shift: TShiftState;
 	WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 begin
 	Handled := True;
+
 	if WheelDelta > 0 then
 		ZoomSample(+1)
 	else
@@ -1427,18 +1438,23 @@ procedure TDeckFrame.pbZonesMouseWheel(Sender: TObject; Shift: TShiftState; Whee
 	MousePos: TPoint; var Handled: Boolean);
 var
 	Z: TZone;
+	Delta: Single;
+	Step: Single;
 begin
 	Handled := True;
 
 	if Shift = [ssShift] then
 	begin
+		Delta := WheelAcceleration.Process(WHEEL_PBZONES, WheelDelta);
+
 		Z := Deck.Graph.Zones[CurrentZone];
 
+		Step := BPMStep * Delta;
 		if WheelDelta < 0 then
-			Z.BPM := Z.BPM + BPMStep
+			Z.BPM := Z.BPM + Step
 		else
 		if WheelDelta > 0 then
-			Z.BPM := Z.BPM - BPMStep;
+			Z.BPM := Z.BPM - Step;
 
 		ZoneChanged(CurrentZone, False);
 		RedrawGraph;

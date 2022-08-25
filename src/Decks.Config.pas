@@ -14,6 +14,10 @@ const
 	ReleaseDate = {$I %DATE%};
 	AppVersionString = Appname + ' v' + Version + ' by hukka (' + ReleaseDate + ')' + ReleaseType;
 
+	WHEEL_FILELIST = 1;
+	WHEEL_PB = 10;
+	WHEEL_PBZONES = 11;
+
 type
 	TDecksConfig = record
 		Filename,

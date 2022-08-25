@@ -93,6 +93,8 @@ type
 		procedure miFileDeleteClick(Sender: TObject);
 		procedure miEnableMixerClick(Sender: TObject);
 		procedure miAboutClick(Sender: TObject);
+		procedure FileListMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
+			MousePos: TPoint; var Handled: Boolean);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -165,6 +167,7 @@ implementation
 
 uses
 	Math, FileUtil, StrUtils,
+	MouseWheelAccelerator,
 	AudioTag, basetag, file_Wave, file_mp3, file_ogg,
 	Decks.TagScanner,
 	Decks.Song, Decks.SongInfo, Decks.Beatgraph;
@@ -1218,6 +1221,13 @@ begin
 	S := S + LineEnding + 'BASS version ' + AudioManager.BASSVersion;
 
 	ShowMessage(S);
+end;
+
+procedure TMainForm.FileListMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
+	MousePos: TPoint; var Handled: Boolean);
+begin
+	Handled := True;
+	WheelAcceleration.Process(WHEEL_FILELIST, WheelDelta);
 end;
 
 end.
