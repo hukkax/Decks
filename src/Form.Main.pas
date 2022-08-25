@@ -1227,7 +1227,8 @@ procedure TMainForm.FileListMouseWheel(Sender: TObject; Shift: TShiftState; Whee
 	MousePos: TPoint; var Handled: Boolean);
 begin
 	Handled := True;
-	WheelAcceleration.Process(WHEEL_FILELIST, WheelDelta);
+	WheelDelta := Round(WheelDelta * WheelAcceleration.Process(WHEEL_FILELIST, WheelDelta, 1.2) / 120);
+	FileList.ScrollBy(0, WheelDelta);
 end;
 
 end.

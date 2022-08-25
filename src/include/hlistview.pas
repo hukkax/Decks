@@ -141,6 +141,7 @@ type
 
 	function  GetVisibleRows: Integer;
 	procedure ScrollToView(const Item: ThListItem);
+	procedure ScrollBy(DeltaX, DeltaY: Integer); override;
 
 	property ScrollPos: Integer read FScrollPos write SetScrollPos default 0;
 	property FirstVisibleIndex: Integer read FFirstVisibleIndex write SetFirstVisibleIndex;
@@ -341,6 +342,13 @@ begin
 	else
 	if (I >= FLastVisibleIndex) then
 		SetScrollPos(I - (FLastVisibleIndex - FFirstVisibleIndex) + 1);
+end;
+
+procedure ThListView.ScrollBy(DeltaX, DeltaY: Integer);
+begin
+	FFirstVisibleIndex := EnsureRange(FFirstVisibleIndex - DeltaY, 0, Items.Count - FRowsVisible - 1);
+	UpdateScrollbar;
+	Invalidate;
 end;
 
 function ThListView.GetVisibleRows: Integer;
@@ -670,23 +678,28 @@ end;
 
 function ThListView.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
 	MousePos: TPoint): Boolean;
+var
+	Delta: Integer;
 begin
-	if WheelDelta > 0 then
+	Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
+	if Result then Exit;
+
+	Delta := WheelDelta div 120;
+	if Delta > 0 then
 	begin
 		if FFirstVisibleIndex > 0 then
 		begin
-			Dec(FFirstVisibleIndex);
+			FFirstVisibleIndex := Max(0, FFirstVisibleIndex - Delta);
 			Invalidate;
 		end;
 	end
 	else
-	if WheelDelta < 0 then
+	if Delta < 0 then
 	begin
-		if (FFirstVisibleIndex + FRowsVisible) < Items.Count then
-		begin
-			Inc(FFirstVisibleIndex);
-			Invalidate;
-		end;
+		for WheelDelta := 1 to Abs(Delta) do
+			if (FFirstVisibleIndex + FRowsVisible) < Items.Count then
+				Inc(FFirstVisibleIndex);
+		Invalidate;
 	end;
 	UpdateScrollbar;
 	Result := True;

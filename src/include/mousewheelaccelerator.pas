@@ -43,12 +43,8 @@ begin
 		Span := MilliSecondsBetween(Now, LastTime);
 		if Span <= MaxTimeBetweenEvents then
 		begin
-			Delta := Round(Delta * AccelVal);
 			AccelVal := AccelVal * AccelerationVal;
-			if AccelVal >= 0 then
-				Result := Min(AccelVal, MaxAcceleration)
-			else
-				Result := Max(AccelVal, -MaxAcceleration);
+			Result := EnsureRange(AccelVal, -MaxAcceleration, MaxAcceleration);
 		end
 		else
 			AccelVal := AccelerationVal;
