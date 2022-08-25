@@ -881,7 +881,7 @@ end;
 
 procedure TDeckFrame.JumpToBar(Bar: Word);
 begin
-	JumpToPos(Deck.Graph.Bars[Bar].Pos);
+	JumpToPos(Deck.Graph.GraphToSongBytes(Deck.Graph.Bars[Bar].Pos));
 end;
 
 procedure TDeckFrame.pbMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1548,10 +1548,18 @@ begin
 end;
 
 procedure TDeckFrame.SetZoneKind(Zone: Word; Kind: TZoneKind);
+var
+	Z: TZone;
 begin
 	if Zone >= Deck.Graph.Zones.Count then Exit;
 
-	Deck.Graph.Zones[Zone].Kind := Kind;
+	Z := Deck.Graph.Zones[Zone];
+	Z.Kind := Kind;
+	if Kind = zkJump then
+		Z.Data := Deck.Graph.GraphToBar(GraphCue.X)
+	else
+		Z.Data := 0;
+
 	DrawZones(False);
 end;
 
