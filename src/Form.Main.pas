@@ -56,6 +56,9 @@ type
 		miFileRename: TMenuItem;
 		miFileDelete: TMenuItem;
 		miEnableMixer: TMenuItem;
+		MenuItem1: TMenuItem;
+		MenuItem2: TMenuItem;
+		miAbout: TMenuItem;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -89,6 +92,7 @@ type
 		procedure miFileRenameClick(Sender: TObject);
 		procedure miFileDeleteClick(Sender: TObject);
 		procedure miEnableMixerClick(Sender: TObject);
+		procedure miAboutClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -444,6 +448,10 @@ begin
 	DeckList := TFPGObjectList<TDeck>.Create(True);
 	sBPMChange(Self);
 
+	Width  := Trunc(Screen.DesktopWidth  * 0.75);
+	Height := Trunc(Screen.DesktopHeight * 0.75);
+	DeckPanel.Height := Trunc(ClientHeight * 0.3);
+
 	// ==========================================
 	// Init list controls
 	//
@@ -494,6 +502,7 @@ begin
 		miMIDIInput.Add(mi);
 	end;
 	{$ENDIF}
+	miMIDIInput.Visible := miMIDIInput.Count > 0;
 
 	EQControls[1, EQ_BAND_LOW]  := sEQ1L;
 	EQControls[1, EQ_BAND_MID]  := sEQ1M;
@@ -1198,6 +1207,17 @@ begin
 	Config.Mixer.Enabled := not Config.Mixer.Enabled;
 	miEnableMixer.Checked := Config.Mixer.Enabled;
 	UpdateMixerVisibility;
+end;
+
+procedure TMainForm.miAboutClick(Sender: TObject);
+var
+	S: String;
+begin
+	S := AppVersionString;
+
+	S := S + LineEnding + 'BASS version ' + AudioManager.BASSVersion;
+
+	ShowMessage(S);
 end;
 
 end.

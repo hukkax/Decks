@@ -85,10 +85,10 @@ object MainForm: TMainForm
       Rounding.RoundY = 1
     end
     object sBPM: ThGaugeBar
-      Left = 51
+      Left = 91
       Height = 25
       Top = 12
-      Width = 865
+      Width = 825
       Anchors = [akTop, akLeft, akRight]
       Color = 2171427
       BorderStyle = bsNone
@@ -109,7 +109,7 @@ object MainForm: TMainForm
       Left = 12
       Height = 25
       Top = 12
-      Width = 26
+      Width = 71
       StateNormal.Background.Color = 2171427
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -141,7 +141,7 @@ object MainForm: TMainForm
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 2
-      Caption = '☰'
+      Caption = '☰ Decks'
       Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -728,13 +728,23 @@ object MainForm: TMainForm
   object PopupMenu: TPopupMenu
     Left = 112
     Top = 140
-    object miMIDIInput: TMenuItem
-      Caption = 'MIDI Controller'
-    end
     object miEnableMixer: TMenuItem
       Caption = 'Enable Mixer'
       Checked = True
       OnClick = miEnableMixerClick
+    end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
+    object miMIDIInput: TMenuItem
+      Caption = 'MIDI Controller'
+    end
+    object MenuItem2: TMenuItem
+      Caption = '-'
+    end
+    object miAbout: TMenuItem
+      Caption = 'About...'
+      OnClick = miAboutClick
     end
   end
 end

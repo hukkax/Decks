@@ -35,6 +35,7 @@ type
 		Devices:	TFPGObjectList<TAudioDevice>;
 		DeviceInfo: TAudioDeviceInfo;
 		DefaultDeviceIndex: Integer;
+		BASSVersion: String;
 
 		function	InitDevice(WinHandle: QWord; Device: Integer = -1): Boolean;
 
@@ -85,6 +86,7 @@ end;
 constructor TAudioManager.Create;
 var
 	i: Integer;
+	V: DWord;
 	Dev: TAudioDevice;
 	Info: BASS_DEVICEINFO;
 	Fn: UnicodeString;
@@ -113,6 +115,10 @@ begin
 //	Fn := UnicodeString(Config.PluginPath + basszxtunedll);
 //	if BASS_PluginLoad(PChar(Fn), BASS_UNICODE) = 0 then
 //		showmessage('Plugin load failed: ' + Fn);
+
+	V := BASS_GetVersion;
+	BASSVersion := Format('%d.%d.%d.%d',
+		[ V shr 24 and 255, V shr 16 and 255, V shr 8 and 255, V and 255 ]);
 end;
 
 destructor TAudioManager.Destroy;
