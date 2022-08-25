@@ -1044,4 +1044,43 @@ object DeckFrame: TDeckFrame
       OnClick = miDeckCloseClick
     end
   end
+  object PopupZone: TPopupMenu
+    Images = MainForm.ImageListIcons
+    Left = 168
+    Top = 72
+    object miZoneKind0: TMenuItem
+      AutoCheck = True
+      Caption = 'Normal'
+      RadioItem = True
+      OnClick = miZoneKind0Click
+    end
+    object miZoneKind1: TMenuItem
+      Tag = 1
+      AutoCheck = True
+      Caption = 'Loop Zone'
+      RadioItem = True
+      OnClick = miZoneKind0Click
+    end
+    object miZoneKind2: TMenuItem
+      Tag = 2
+      AutoCheck = True
+      Caption = 'Jump To Bar'
+      RadioItem = True
+      OnClick = miZoneKind0Click
+    end
+    object miZoneKind3: TMenuItem
+      Tag = 3
+      AutoCheck = True
+      Caption = 'Skip Zone'
+      RadioItem = True
+      OnClick = miZoneKind0Click
+    end
+    object miZoneKind4: TMenuItem
+      Tag = 4
+      AutoCheck = True
+      Caption = 'End Song'
+      RadioItem = True
+      OnClick = miZoneKind0Click
+    end
+  end
 end

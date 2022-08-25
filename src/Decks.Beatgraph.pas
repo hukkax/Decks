@@ -20,9 +20,17 @@ const
 type
 	TBeatGraph = class; // forward
 
+	TZoneKind = (
+		zkNormal,	// no special processing
+		zkLoop,		// loop current zone indefinitely
+		zkJump,		// jump to bar # defined in Data
+		zkSkip,		// jump straight to next zone
+		zkEnd		// marks the end of song
+	);
+
 	TGraphIterationEvent = procedure of Object;
 
-	TZoneChangeEvent = procedure(Zone: Integer) of Object;
+	TZoneChangeEvent = procedure(Zone: Integer; MixTime: Boolean) of Object;
 
 	TZoneChangeEventInfo = class
 		Zone:  Integer;
@@ -42,7 +50,10 @@ type
 		amount_bars:	Cardinal;
 		length_bar:		Single;
 		barindex:		Word;
-		Sync:			HSYNC;
+		Kind:			TZoneKind;
+		Data:			Integer;
+		Sync,
+		MixSync:		HSYNC;
 		Graph:			TBeatGraph;
 		ChangeEvent:	TZoneChangeEventInfo;
 		barpos:			array of QWord;
@@ -155,7 +166,17 @@ var
 begin
 	Info := TZoneChangeEventInfo(user^);
 	if Assigned(Info.Event) then
-		Info.Event(Info.Zone);
+		Info.Event(Info.Zone, False);
+end;
+
+procedure Audio_Callback_ZoneSync_MixTime(handle: HSYNC; channel, data: DWord; user: Pointer);
+	{$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
+var
+	Info: TZoneChangeEventInfo;
+begin
+	Info := TZoneChangeEventInfo(user^);
+	if Assigned(Info.Event) then
+		Info.Event(Info.Zone, True);
 end;
 
 { TZone }
@@ -174,8 +195,10 @@ constructor TZone.Create;
 begin
 	inherited;
 	Graph := nil;
+	Kind := zkNormal;
 	ChangeEvent := TZoneChangeEventInfo.Create;
 	Sync := 0;
+	MixSync := 0;
 	Pos := 0;
 	{$IFDEF DEBUGLOG} Log('TZone.Create'); {$ENDIF}
 end;
@@ -185,6 +208,8 @@ begin
 	{$IFDEF DEBUGLOG} Log('TZone.Destroy'); {$ENDIF}
 	if Sync <> 0 then
 		BASS_Mixer_ChannelRemoveSync(Graph.Song.OrigStream, Sync);
+	if MixSync <> 0 then
+		BASS_Mixer_ChannelRemoveSync(Graph.Song.OrigStream, MixSync);
 	ChangeEvent.Free;
 	inherited Destroy;
 end;
@@ -291,10 +316,15 @@ begin
 
 		if Z.Sync <> 0 then
 			BASS_Mixer_ChannelRemoveSync(Song.OrigStream, Z.Sync);
+		if Z.MixSync <> 0 then
+			BASS_Mixer_ChannelRemoveSync(Song.OrigStream, Z.MixSync);
 
         Z.Sync := BASS_Mixer_ChannelSetSync(Song.OrigStream,
 			BASS_SYNC_POS, GraphToSongBytes(Z.Pos),
 			@Audio_Callback_ZoneSync, @Z.ChangeEvent);
+        Z.MixSync := BASS_Mixer_ChannelSetSync(Song.OrigStream,
+			BASS_SYNC_POS or BASS_SYNC_MIXTIME, GraphToSongBytes(Z.Pos),
+			@Audio_Callback_ZoneSync_MixTime, @Z.ChangeEvent);
 	end;
 
 	{$IFDEF DEBUGLOG}
@@ -738,7 +768,7 @@ begin
 	// using BASS_Mixer_ChannelSetSync here causes the sync to not trigger for some reason
 	EndSync := BASS_ChannelSetSync(Song.OrigStream,
 		BASS_SYNC_END or BASS_SYNC_MIXTIME, 0,
-		@Audio_Callback_ZoneSync, @EndSyncEvent);
+		@Audio_Callback_ZoneSync_MixTime, @EndSyncEvent);
 end;
 
 procedure TBeatGraph.Draw(AWidth: Word = 0; AHeight: Word = 0);

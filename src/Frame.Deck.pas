@@ -9,7 +9,7 @@ uses
 	Classes, SysUtils, Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
 	ExtCtrls, EditBtn, Buttons, LCLType, LCLIntf, LMessages, Menus,
 	BGRAVirtualScreen, BGRABitmap, BGRABitmapTypes,
-	Decks.Audio, Decks.Deck, Decks.SongInfo, BASS, BASSmix,
+	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, BASS, BASSmix,
 	hKnob, hSlider, DecksButton, BCTypes;
 
 const
@@ -56,6 +56,12 @@ type
 		SliderTempo: ThGaugeBar;
 		SliderTempoFrac: ThGaugeBar;
 		Timer: TTimer;
+		PopupZone: TPopupMenu;
+		miZoneKind0: TMenuItem;
+		miZoneKind1: TMenuItem;
+		miZoneKind2: TMenuItem;
+		miZoneKind3: TMenuItem;
+		miZoneKind4: TMenuItem;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -115,6 +121,7 @@ type
 			MousePos: TPoint; var Handled: Boolean);
 		procedure SliderTempoFracMouseWheelUp(Sender: TObject; Shift: TShiftState;
 			MousePos: TPoint; var Handled: Boolean);
+		procedure miZoneKind0Click(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -127,7 +134,7 @@ type
 
 		procedure InitDevice(Dev: Integer);
 		procedure ZoneChangedMessage(var Msg: TLMessage); message WM_ZONE;
-		procedure ZoneChanged(Zone: Integer; FromCallback: Boolean);
+		procedure ZoneChanged(Zone: Integer; FromCallback, MixTime: Boolean);
 		procedure GetPlayPosition; inline;
 		procedure SetSlider(var Slider: ThGaugeBar; Position: Integer); overload;
 		procedure SetSlider(var Slider: ThKnob; Position: Integer); overload;
@@ -147,7 +154,7 @@ type
 		constructor Create(AOwner: TComponent); override;
 		destructor  Destroy; override;
 
-		procedure OnZoneChanged(Zone: Integer);
+		procedure OnZoneChanged(Zone: Integer; MixTime: Boolean);
 		procedure OnDeckEvent(Kind: Integer);
 		procedure OnGraphIteration;
 
@@ -157,11 +164,16 @@ type
 		function  ProcessKeyDown(var Key: Word; Shift: TShiftState): Boolean;
 		function  ProcessKeyPress(var Key: Char): Boolean;
 
+		procedure SetZoneKind(Zone: Word; Kind: TZoneKind);
+
 		procedure ShowPosition;
 		procedure Cue(DoCue: Boolean);
 		procedure SetCue(P: TPoint); overload;
 		procedure SetCue(P: QWord); overload;
+		procedure JumpToPos(Pos: QWord; Reset: Boolean = False);
 		procedure JumpToCue;
+		procedure JumpToZone(Zone: Word);
+		procedure JumpToBar(Bar: Word);
 
 		procedure DrawWaveform;
 		procedure DrawZones(Recalc: Boolean = True);
@@ -181,7 +193,7 @@ uses
 	Math, FileUtil,
 	MouseWheelAccelerator,
 	Form.Main,
-	Decks.Config, Decks.Song, Decks.Beatgraph;
+	Decks.Config, Decks.Song;
 
 { TDeckFrame }
 
@@ -239,16 +251,16 @@ end;
 
 procedure TDeckFrame.ZoneChangedMessage(var Msg: TLMessage);
 begin
-	ZoneChanged(Msg.lParam, True);
+	ZoneChanged(Msg.lParam, True, False);
 end;
 
-procedure TDeckFrame.OnZoneChanged(Zone: Integer);
+procedure TDeckFrame.OnZoneChanged(Zone: Integer; MixTime: Boolean);
 begin
 	//PostMessage(Self.Handle, WM_ZONE, Zone, Zone);
-	ZoneChanged(Zone, True);
+	ZoneChanged(Zone, True, MixTime);
 end;
 
-procedure TDeckFrame.ZoneChanged(Zone: Integer; FromCallback: Boolean);
+procedure TDeckFrame.ZoneChanged(Zone: Integer; FromCallback, MixTime: Boolean);
 var
 	Z: TZone;
 begin
@@ -277,15 +289,36 @@ begin
 	begin
 		if Zone = Deck.PlayingZone then Exit;
 		Deck.PlayingZone := Zone;
+
+		if MixTime then
+		begin
+			case Z.Kind of
+				// no special processing
+				zkNormal: ;
+				// jump to bar # defined in Data
+				zkJump:	JumpToBar(Z.Data);
+				// jump straight to next zone
+				zkSkip:	JumpToZone(Zone + 1);
+				// marks the end of song
+				zkEnd:	ZoneChanged(ZONECHANGE_STOPPED, False, True);
+				// loop current zone indefinitely
+				zkLoop:	Deck.LoopZone(Zone);
+			end;
+			Exit;
+		end;
 	end
 	else
+	if not MixTime then
 	begin
 		SetSlider(SliderTempo, Trunc(Z.BPM));
 		SetSlider(SliderTempoFrac, Trunc(Frac(Z.BPM) * 1000));
 	end;
 
-	Deck.SetBPM(MasterBPM);
-	DrawZones(True);
+	if not MixTime then
+	begin
+		Deck.SetBPM(MasterBPM);
+		DrawZones(True);
+	end;
 end;
 
 procedure TDeckFrame.DoInit;
@@ -522,7 +555,7 @@ P := BASS_ChannelGetPosition(
 				BASS_POS_BYTE or BASS_POS_MIXER_RESET);
 			if Deck.Paused then Deck.Play;
 
-			ZoneChanged(ZONECHANGE_GETPOS, False);
+			ZoneChanged(ZONECHANGE_GETPOS, False, False);
 			ShowPosition;
 		end;
 	end;
@@ -825,13 +858,30 @@ begin
 	DrawGraph;
 end;
 
+procedure TDeckFrame.JumpToPos(Pos: QWord; Reset: Boolean = False);
+var
+	Flags: DWord = BASS_POS_BYTE;
+begin
+	if Reset then
+		Flags := Flags or BASS_POS_MIXER_RESET;
+	BASS_Mixer_ChannelSetPosition(Deck.OrigStream, Pos, Flags);
+	ZoneChanged(ZONECHANGE_GETPOS, False, True);
+	ShowPosition;
+end;
+
 procedure TDeckFrame.JumpToCue;
 begin
-	BASS_Mixer_ChannelSetPosition(Deck.OrigStream,
-		Deck.Graph.GraphToSongBytes(CuePos),
-		BASS_POS_BYTE or BASS_POS_MIXER_RESET);
-	ZoneChanged(ZONECHANGE_GETPOS, False);
-	ShowPosition;
+	JumpToPos(Deck.Graph.GraphToSongBytes(CuePos), True);
+end;
+
+procedure TDeckFrame.JumpToZone(Zone: Word);
+begin
+	JumpToPos(Deck.Graph.GraphToSongBytes(Deck.Graph.Zones[Zone].Pos));
+end;
+
+procedure TDeckFrame.JumpToBar(Bar: Word);
+begin
+	JumpToPos(Deck.Graph.Bars[Bar].Pos);
 end;
 
 procedure TDeckFrame.pbMouseDown(Sender: TObject; Button: TMouseButton;
@@ -912,7 +962,7 @@ begin
 		if WheelDelta > 0 then
 			Z.BPM := Z.BPM - Step;
 
-		ZoneChanged(I, False);
+		ZoneChanged(I, False, False);
 		RedrawGraph;
 
 		CanCreateNewZone := False;
@@ -1008,21 +1058,28 @@ end;
 
 procedure TDeckFrame.pbZonesMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
+var
+	P: TPoint;
 begin
-	if Deck.Loaded then
+	if not Deck.Loaded then Exit;
+
+	SetMaster(Tag);
+	Y := Deck.Graph.GraphToBar(X + Deck.Graph.Scroll.X);
+	CurrentZone := Deck.Graph.Bars[Y].Zone;
+	//bMaster.caption := format('X=%d  B=%d  Z=%d', [X, Y, CurrentZone]);
+	ZoneChanged(CurrentZone, False, False);
+
 	case Button of
+		mbMiddle:
+			JumpToZone(CurrentZone);
 
-		mbLeft:
+		mbRight:
 		begin
-			SetMaster(Tag);
-			Y := Deck.Graph.GraphToBar(X + Deck.Graph.Scroll.X);
-			CurrentZone := Deck.Graph.Bars[Y].Zone;
-			//bMaster.caption := format('X=%d  B=%d  Z=%d', [X, Y, CurrentZone]);
-			ZoneChanged(CurrentZone, False);
+			Y := Ord(Deck.Graph.Zones[CurrentZone].Kind);
+			PopupZone.Items[Y].Checked := True;
+			P := ClientToScreen(Point(X, pbZones.Top + pbZones.Height));
+			PopupZone.PopUp(P.X, P.Y);
 		end;
-
-		mbRight: ;
-
 	end;
 end;
 
@@ -1089,7 +1146,14 @@ begin
 			end
 			else
 			begin
-				Zoner.FillRect(R, ColorToBGRA(clGray));
+				case Zone.Kind of
+					zkNormal:	Col := clGray;
+					zkLoop:		Col := clNavy;
+					zkJump:		Col := clTeal;
+					zkSkip:		Col := clMaroon;
+					zkEnd:		Col := clBlack;
+				end;
+				Zoner.FillRect(R, ColorToBGRA(Col));
 				Col := clWhite;
 			end;
 
@@ -1404,7 +1468,7 @@ begin
 			SliderTempoChange(nil);
 			JumpToCue;
 			SliderTempoChange(nil); // fixme: need to call this twice
-			ZoneChanged(0, False);
+			ZoneChanged(0, False, False);
 		end;
 
 		MODE_LOAD_FAILURE:
@@ -1456,7 +1520,7 @@ begin
 		if WheelDelta > 0 then
 			Z.BPM := Z.BPM - Step;
 
-		ZoneChanged(CurrentZone, False);
+		ZoneChanged(CurrentZone, False, False);
 		RedrawGraph;
 	end;
 end;
@@ -1481,6 +1545,19 @@ begin
 		SliderTempo.Position := SliderTempo.Position + 1;
 		Handled := True;
 	end;
+end;
+
+procedure TDeckFrame.SetZoneKind(Zone: Word; Kind: TZoneKind);
+begin
+	if Zone >= Deck.Graph.Zones.Count then Exit;
+
+	Deck.Graph.Zones[Zone].Kind := Kind;
+	DrawZones(False);
+end;
+
+procedure TDeckFrame.miZoneKind0Click(Sender: TObject);
+begin
+	SetZoneKind(CurrentZone, TZoneKind((Sender as TMenuItem).Tag));
 end;
 
 end.
