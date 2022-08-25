@@ -51,7 +51,7 @@ type
 		length_bar:		Single;
 		barindex:		Word;
 		Kind:			TZoneKind;
-		Data:			Integer;
+		Data:			QWord;
 		Sync,
 		MixSync:		HSYNC;
 		Graph:			TBeatGraph;
@@ -126,6 +126,9 @@ type
 		constructor	Create(var aSong: TSong; const ThemePath: String);
 		destructor	Destroy; override;
 	end;
+
+const
+	ZoneKindNames: array [TZoneKind] of String = ( '', 'loop', 'jump', 'skip', 'end' );
 
 var
 	Grays: array[0..255] of TBGRAPixel;

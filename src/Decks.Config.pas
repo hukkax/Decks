@@ -9,7 +9,7 @@ uses
 
 const
 	AppName = 'Decks 3';
-	Version = '0.6a';
+	Version = '0.6b';
 	ReleaseType = {$IFDEF DEBUG} ' [DEBUG]' {$ELSE} '' {$ENDIF};
 	ReleaseDate = {$I %DATE%};
 	AppVersionString = Appname + ' v' + Version + ' by hukka (' + ReleaseDate + ')' + ReleaseType;

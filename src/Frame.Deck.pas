@@ -296,7 +296,7 @@ begin
 				// no special processing
 				zkNormal: ;
 				// jump to bar # defined in Data
-				zkJump:	JumpToBar(Z.Data);
+				zkJump:	JumpToPos(Z.Data);
 				// jump straight to next zone
 				zkSkip:	JumpToZone(Zone + 1);
 				// marks the end of song
@@ -1556,7 +1556,7 @@ begin
 	Z := Deck.Graph.Zones[Zone];
 	Z.Kind := Kind;
 	if Kind = zkJump then
-		Z.Data := Deck.Graph.GraphToBar(GraphCue.X)
+		Z.Data := Deck.Graph.GraphToPos(GraphCue)
 	else
 		Z.Data := 0;
 

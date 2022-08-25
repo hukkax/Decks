@@ -113,6 +113,7 @@ type
 		procedure	SetBPM(NewBPM: Single);
 
 		procedure	SaveInfoFile;
+		procedure	SaveOldInfoFile;
 
 		procedure	UpdateMenuItem;
 
@@ -123,7 +124,7 @@ type
 implementation
 
 uses
-	Math,
+	Math, IniFiles,
 	Form.Main,
 	Decks.Config;
 
@@ -318,6 +319,13 @@ begin
 		if High(Params) >= 2 then
 			Graph.AddZone(Params[2], Params[0] + (Params[1] / 1000), Keyword = IKW_ZONE_OLD);
 
+		IKW_ZONEDATA:
+			with Graph.Zones.Last do
+			begin
+				Kind := TZoneKind(Params[0]);
+				Data := Params[1];
+			end;
+
 	end;
 end;
 
@@ -394,7 +402,54 @@ procedure TDeck.SaveInfoFile;
 
 	function FloatToString(N: Single): String;
 	begin
-		Result := Format('%d %d', [Trunc(N), Trunc(Frac(N)*1000) ]);
+		Result := Format('%d.%d', [Trunc(N), Trunc(Frac(N)*1000)]);
+	end;
+
+var
+	S, Sect: String;
+	Ini: TIniFile;
+	Z: TZone;
+	i: Integer;
+begin
+	S := Config.Directory.BPM + ExtractFilename(Filename) + '.bpm';
+	Ini := TIniFile.Create(S);
+	try
+		Ini.WriteString('Decks 3', 'version', Version);
+
+		Sect := 'song';
+			Ini.WriteString(Sect, 'path', ExtractFilePath(Filename));
+			Ini.WriteString(Sect, 'file', ExtractFileName(Filename));
+
+			Ini.WriteString(Sect, 'bpm', FloatToString(OrigBPM));
+			Ini.WriteString(Sect, 'amp', FloatToString(Info.Amp));
+			Ini.WriteInteger(Sect, 'zones', Graph.Zones.Count);
+
+		Ini.WriteInt64('cue', '0', Graph.StartPos div Graph.SampleSizeMultiplier);
+
+		for i := 0 to Graph.Zones.Count-1 do
+		begin
+			Z := Graph.Zones[i];
+			Sect := Format('zone.%d', [i]);
+
+			Ini.WriteString(Sect, 'bpm', FloatToString(Z.BPM));
+			Ini.WriteInt64(Sect, 'bar', Z.barindex);
+			if Z.Kind <> zkNormal then
+			begin
+				Ini.WriteString(Sect, 'kind', ZoneKindNames[Z.Kind]);
+				if Z.Data <> 0 then
+					Ini.WriteInt64(Sect, 'data', Z.Data);
+			end;
+		end;
+	finally
+		Ini.Free;
+	end;
+end;
+
+procedure TDeck.SaveOldInfoFile;
+
+	function FloatToString(N: Single): String;
+	begin
+		Result := Format('%d %d', [Trunc(N), Trunc(Frac(N)*1000)]);
 	end;
 
 var
@@ -402,14 +457,6 @@ var
 	Sl: TStringList;
 	Z: TZone;
 begin
-(*
-Decks 2.0a
-FILENAME X:\mix\house\475_ Bob Sinclair - Gymtonic.mp3
-BPM 133 716
-AMP 1 0
-CUE 0 66486
-ZONE 133 657 6082036
-*)
 	S := Config.Directory.BPM + ExtractFilename(Filename) + '.bpm';
 	Sl := TStringList.Create;
 	try

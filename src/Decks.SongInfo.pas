@@ -9,7 +9,7 @@ uses
 	Classes, SysUtils;
 
 type
-	TInfoKeyword = ( IKW_BPM, IKW_CUE, IKW_ZONE, IKW_ZONE_OLD );
+	TInfoKeyword = ( IKW_BPM, IKW_CUE, IKW_ZONE, IKW_ZONEDATA, IKW_ZONE_OLD );
 	TInfoParams  = array of Integer;
 
 	TInfoKeywordHandler = procedure(Keyword: TInfoKeyword; Params: TInfoParams) of object;
@@ -28,6 +28,7 @@ type
 	function  SplitInt(const S: String; out L, R: Integer): Boolean;
 
 	procedure SetSongInfoPath(const Path: String);
+	function  GetSongInfoNew(const Filename: String; KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 	function  GetSongInfo(const Filename: String; KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 	function  GetBPMFile(const AudioFileName: String): String; inline;
 
@@ -35,6 +36,8 @@ type
 implementation
 
 uses
+	IniFiles,
+	Decks.Beatgraph,
 	Decks.Config;
 
 
@@ -102,6 +105,84 @@ begin
 	Result := Config.Directory.BPM + AudioFilename + '.bpm';
 end;
 
+function GetSongInfoNew(const Filename: String;
+	KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
+var
+	P, Sect: String;
+	i, iL, iR: Integer;
+	Ini: TIniFile;
+	Z: TZone;
+	zk: TZoneKind;
+
+	function GetValue(const S: String): String;
+	begin
+		Result := Ini.ReadString(Sect, S, '').Replace('.', ' ');
+	end;
+
+begin
+	Ini := TIniFile.Create(Filename);
+	try
+		Sect := 'song';
+
+		P := GetValue('bpm');
+		if P <> '' then
+		begin
+			SplitInt(P, iL, iR);
+			Result.BPM := iL + (iR / 1000);
+			if Assigned(KeywordHandler) then
+				KeywordHandler(IKW_BPM, TInfoParams.Create(iL, iR));
+		end;
+
+		P := GetValue('amp');
+		if P <> '' then
+		begin
+			SplitInt(P, iL, iR);
+			Result.Amp := iL + (iR / 1000);
+		end;
+
+		if Assigned(KeywordHandler) then
+		begin
+			sect := 'cue';
+			for i := 0 to 9 do
+			begin
+				iR := Ini.ReadInt64(sect, IntToStr(i), -1);
+				if iR >= 0 then
+					KeywordHandler(IKW_CUE, TInfoParams.Create(i, iR));
+			end;
+		end;
+
+		i := 0;
+		while Assigned(KeywordHandler) do
+		begin
+			sect := Format('zone.%d', [i]);
+			if not Ini.SectionExists(sect) then Break;
+
+			P := GetValue('bpm');
+			if P = '' then Break;
+
+			SplitInt(P, iL, iR);
+			KeywordHandler(IKW_ZONE, TInfoParams.Create(
+				iL, iR, Ini.ReadInt64(sect, 'bar', 0)));
+
+			P := Ini.ReadString(sect, 'kind', '');
+			for zk in TZoneKind do
+				if ZoneKindNames[zk] = P then
+				begin
+					KeywordHandler(IKW_ZONEDATA, TInfoParams.Create(
+						Ord(zk), Ini.ReadInt64(sect, 'data', 0)));
+					Break;
+				end;
+
+			Inc(i);
+		end;
+
+	finally
+		Ini.Free;
+		Result.Initialized := True;
+	end;
+end;
+
+
 function GetSongInfo(const Filename: String;
 	KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 var
@@ -151,6 +232,12 @@ begin
 	try
 		try
 			Sl.LoadFromFile(Fn);
+
+			if (Sl.Count > 0) and (Sl[0] = '[Decks 3]') then
+			begin
+				Result := GetSongInfoNew(Fn, KeywordHandler);
+				Exit;
+			end;
 
 			Ver := GetValue('Decks');
 			Result.OldVersion := Ver.StartsWith('2.', True);
