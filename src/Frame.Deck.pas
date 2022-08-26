@@ -304,7 +304,6 @@ begin
 				// loop current zone indefinitely
 				zkLoop:	Deck.LoopZone(Zone);
 			end;
-			Exit;
 		end;
 	end
 	else
@@ -314,11 +313,8 @@ begin
 		SetSlider(SliderTempoFrac, Trunc(Frac(Z.BPM) * 1000));
 	end;
 
-	if not MixTime then
-	begin
-		Deck.SetBPM(MasterBPM);
-		DrawZones(True);
-	end;
+	Deck.SetBPM(MasterBPM);
+	DrawZones(True);
 end;
 
 procedure TDeckFrame.DoInit;
