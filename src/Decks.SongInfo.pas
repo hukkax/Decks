@@ -10,7 +10,7 @@ uses
 
 type
 	TInfoKeyword = ( IKW_BPM, IKW_CUE, IKW_ZONE, IKW_ZONEDATA, IKW_ZONE_OLD );
-	TInfoParams  = array of Integer;
+	TInfoParams  = array of Int64;
 
 	TInfoKeywordHandler = procedure(Keyword: TInfoKeyword; Params: TInfoParams) of object;
 
@@ -25,7 +25,7 @@ type
 
 	// todo move elsewhere
 	function  Split(const S: String; out L, R: String): Boolean;
-	function  SplitInt(const S: String; out L, R: Integer): Boolean;
+	function  SplitInt(const S: String; out L, R: Int64): Boolean;
 
 	procedure SetSongInfoPath(const Path: String);
 	function  GetSongInfoNew(const Filename: String; KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
@@ -59,15 +59,15 @@ begin
 	end;
 end;
 
-function SplitInt(const S: String; out L, R: Integer): Boolean;
+function SplitInt(const S: String; out L, R: Int64): Boolean;
 var
 	SL, SR: String;
 begin
 	Result := Split(S, SL, SR);
 	if Result then
 	begin
-		L := StrToInt(SL);
-		R := StrToInt(SR);
+		L := StrToInt64(SL);
+		R := StrToInt64(SR);
 	end;
 end;
 
@@ -109,9 +109,9 @@ function GetSongInfoNew(const Filename: String;
 	KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 var
 	P, Sect: String;
-	i, iL, iR: Integer;
+	i: Integer;
+	iL, iR: Int64;
 	Ini: TIniFile;
-	Z: TZone;
 	zk: TZoneKind;
 
 	function GetValue(const S: String): String;
@@ -187,11 +187,11 @@ function GetSongInfo(const Filename: String;
 	KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 var
 	Ver, K, P, Fn: String;
-	i, iL, iR: Integer;
+	i: Integer;
+	iL, iR: Int64;
 	KW: TInfoKeyword;
 	Sl: TStringList;
 	sarr: TStringArray;
-	Params: TInfoParams;
 
 	function GetLine(const S: String): String;
 	var
