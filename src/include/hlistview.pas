@@ -346,7 +346,7 @@ end;
 
 procedure ThListView.ScrollBy(DeltaX, DeltaY: Integer);
 begin
-	FFirstVisibleIndex := EnsureRange(FFirstVisibleIndex - DeltaY, 0, Items.Count - FRowsVisible - 1);
+	FFirstVisibleIndex := EnsureRange(FFirstVisibleIndex - DeltaY, 0, Items.Count - FRowsVisible);
 	UpdateScrollbar;
 	Invalidate;
 end;
