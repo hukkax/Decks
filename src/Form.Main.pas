@@ -651,7 +651,7 @@ begin
 	begin
 		Item.Color := COLOR_FILE_PLAYED;
 		FileList.Invalidate;
-		Application.ProcessMessages;
+//		Application.ProcessMessages;
 	end;
 end;
 

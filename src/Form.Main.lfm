@@ -721,7 +721,7 @@ object MainForm: TMainForm
   end
   object Timer: TTimer
     Enabled = False
-    Interval = 16
+    Interval = 15
     OnTimer = TimerTimer
     Left = 40
     Top = 64
