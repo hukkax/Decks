@@ -2,6 +2,7 @@ unit Frame.Deck;
 
 {$mode Delphi}
 {$INLINE ON}
+{$WARN 5024 off : Parameter "$1" not used}
 
 interface
 
@@ -62,6 +63,7 @@ type
 		miZoneKind2: TMenuItem;
 		miZoneKind3: TMenuItem;
 		miZoneKind4: TMenuItem;
+		pbVU: TBGRAVirtualScreen;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -167,6 +169,7 @@ type
 		procedure SetZoneKind(Zone: Word; Kind: TZoneKind);
 
 		procedure ShowPosition;
+		procedure SyncToOtherDeck(Immediate: Boolean);
 		procedure Cue(DoCue: Boolean);
 		procedure SetCue(P: TPoint); overload;
 		procedure SetCue(P: QWord); overload;
@@ -178,7 +181,7 @@ type
 		procedure DrawWaveform;
 		procedure DrawZones(Recalc: Boolean = True);
 		procedure DrawRuler(Recalc: Boolean = True);
-		procedure DrawGraph(Recalc: Boolean = True);
+		procedure DrawGraph;
 		procedure RedrawGraph;
 	end;
 
@@ -194,6 +197,12 @@ uses
 	MouseWheelAccelerator,
 	Form.Main,
 	Decks.Config, Decks.Song;
+
+procedure Audio_Callback_Play(handle: HSYNC; channel, data: DWord; user: Pointer);
+	{$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
+begin
+	TDeck(user^).Play;
+end;
 
 { TDeckFrame }
 
@@ -263,6 +272,7 @@ end;
 procedure TDeckFrame.ZoneChanged(Zone: Integer; FromCallback, MixTime: Boolean);
 var
 	Z: TZone;
+	Buf: Single;
 begin
 	if Zone = ZONECHANGE_STOPPED then
 	begin
@@ -292,6 +302,16 @@ begin
 
 		if MixTime then
 		begin
+			{if (Deck.OtherDeck <> nil) and (Deck.OtherDeck.Queued) then
+			begin
+				BASS_ChannelGetAttribute(Deck.Stream, BASS_ATTRIB_BUFFER, Buf);
+				BASS_Mixer_ChannelSetPosition(Deck.OtherDeck.Stream,
+					BASS_ChannelGetPosition(Deck.OtherDeck.Stream, BASS_POS_BYTE) -
+					BASS_ChannelSeconds2Bytes(Deck.OtherDeck.Stream, Buf),
+				BASS_POS_BYTE);
+				Deck.OtherDeck.Queued := False;
+				Deck.OtherDeck.Play;
+			end;}
 			case Z.Kind of
 				// no special processing
 				zkNormal: ;
@@ -314,7 +334,8 @@ begin
 	end;
 
 	Deck.SetBPM(MasterBPM);
-	DrawZones(True);
+	if not MixTime then
+		DrawZones(True);
 end;
 
 procedure TDeckFrame.DoInit;
@@ -374,8 +395,9 @@ end;
 
 procedure TDeckFrame.ShowPosition;
 var
-	time_e, time_r, tm, ts: Integer;
+	time_e, time_r, tm, ts, Y, W, H: Integer;
 	se, sr: String;
+	Vol: DWord;
 begin
 	if not Deck.Loaded then
 	begin
@@ -416,6 +438,25 @@ begin
 	end;
 
 	bPlay.StateNormal.Border.Color := Grays[Deck.BeatFadeCounter];
+
+	Vol := BASS_ChannelGetLevel(Deck.Stream);
+	with pbVU do
+	begin
+		W := ClientWidth-1; H := ClientHeight;
+		Bitmap.FillRect(Bounds(0, 0, W, H), BGRABlack, dmSet);
+
+		if vol > 0 then
+		begin
+			W := 2;
+			Y := H - Trunc((H * ((Vol and $FFFF) / 32767)));
+			Bitmap.FillRect(Bounds(0, Y, W, H), BGRAWhite, dmSet);
+
+			Y := H - Trunc((H * ((Vol shr 16) / 32767)));
+			Bitmap.FillRect(Bounds(W, Y, W+2, H), BGRAWhite, dmSet);
+		end;
+
+		Refresh;
+	end;
 
 	DrawGraph;
 end;
@@ -460,6 +501,8 @@ begin
 		4..999: begin K := LOOP_BARS; L := Btn.Tag div 4; end;
 		   0: begin K := LOOP_ZONE; L := 1; end;
 		  -1: begin K := LOOP_SONG; L := 1; end;
+		else
+			Exit;
 	end;
 
 	if Btn.Down then
@@ -482,8 +525,12 @@ end;
 
 procedure TDeckFrame.bReverseMouseUp(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
+var
+	B: Boolean;
 begin
-	Deck.SetReverse(False, Button = mbLeft);
+	B := Button = mbLeft;
+	Deck.SetReverse(False, True);
+	if B then SyncToOtherDeck(True);
 end;
 
 procedure TDeckFrame.bStoreClick(Sender: TObject);
@@ -506,55 +553,6 @@ begin
 
 	Deck.Graph.ZonesLoaded;
 	RedrawGraph;
-end;
-
-procedure TDeckFrame.bSyncMouseDown(Sender: TObject; Button: TMouseButton;
-	Shift: TShiftState; X, Y: Integer);
-var
-	P: QWord;
-//	SrcY, BL: Single;
-//	DestY: QWord;
-	PT, CT: TPoint;
-begin
-	case Button of
-		mbLeft:
-		begin
-			Deck.Synced := not Deck.Synced;
-			bSync.StateNormal.Border.LightWidth := IfThen(Deck.Synced, 1, 0);
-		end;
-
-		mbRight:
-		if Deck.OtherDeck <> nil then
-		begin
-			(*
-			P := Deck.OtherDeck.GetPlayPosition;
-P := BASS_ChannelGetPosition(
-		Deck.OtherDeck.OrigStream, BASS_POS_BYTE)
-		- Deck.OtherDeck.Graph.StartPos);
-
-			SrcY  := Deck.OtherDeck.Graph.GetYPos(P);
-
-			P := Deck.Graph.GraphToSongBytes(CuePos);
-			DestY := P;
-			BL := Deck.Graph.GraphToSongBytes(Trunc(Deck.Graph.GetBarLengthAt(P)));
-			DestY += Trunc(BL * SrcY);
-
-			bMaster.Caption := Format('SrcY=%f  DestY=%d  BarLen=%f', [SrcY, DestY, BL]);
-			*)
-			CT := Deck.Graph.PosToGraph(Deck.GetPlayPosition(True), False);
-			BASS_SetDevice(CurrentDevice);
-			PT := Deck.OtherDeck.Graph.PosToGraph(Deck.OtherDeck.GetPlayPosition(False), False);
-			CT.Y := PT.Y;
-			P := Deck.Graph.GraphToPos(CT);
-
-			BASS_Mixer_ChannelSetPosition(Deck.OrigStream, P,
-				BASS_POS_BYTE or BASS_POS_MIXER_RESET);
-			if Deck.Paused then Deck.Play;
-
-			ZoneChanged(ZONECHANGE_GETPOS, False, False);
-			ShowPosition;
-		end;
-	end;
 end;
 
 procedure TDeckFrame.ZoomSample(Dir: Integer);
@@ -605,6 +603,21 @@ begin
 	end;
 end;
 
+procedure TDeckFrame.bSyncMouseDown(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: Integer);
+begin
+	case Button of
+		mbLeft:
+		begin
+			Deck.Synced := not Deck.Synced;
+			bSync.StateNormal.Border.LightWidth := IfThen(Deck.Synced, 1, 0);
+		end;
+
+		mbRight:
+			SyncToOtherDeck(True);
+	end;
+end;
+
 procedure TDeckFrame.bPlayClick(Sender: TObject);
 begin
 	if Deck.Cueing then
@@ -620,15 +633,23 @@ begin
 	if PlayPosition >= BASS_ChannelGetLength(Deck.OrigStream, BASS_POS_BYTE) then
 		JumpToCue;
 
-	Deck.Pause;
+	if (Deck.Synced) and (Deck.Paused) then
+		SyncToOtherDeck(False)
+	else
+		Deck.Pause;
 end;
 
 procedure TDeckFrame.bPlayMouseDown(Sender: TObject;
 	Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
 	case Button of
-		mbRight:  Cue(True);
-		mbMiddle: bSyncMouseDown(Sender, mbRight, Shift, X, Y);
+		mbRight:
+			Cue(True);
+		mbMiddle:
+			if (Deck.OtherDeck <> nil) and (not Deck.OtherDeck.Paused) then
+				SyncToOtherDeck(False)
+			else
+				Deck.Pause;
 	end;
 end;
 
@@ -637,6 +658,43 @@ procedure TDeckFrame.bPlayMouseUp(Sender: TObject; Button: TMouseButton;
 begin
 	case Button of
 		mbRight:  Cue(False);
+	end;
+end;
+
+procedure TDeckFrame.SyncToOtherDeck(Immediate: Boolean);
+var
+	P: QWord;
+	B: Cardinal;
+	PT, CT: TPoint;
+begin
+	if Deck.OtherDeck = nil then Exit;
+
+	if Immediate then
+	begin
+		CT := Deck.Graph.PosToGraph(Deck.GetPlayPosition(True), False);
+		BASS_SetDevice(CurrentDevice);
+		PT := Deck.OtherDeck.Graph.PosToGraph(Deck.OtherDeck.GetPlayPosition(False), False);
+		CT.Y := PT.Y;
+		P := Deck.Graph.GraphToPos(CT);
+
+		BASS_Mixer_ChannelSetPosition(Deck.OrigStream, P,
+			BASS_POS_BYTE or BASS_POS_MIXER_RESET);
+		if Deck.Paused then Deck.Play;
+
+		ZoneChanged(ZONECHANGE_GETPOS, False, False);
+		ShowPosition;
+	end
+	else
+	begin
+		B := Deck.OtherDeck.GetCurrentBar+1;
+		P := Deck.OtherDeck.Graph.Bars[B].Pos;
+		P := Deck.OtherDeck.Graph.GraphToSongBytes(P);
+		JumpToCue;
+		bPlay.StateNormal.Border.LightColor := $0022AAFF;
+		bPlay.StateNormal.Border.LightWidth := 2;
+		BASS_ChannelSetSync(Deck.OtherDeck.OrigStream,
+			BASS_SYNC_POS or BASS_SYNC_MIXTIME or BASS_SYNC_ONETIME, P,
+			@Audio_Callback_Play, @Deck);
 	end;
 end;
 
@@ -1096,7 +1154,7 @@ procedure TDeckFrame.SliderGraphXChange(Sender: TObject);
 begin
 	Deck.Graph.Scroll.X := Trunc(SliderGraphX.Position);
 
-	DrawGraph(False);
+	DrawGraph;
 	DrawRuler(False);
 	DrawZones(False);
 end;
@@ -1239,7 +1297,7 @@ begin
 	pbWave.Refresh;
 end;
 
-procedure TDeckFrame.DrawGraph(Recalc: Boolean = True);
+procedure TDeckFrame.DrawGraph;
 const
 	COLOR_HOVER = clAqua;
 	CUESIZE_Y = 1;
@@ -1373,6 +1431,7 @@ begin
 		MODE_PLAY_START:
 		begin
 			bPlay.StateNormal.Border.LightWidth := IfThen(Deck.Cueing, 1, 2);
+			bPlay.StateNormal.Border.LightColor := $0035D95F;
 			if not Deck.Cueing then MainForm.MarkSongAsPlayed(Deck.Filename);
 		end;
 
@@ -1556,7 +1615,7 @@ begin
 	else
 		Z.Data := 0;
 
-	DrawZones(False);
+	RedrawGraph;
 end;
 
 procedure TDeckFrame.miZoneKind0Click(Sender: TObject);

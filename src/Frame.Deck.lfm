@@ -1021,9 +1021,20 @@ object DeckFrame: TDeckFrame
     TextApplyGlobalOpacity = False
     ClickOffset = True
   end
+  object pbVU: TBGRAVirtualScreen
+    Left = 176
+    Height = 50
+    Top = 295
+    Width = 8
+    Alignment = taLeftJustify
+    Anchors = [akLeft, akBottom]
+    Color = clBlack
+    ParentColor = False
+    TabOrder = 7
+  end
   object Timer: TTimer
     Enabled = False
-    Interval = 16
+    Interval = 15
     OnTimer = TimerTimer
     Left = 36
     Top = 72

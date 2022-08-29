@@ -2,6 +2,7 @@ unit Decks.Deck;
 
 {$mode Delphi}
 {$INLINE ON}
+{$WARN 5024 off : Parameter "$1" not used}
 
 interface
 
@@ -378,7 +379,7 @@ end;
 
 procedure TDeck.SetBPM(NewBPM: Single);
 begin
-	if not Loaded then Exit;
+	if (not Loaded) then Exit;
 	BPM := NewBPM;
 	PlayFreq := BPMToHz(NewBPM, PlayingZone);
 	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_FREQ, PlayFreq);

@@ -157,6 +157,9 @@
     </Linking>
     <Other>
       <WriteFPCLogo Value="False"/>
+      <CompilerMessages>
+        <IgnoredMessages idx6060="True"/>
+      </CompilerMessages>
       <CustomOptions Value="-Si
 -dRELEASE"/>
       <OtherDefines Count="1">

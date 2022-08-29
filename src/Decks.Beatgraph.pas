@@ -276,7 +276,7 @@ procedure TBeatGraph.ZonesChanged;
 var
 	Z: TZone;
 	i, b, ZZ: Integer;
-	P: QWord;
+	P, SP: QWord;
 begin
 	{$IFDEF DEBUGLOG}
 	Log('[ZonesChanged]');
@@ -322,11 +322,12 @@ begin
 		if Z.MixSync <> 0 then
 			BASS_Mixer_ChannelRemoveSync(Song.OrigStream, Z.MixSync);
 
+		SP := GraphToSongBytes(Z.Pos);
         Z.Sync := BASS_Mixer_ChannelSetSync(Song.OrigStream,
-			BASS_SYNC_POS, GraphToSongBytes(Z.Pos),
+			BASS_SYNC_POS, SP,
 			@Audio_Callback_ZoneSync, @Z.ChangeEvent);
         Z.MixSync := BASS_Mixer_ChannelSetSync(Song.OrigStream,
-			BASS_SYNC_POS or BASS_SYNC_MIXTIME, GraphToSongBytes(Z.Pos),
+			BASS_SYNC_POS or BASS_SYNC_MIXTIME, SP,
 			@Audio_Callback_ZoneSync_MixTime, @Z.ChangeEvent);
 	end;
 
@@ -797,7 +798,7 @@ end;
 
 procedure TBeatGraph.DoDraw;
 var
-	i, BB: Integer;
+	i, BB, X1, X2: Integer;
 	b: Cardinal;
 	Z: TZone;
 
@@ -883,33 +884,38 @@ begin
 		Bitmap.SetSize(Width, Height);
 	end;
 
-//	Bitmap.BeginUpdate;
-//	Bitmap.Clear(clBlack32);
-	Bitmap.Fill(ColorToBGRA($000000));
+	Bitmap.Fill(BGRABlack);
 
 	if amount_bars > 0 then
 	begin
 		Drawing := True;
 		i := 0;
-		//ZZ := 0;
 		BB := 0;
 		for Z in Zones do
 		begin
 			b := 0;
 			Z.barindex := BB;
-			while (b < Z.amount_bars) and (i < Width) do
+			X1 := i;
+			while (Drawing) and (b < Z.amount_bars) and (i < Width) do
 			begin
 				DrawBar(Z, b, i, Zoom);
-//				Bars[BB].Zone := ZZ;
 				Inc(i, Zoom);
 				Inc(b);
 				Inc(BB);
 			end;
-//			Inc(ZZ);
+			X2 := i;
+
+			if not Drawing then Break;
+
+			case Z.Kind of
+				zkSkip:
+					Bitmap.FillRect(X1, 0, X2, Height-1, BGRA(255,0,0), dmSet, 65535 div 3);
+				zkEnd:
+					Bitmap.FillRect(X1, 0, X2, Height-1, BGRABlack, dmSet, 65535 div 3);
+			end;
 		end;
 	end;
 
-//	Bitmap.EndUpdate;
 	Drawing := False;
 end;
 

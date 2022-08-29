@@ -144,6 +144,7 @@ begin
 	// resample and downmix to 44100 Hz 16-bit Stereo
 	FreeStream(Stream);
 	Stream := BASS_Mixer_StreamCreate(44100, 2, 0);//BASS_STREAM_DECODE);
+	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_BUFFER, 0); // disable playback buffering
 
 	// generate the graph externally here before plugging the
 	// stream into the final output mixer
@@ -199,7 +200,7 @@ begin
 	Paused := False;
 	BeatPreviousQuadrant := 255;
 
-	if BASS_ChannelPlay(Stream, False) then
+	if BASS_ChannelPlay(Stream, True) then
 		ModeChange(MODE_PLAY_START)
 	else
 		ModeChange(MODE_PLAY_FAILURE);
