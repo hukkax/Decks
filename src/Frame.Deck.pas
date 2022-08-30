@@ -173,8 +173,9 @@ type
 		procedure Cue(DoCue: Boolean);
 		procedure SetCue(P: TPoint); overload;
 		procedure SetCue(P: QWord); overload;
+		procedure AfterPosJump(Data: PtrInt);
 		procedure JumpToPos(Pos: QWord; Reset: Boolean = False);
-		procedure JumpToCue;
+		procedure JumpToCue(FromCallback: Boolean = False);
 		procedure JumpToZone(Zone: Word);
 		procedure JumpToBar(Bar: Word);
 
@@ -200,8 +201,16 @@ uses
 
 procedure Audio_Callback_Play(handle: HSYNC; channel, data: DWord; user: Pointer);
 	{$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
+var
+	DeckFrame: TDeckFrame;
 begin
-	TDeck(user^).Play;
+	DeckFrame := TDeckFrame(user);
+	if (DeckFrame = nil) or (DeckFrame.Deck = nil) then Exit;
+
+	if DeckFrame.Deck.Paused then
+		DeckFrame.Deck.Play
+	else
+		DeckFrame.JumpToCue(True);
 end;
 
 { TDeckFrame }
@@ -297,21 +306,9 @@ begin
 
 	if FromCallback then
 	begin
-		if Zone = Deck.PlayingZone then Exit;
 		Deck.PlayingZone := Zone;
-
 		if MixTime then
 		begin
-			{if (Deck.OtherDeck <> nil) and (Deck.OtherDeck.Queued) then
-			begin
-				BASS_ChannelGetAttribute(Deck.Stream, BASS_ATTRIB_BUFFER, Buf);
-				BASS_Mixer_ChannelSetPosition(Deck.OtherDeck.Stream,
-					BASS_ChannelGetPosition(Deck.OtherDeck.Stream, BASS_POS_BYTE) -
-					BASS_ChannelSeconds2Bytes(Deck.OtherDeck.Stream, Buf),
-				BASS_POS_BYTE);
-				Deck.OtherDeck.Queued := False;
-				Deck.OtherDeck.Play;
-			end;}
 			case Z.Kind of
 				// no special processing
 				zkNormal: ;
@@ -325,6 +322,7 @@ begin
 				zkLoop:	Deck.LoopZone(Zone);
 			end;
 		end;
+		if Zone = Deck.PlayingZone then Exit;
 	end
 	else
 	if not MixTime then
@@ -363,12 +361,11 @@ begin
 		mi.GroupIndex := 1;
 		mi.AutoCheck := True;
 		mi.RadioItem := True;
-		mi.Checked := (mi.Tag = Config.Audio.Device[Deck.Index] {AudioManager.DefaultDeviceIndex});
+		mi.Checked := (mi.Tag = Config.Audio.Device[Deck.Index]);
 		mi.OnClick := cmbDevicesChange;
 		miAudioDevices.Add(mi);
 	end;
 	InitDevice(Config.Audio.Device[Deck.Index]);
-//	InitDevice(AudioManager.DefaultDeviceIndex - 1); // 0-based
 
 	Show;
 	ShowPosition;
@@ -407,7 +404,6 @@ begin
 	else
 	begin
 		if Deck.Graph.Zones.Count < 1 then Exit;
-//		bMaster.Caption := Format('%.3f -> %.3f', [Deck.Graph.Zones[Deck.PlayingZone].BPM, Deck.BPM]);
 		GetPlayPosition;
 		time_e := Max(0, Round(BASS_ChannelBytes2Seconds(Deck.OrigStream, PlayPosition)));
 	end;
@@ -455,7 +451,7 @@ begin
 			Bitmap.FillRect(Bounds(W, Y, W+2, H), BGRAWhite, dmSet);
 		end;
 
-		Refresh;
+		Repaint;
 	end;
 
 	DrawGraph;
@@ -689,12 +685,12 @@ begin
 		B := Deck.OtherDeck.GetCurrentBar+1;
 		P := Deck.OtherDeck.Graph.Bars[B].Pos;
 		P := Deck.OtherDeck.Graph.GraphToSongBytes(P);
-		JumpToCue;
+		if Deck.Paused then JumpToCue;
 		bPlay.StateNormal.Border.LightColor := $0022AAFF;
 		bPlay.StateNormal.Border.LightWidth := 2;
 		BASS_ChannelSetSync(Deck.OtherDeck.OrigStream,
 			BASS_SYNC_POS or BASS_SYNC_MIXTIME or BASS_SYNC_ONETIME, P,
-			@Audio_Callback_Play, @Deck);
+			@Audio_Callback_Play, Self);
 	end;
 end;
 
@@ -770,8 +766,8 @@ begin
 
 	with ZoneTextStyle do
 	begin
-		Alignment := taLeftJustify; // TAlignment
-		Layout := tlCenter; // TTextLayout
+		Alignment := taLeftJustify;
+		Layout := tlCenter;
 		SingleLine := True;
 		Clipping := True;
 		ExpandTabs := False;
@@ -789,10 +785,6 @@ begin
 	Zoner.FontAntialias := True;
 	Zoner.FontQuality := fqSystemClearType;
 	Zoner.FontFullHeight := 16;
-
-//	pbRuler.Height := pbRuler.Height + 1;
-//	pbZones.SetBounds(pbZones.Left, pbZones.Top-1,
-//		pbZones.Width, pbZones.Height+1);
 
 	//ConvertButtons(Self);
 	LoadButtonImages(Self, Config.GetThemePath + 'images');
@@ -912,6 +904,18 @@ begin
 	DrawGraph;
 end;
 
+procedure TDeckFrame.AfterPosJump(Data: PtrInt);
+var
+	Zone: Integer;
+begin
+	if not Deck.Paused then
+		UpdatePlayButton(MODE_PLAY_START);
+	Zone := Deck.Graph.GetZoneIndexAt(CuePos);
+	Deck.PlayingZone := Zone;
+	ZoneChanged(Zone, False, True);
+	ShowPosition;
+end;
+
 procedure TDeckFrame.JumpToPos(Pos: QWord; Reset: Boolean = False);
 var
 	Flags: DWord = BASS_POS_BYTE;
@@ -919,13 +923,21 @@ begin
 	if Reset then
 		Flags := Flags or BASS_POS_MIXER_RESET;
 	BASS_Mixer_ChannelSetPosition(Deck.OrigStream, Pos, Flags);
-	ZoneChanged(ZONECHANGE_GETPOS, False, True);
-	ShowPosition;
+	AfterPosJump(0);
 end;
 
-procedure TDeckFrame.JumpToCue;
+procedure TDeckFrame.JumpToCue(FromCallback: Boolean = False);
+var
+	Pos: QWord;
 begin
-	JumpToPos(Deck.Graph.GraphToSongBytes(CuePos), True);
+	Pos := Deck.Graph.GraphToSongBytes(CuePos);
+	if not FromCallback then
+		JumpToPos(Pos, True)
+	else
+	begin
+		BASS_Mixer_ChannelSetPosition(Deck.OrigStream, Pos, 0);
+		Application.QueueAsyncCall(AfterPosJump, 0);
+	end;
 end;
 
 procedure TDeckFrame.JumpToZone(Zone: Word);
@@ -951,7 +963,14 @@ begin
 		end;
 
 		mbRight:
-			JumpToCue;
+			if (Deck.Synced) and (not Deck.Paused) then
+				SyncToOtherDeck(False)
+			else
+				JumpToCue;
+
+		mbMiddle:
+			SyncToOtherDeck(False);
+
 	end;
 end;
 
@@ -1077,7 +1096,12 @@ begin
 		end;
 
 		mbRight:
-			JumpToCue;
+		begin
+			if (Deck.Synced) and (not Deck.Paused) then
+				SyncToOtherDeck(False)
+			else
+				JumpToCue;
+		end;
 	end;
 end;
 
@@ -1086,6 +1110,14 @@ procedure TDeckFrame.pbWaveMouseUp(Sender: TObject; Button: TMouseButton;
 begin
 	DragWave.Dragging := False;
 	SetCaptureControl(nil);
+end;
+
+procedure TDeckFrame.pbWaveMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+	if not DragWave.Dragging then Exit;
+
+	SetCue(Max(0, CuePos - ((DragWave.Offset - X) * WaveformStep)));
+	DragWave.Offset := X;
 end;
 
 procedure TDeckFrame.pbWaveMouseWheel(Sender: TObject; Shift: TShiftState;
@@ -1120,7 +1152,6 @@ begin
 	SetMaster(Tag);
 	Y := Deck.Graph.GraphToBar(X + Deck.Graph.Scroll.X);
 	CurrentZone := Deck.Graph.Bars[Y].Zone;
-	//bMaster.caption := format('X=%d  B=%d  Z=%d', [X, Y, CurrentZone]);
 	ZoneChanged(CurrentZone, False, False);
 
 	case Button of
@@ -1140,14 +1171,6 @@ end;
 procedure TDeckFrame.pbZonesRedraw(Sender: TObject; Bitmap: TBGRABitmap);
 begin
 	DrawZones;
-end;
-
-procedure TDeckFrame.pbWaveMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-begin
-	if not DragWave.Dragging then Exit;
-
-	SetCue(Max(0, CuePos - ((DragWave.Offset - X) * WaveformStep)));
-	DragWave.Offset := X;
 end;
 
 procedure TDeckFrame.SliderGraphXChange(Sender: TObject);
@@ -1224,7 +1247,7 @@ begin
 	end;
 
 	pbZones.Bitmap.PutImage(-Deck.Graph.Scroll.X, 0, Zoner, dmSet);
-	pbZones.Refresh;
+	pbZones.Repaint;
 end;
 
 procedure TDeckFrame.DrawRuler(Recalc: Boolean = True);
@@ -1258,7 +1281,7 @@ begin
 	end;
 
 	pbRuler.Bitmap.PutImage(-Deck.Graph.Scroll.X, 0, Ruler, dmSet);
-	pbRuler.Refresh;
+	pbRuler.Repaint;
 end;
 
 procedure TDeckFrame.DrawWaveform;
@@ -1294,7 +1317,7 @@ begin
 		pbWave.Bitmap.VertLine(X, 31-Y, 31+Y, Grays[Sam]);
 	end;
 
-	pbWave.Refresh;
+	pbWave.Repaint;
 end;
 
 procedure TDeckFrame.DrawGraph;
@@ -1388,7 +1411,7 @@ begin
 		end;
 	end;
 
-	pb.Refresh;
+	pb.Repaint;
 end;
 
 procedure TDeckFrame.RedrawGraph;
