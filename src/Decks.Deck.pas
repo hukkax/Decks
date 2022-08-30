@@ -434,12 +434,8 @@ begin
 
 			Ini.WriteString(Sect, 'bpm', FloatToString(Z.BPM));
 			Ini.WriteInt64(Sect, 'bar', Z.barindex);
-			if Z.Kind <> zkNormal then
-			begin
-				Ini.WriteString(Sect, 'kind', ZoneKindNames[Z.Kind]);
-				if Z.Data <> 0 then
-					Ini.WriteInt64(Sect, 'data', Z.Data);
-			end;
+			Ini.WriteString(Sect, 'kind', ZoneKindNames[Z.Kind]);
+			Ini.WriteInt64(Sect, 'data', Z.Data);
 		end;
 	finally
 		Ini.Free;
