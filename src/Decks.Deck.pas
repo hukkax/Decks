@@ -39,6 +39,7 @@ type
 		EndPos:  QWord;
 		Stream:  HSTREAM;
 		Sync:    HSYNC;
+		Zone:    Integer;
 	end;
 	PLoopInfo = ^TLoopInfo;
 
@@ -95,6 +96,8 @@ type
 		function	BPMToHz(aBPM: Single; Zone: Word = 0): Cardinal;
 		function	HzToBPM(Hz: Single; Zone: Word = 0): Single;
 
+		function	GetOtherOrCurrentDeck: TDeck;
+
 		function 	Load(const AFilename: String): Boolean; override;
 		function	GetInfo: Boolean;
 
@@ -109,8 +112,10 @@ type
 		procedure	ToggleEQKill(BandNum: TEQBand);
 
 		procedure	LoopZone(ZoneIndex: Word);
+		procedure	UnloopZone;
 		procedure	SetLoop(LoopType, LoopLength: Integer);
 		procedure	EnableLoop(LoopInfo: PLoopInfo; StartPos, EndPos: QWord);
+		procedure	DisableLoop(LoopInfo: PLoopInfo);
 		procedure	SetBPM(NewBPM: Single);
 
 		procedure	SaveInfoFile;
@@ -234,6 +239,13 @@ begin
 		Result := 0
 	else
 		Result := SimpleRoundTo(Graph.Zones[Zone].BPM / OrigFreq * Hz, -3);
+end;
+
+function TDeck.GetOtherOrCurrentDeck: TDeck;
+begin
+	Result := OtherDeck;
+	if Result = nil then
+		Result := Self;
 end;
 
 constructor TDeck.Create;
@@ -536,12 +548,28 @@ begin
 		@Audio_Callback_LoopSync, LoopInfo);
 end;
 
+procedure TDeck.DisableLoop(LoopInfo: PLoopInfo);
+begin
+	if LoopInfo^.Enabled then
+	begin
+		LoopInfo^.Enabled := False;
+		BASS_ChannelRemoveSync(OrigStream, LoopInfo^.Sync);
+	end;
+end;
+
+procedure TDeck.UnloopZone;
+begin
+	DisableLoop(@LoopInfo_Zone);
+	LoopInfo_Zone.Zone := -1;
+end;
+
 procedure TDeck.LoopZone(ZoneIndex: Word);
 var
 	Z: TZone;
 	StartPos, EndPos: QWord;
 begin
 	Z := Graph.Zones[ZoneIndex];
+	LoopInfo_Zone.Zone := ZoneIndex;
 	StartPos := Graph.GraphToSongBytes(Z.Pos);
 	EndPos := StartPos + Graph.GraphToSongBytes(Z.length);
 	EnableLoop(@LoopInfo_Zone, StartPos, EndPos);

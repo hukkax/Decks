@@ -306,9 +306,12 @@ begin
 
 	if FromCallback then
 	begin
+		if Zone = Deck.PlayingZone then Exit;
 		Deck.PlayingZone := Zone;
 		if MixTime then
 		begin
+			if Z.Kind <> zkLoop then
+				Deck.UnloopZone;
 			case Z.Kind of
 				// no special processing
 				zkNormal: ;
@@ -322,7 +325,6 @@ begin
 				zkLoop:	Deck.LoopZone(Zone);
 			end;
 		end;
-		if Zone = Deck.PlayingZone then Exit;
 	end
 	else
 	if not MixTime then
@@ -662,14 +664,16 @@ var
 	P: QWord;
 	B: Cardinal;
 	PT, CT: TPoint;
+	OtherDeck: TDeck;
 begin
-	if Deck.OtherDeck = nil then Exit;
+	OtherDeck := Deck.GetOtherOrCurrentDeck;
+	if OtherDeck = nil then Exit;
 
 	if Immediate then
 	begin
 		CT := Deck.Graph.PosToGraph(Deck.GetPlayPosition(True), False);
 		BASS_SetDevice(CurrentDevice);
-		PT := Deck.OtherDeck.Graph.PosToGraph(Deck.OtherDeck.GetPlayPosition(False), False);
+		PT := OtherDeck.Graph.PosToGraph(OtherDeck.GetPlayPosition(False), False);
 		CT.Y := PT.Y;
 		P := Deck.Graph.GraphToPos(CT);
 
@@ -682,13 +686,13 @@ begin
 	end
 	else
 	begin
-		B := Deck.OtherDeck.GetCurrentBar+1;
-		P := Deck.OtherDeck.Graph.Bars[B].Pos;
-		P := Deck.OtherDeck.Graph.GraphToSongBytes(P);
+		B := OtherDeck.GetCurrentBar+1;
+		P := OtherDeck.Graph.Bars[B].Pos;
+		P := OtherDeck.Graph.GraphToSongBytes(P);
 		if Deck.Paused then JumpToCue;
 		bPlay.StateNormal.Border.LightColor := $0022AAFF;
 		bPlay.StateNormal.Border.LightWidth := 2;
-		BASS_ChannelSetSync(Deck.OtherDeck.OrigStream,
+		BASS_ChannelSetSync(OtherDeck.OrigStream,
 			BASS_SYNC_POS or BASS_SYNC_MIXTIME or BASS_SYNC_ONETIME, P,
 			@Audio_Callback_Play, Self);
 	end;
@@ -911,8 +915,11 @@ begin
 	if not Deck.Paused then
 		UpdatePlayButton(MODE_PLAY_START);
 	Zone := Deck.Graph.GetZoneIndexAt(CuePos);
+	Deck.UnloopZone;
 	Deck.PlayingZone := Zone;
-	ZoneChanged(Zone, False, True);
+	ZoneChanged(Zone, True, True);
+	if Deck.Graph.Zones[Zone].Kind = zkLoop then
+		Deck.LoopZone(Zone); // reapply loop, dumb
 	ShowPosition;
 end;
 
@@ -942,6 +949,7 @@ end;
 
 procedure TDeckFrame.JumpToZone(Zone: Word);
 begin
+	Deck.UnloopZone;
 	JumpToPos(Deck.Graph.GraphToSongBytes(Deck.Graph.Zones[Zone].Pos));
 end;
 
@@ -1633,12 +1641,18 @@ begin
 
 	Z := Deck.Graph.Zones[Zone];
 	Z.Kind := Kind;
+
 	if Kind = zkJump then
 		Z.Data := Deck.Graph.GraphToPos(GraphCue)
 	else
 		Z.Data := 0;
 
 	RedrawGraph;
+
+	if Kind = zkLoop then
+		Deck.LoopZone(Zone)
+	else
+		Deck.UnloopZone;
 end;
 
 procedure TDeckFrame.miZoneKind0Click(Sender: TObject);
