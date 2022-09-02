@@ -84,6 +84,7 @@ type
 		FMouseAngle: Integer;		{ The current mouse 'angle' over the knob }
 		FDragging: Boolean;			{ Knob position is being 'changed' }
 		FSensitivity: Integer;		{ Movement area when fVerticalMove }
+		FMultiplier: Integer;		{ Multiplier for integer/float conversion }
 		FCursorHide: Boolean;		{ Hide mouse pointer when fVerticalMove? }
 		FIndicator: TKnobLineProperty;
 		FIndicatorState: TKnobLineSubProperty;
@@ -103,7 +104,7 @@ type
 		function  CalcPosition(TheAngle: Integer): Integer;
 
 		procedure SetPositionLabel(const NewLabel: TLabel);
-		procedure ShowPosition(const ThePosition: Integer);
+		procedure ShowPosition(const ThePosition: Integer); overload;
 		procedure SetSpringLoaded(const Sprung: Boolean);
 		procedure SetKnobColor(NewColor: TColor);
 		procedure SetBorderColor(NewColor: TColor);
@@ -122,6 +123,8 @@ type
 		procedure CMVisibleChanged(var Msg: TLMessage);      message CM_VisibleChanged;
 		procedure CM_ParentColorChanged(var Msg: TLMessage); message CM_ParentColorChanged;
 		procedure CM_TextChanged(var Msg: TLMessage);        message CM_TextChanged;
+		function GetFloatPosition: Single;
+		procedure SetFloatPosition(Value: Single);
 	protected
 		function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
 
@@ -136,6 +139,8 @@ type
 	public
 		constructor Create(AOwner: TComponent); override;
 		destructor  Destroy; override;
+
+		procedure ShowPosition; overload;
 	published
 		property Anchors;
 		property ParentShowHint;
@@ -149,7 +154,9 @@ type
 		property BorderColor: TColor read FBorderColor write SetBorderColor default clNone;
 		property BorderWidth: Integer read FBorderWidth write SetBorderWidth default 2;
 		property Position: Integer read FPosition write SetPosition default 50;
+		property FloatPosition: Single read GetFloatPosition write SetFloatPosition;
 		property PageSize: Word read FPageSize write FPageSize default 10;
+		property Multiplier: Integer read FMultiplier write FMultiplier default 0;
 		property PositionLabel: TLabel read FPositionLabel write SetPositionLabel;
 		property Sensitivity: Integer read FSensitivity write FSensitivity default 100;
 		property SpringLoaded: Boolean read FSpringLoaded write SetSpringLoaded default False;
@@ -391,6 +398,16 @@ begin
 	SetParams(NewPosition, FMin, FMax);
 end;
 
+function ThKnob.GetFloatPosition: Single;
+begin
+	Result := FPosition / FMultiplier;
+end;
+
+procedure ThKnob.SetFloatPosition(Value: Single);
+begin
+	Position := Trunc(Value * FMultiplier);
+end;
+
 procedure ThKnob.SetMin(const NewMinValue: Integer);
 begin
 	SetParams(FPosition, NewMinValue, FMax);
@@ -399,6 +416,17 @@ end;
 procedure ThKnob.SetMax(const NewMaxValue: Integer);
 begin
 	SetParams(FPosition, FMin, NewMaxValue);
+end;
+
+{Called whenever Min or Max is changed}
+procedure ThKnob.SetSteps;
+begin
+	FSteps := FMax - FMin;
+	if FSteps = 0 then FAngleInterval:= 0 else
+	begin
+		FAngleInterval := 300 / FSteps;
+		FSteps := Abs(FSteps);
+	end;
 end;
 
 {Calculate characteristics of knob when Position, Max or Min are changed}
@@ -432,17 +460,6 @@ begin
 		fOnChange(Self);
 end;
 
-{Called whenever Min or Max is changed}
-procedure ThKnob.SetSteps;
-begin
-	FSteps := FMax - FMin;
-	if FSteps = 0 then FAngleInterval:= 0 else
-	begin
-		FAngleInterval := 300 / FSteps;
-		FSteps := Abs(FSteps);
-	end;
-end;
-
 {If the PositionLabel is removed then point it to nil }
 procedure ThKnob.Notification(AComponent: TComponent; Operation: TOperation);
 begin
@@ -455,7 +472,17 @@ end;
 procedure ThKnob.ShowPosition(const ThePosition: Integer);
 begin
 	if FPositionLabel <> nil then
-		FPositionLabel.Caption := Format(Caption, [ThePosition]);
+	begin
+		if (FMultiplier <> 0) then
+		begin
+			if (Pos('%f', Caption) > 0) then
+				FPositionLabel.Caption := Format(Caption, [GetFloatPosition])
+			else
+				FPositionLabel.Caption := Format('%.2f', [GetFloatPosition])
+		end
+		else
+			FPositionLabel.Caption := Format(Caption, [ThePosition]);
+	end;
 end;
 
 
@@ -816,6 +843,12 @@ begin
 	Buffer.Free;
 	FDrawing := Save;
 end;
+
+procedure ThKnob.ShowPosition;
+begin
+	ShowPosition(FPosition);
+end;
+
 
 end.
 
