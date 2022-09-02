@@ -83,7 +83,6 @@ type
 		pnlGraph: TPanel;
 		pnlEffects: TPanel;
 		bEffect0: TDecksButton;
-		bFxEnabled: TDecksButton;
 		bEffect1: TDecksButton;
 		bEffect2: TDecksButton;
 		bEffect3: TDecksButton;
@@ -94,19 +93,8 @@ type
 		SliderFxParam3: ThKnob;
 		SliderFxParam4: ThKnob;
 		SliderFxParam5: ThKnob;
-		Label1: TLabel;
-		Label2: TLabel;
-		Label3: TLabel;
-		Label4: TLabel;
-		Label5: TLabel;
-		Label6: TLabel;
 		bEffect5: TDecksButton;
-		Label7: TLabel;
-		Label8: TLabel;
-		Label9: TLabel;
-		Label10: TLabel;
-		Label11: TLabel;
-		Label12: TLabel;
+		pnlEffectKnobs: TPanel;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -167,9 +155,12 @@ type
 		procedure SliderTempoFracMouseWheelUp(Sender: TObject; Shift: TShiftState;
 			MousePos: TPoint; var Handled: Boolean);
 		procedure miZoneKind0Click(Sender: TObject);
-		procedure bFxEnabledClick(Sender: TObject);
 		procedure SliderFxParam0Change(Sender: TObject);
 		procedure bEffect0Click(Sender: TObject);
+		procedure bEffect0MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
+		procedure SliderFxParam0MouseEnter(Sender: TObject);
+		procedure SliderFxParam0MouseLeave(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -191,7 +182,8 @@ type
 		procedure UpdatePlayButton(Kind: Integer);
 		procedure SelectEffect(EffectNum: Integer);
 		procedure AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton);
-		procedure InitGUIEffectParam(Index: Byte; AKnob: ThKnob; ALabel: TLabel);
+		procedure InitGUIEffectParam(Index: Byte; AKnob: ThKnob);
+		function GetEffectKnob(Sender: TObject): ThKnob;
 	public
 		GraphHover,
 		GraphCue:   TPoint;
@@ -449,9 +441,9 @@ end;
 
 procedure TDeckFrame.ShowPosition;
 var
-	time_e, time_r, tm, ts, Y, W, H: Integer;
+	time_e, time_r, tm, ts, X, Y, W, H: Integer;
 	se, sr: String;
-	Vol: DWord;
+	Vol: DWord = 0;
 begin
 	if not Deck.Loaded then
 	begin
@@ -492,22 +484,30 @@ begin
 
 	bPlay.StateNormal.Border.Color := Grays[Deck.BeatFadeCounter];
 
-	Vol := BASS_ChannelGetLevel(Deck.Stream);
 	with pbVU do
 	begin
-		W := ClientWidth-1; H := ClientHeight;
+		W := ClientWidth; H := ClientHeight;
 		Bitmap.FillRect(Bounds(0, 0, W, H), BGRABlack, dmSet);
-
-		if vol > 0 then
+		if not Deck.Paused then
+			Vol := BASS_ChannelGetLevel(Deck.Stream);
+		if Vol > 0 then
 		begin
+			{ // vertical
 			W := 2;
 			Y := H - Trunc((H * ((Vol and $FFFF) / 32767)));
 			Bitmap.FillRect(Bounds(0, Y, W, H), BGRAWhite, dmSet);
 
 			Y := H - Trunc((H * ((Vol shr 16) / 32767)));
 			Bitmap.FillRect(Bounds(W, Y, W+2, H), BGRAWhite, dmSet);
-		end;
+			}
+			// horizontal
+			H := H div 2;
+			X := Trunc((W * ((Vol and $FFFF) / 32767)));
+			Bitmap.FillRect(Bounds(0, 0, X, H), BGRAWhite, dmSet);
 
+			X := Trunc((W * ((Vol shr 16) / 32767)));
+			Bitmap.FillRect(Bounds(0, H, X, H+H), BGRAWhite, dmSet);
+		end;
 		Repaint;
 	end;
 
@@ -818,13 +818,28 @@ begin
 end;
 *)
 
-procedure TDeckFrame.InitGUIEffectParam(Index: Byte; AKnob: ThKnob; ALabel: TLabel);
+procedure TDeckFrame.InitGUIEffectParam(Index: Byte; AKnob: ThKnob);
+var
+	Lbl: TLabel;
 begin
+//	AKnob.Height := AKnob.Height - 3;
+
+	Lbl := TLabel.Create(AKnob.Parent);
+	Lbl.AutoSize := False;
+	Lbl.Transparent := True;
+	Lbl.SetBounds(AKnob.Left-15, 0, AKnob.Width+30, 20);
+	Lbl.Alignment := taCenter;
+	Lbl.Font.Color := clWhite;
+	Lbl.Parent := AKnob.Parent;
+
 	with GUIEffectParams[Index] do
 	begin
 		Knob := AKnob;
-		NameLabel := ALabel;
-		ValueLabel := Knob.PositionLabel;
+		ValueLabel := Lbl;
+		NameLabel  := Lbl;
+		Knob.PositionLabel := Lbl;
+		Knob.OnMouseEnter := SliderFxParam0MouseEnter;
+		Knob.OnMouseLeave := SliderFxParam0MouseLeave;
 	end;
 end;
 
@@ -836,7 +851,9 @@ begin
 	Fx.Effect := FxObject;
 	Fx.Button := BtnObject;
 	BtnObject.OnClick := bEffect0Click;
-	Fx.Button.Caption := FxObject.Name;
+	BtnObject.OnMouseDown := bEffect0MouseDown;
+	if FxObject <> nil then
+		Fx.Button.Caption := FxObject.Name;
 	Effects.Add(Fx);
 end;
 
@@ -886,15 +903,16 @@ begin
 	AddGUIEffect(TFxChorus.Create,     bEffect3);
 //	AddGUIEffect(TFxDistortion.Create, bEffect4);
 	AddGUIEffect(TFxCompressor.Create, bEffect4);
+	AddGUIEffect(nil, bEffect5);
 
-	InitGUIEffectParam(0, SliderFxParam0, Label7);
-	InitGUIEffectParam(1, SliderFxParam1, Label8);
-	InitGUIEffectParam(2, SliderFxParam2, Label9);
-	InitGUIEffectParam(3, SliderFxParam3, Label10);
-	InitGUIEffectParam(4, SliderFxParam4, Label11);
-	InitGUIEffectParam(5, SliderFxParam5, Label12);
+	InitGUIEffectParam(0, SliderFxParam0);
+	InitGUIEffectParam(1, SliderFxParam1);
+	InitGUIEffectParam(2, SliderFxParam2);
+	InitGUIEffectParam(3, SliderFxParam3);
+	InitGUIEffectParam(4, SliderFxParam4);
+	InitGUIEffectParam(5, SliderFxParam5);
 
-	SelectEffect(0);
+	SelectEffect(Effects.Count-1);
 	ShowPanel_Effects;
 end;
 
@@ -1768,7 +1786,6 @@ end;
 procedure TDeckFrame.ShowPanel_Effects;
 var
 	B: Boolean;
-	H: Integer;
 begin
 	B := MainForm.bToggleEffects.Down;
 	pnlEffects.Top := pnlControls.Top - pnlEffects.Height;
@@ -1781,7 +1798,7 @@ var
 	Param: TEffectParam;
 	GUIParam: TGUIEffectParam;
 	Knob: ThKnob;
-	i: Integer;
+	i, M: Integer;
 	B: Boolean;
 begin
 	SelectedEffect := EffectNum;
@@ -1789,15 +1806,21 @@ begin
 	for i := 0 to Effects.Count-1 do
 	begin
 		B := (i = EffectNum);
-		Effects[i].Button.Down := B;
+		//Effects[i].Button.Down := B;
 		if B then
 			Effects[i].Button.StateNormal.Background.Color := clPurple
 		else
 			Effects[i].Button.StateNormal.Background.Color := clTeal;
 	end;
 
+
 	Fx := Effects[SelectedEffect].Effect;
-	bFxEnabled.Down := Fx.Enabled;
+	B := Fx <> nil;
+	pnlEffectKnobs.Visible := B;
+	if not B then Exit;
+
+//	bFxEnabled.Down := Fx.Enabled;
+	Effects[SelectedEffect].Button.StateNormal.Border.LightWidth := IfThen(Fx.Enabled, 2, 0);
 
 	for i := 0 to High(GUIEffectParams) do
 	begin
@@ -1810,59 +1833,98 @@ begin
 		if B then
 		begin
 			Param := Fx.Params[i];
-			GUIParam.NameLabel.Caption := Param.Name;
-			GUIParam.NameLabel.Hint := Param.Caption;
-			GUIParam.NameLabel.ShowHint := True;
-			Knob.Caption := '%d';
-			Knob.Max := Trunc(Param.Max * 100);
-			Knob.Min := Trunc(Param.Min * 100);
-			Knob.Position := Trunc(Param.Value * 100);
+			M := Param.Multiplier;
+			Knob.Max := Trunc(Param.Max * M);
+			Knob.Min := Trunc(Param.Min * M);
+			Knob.Multiplier := M;
+			Knob.FloatPosition := Param.Value;
+			Knob.Hint := Param.Name;
 			Knob.OnChange := SliderFxParam0Change;
+			if GUIParam.NameLabel <> nil then
+			begin
+				GUIParam.NameLabel.Caption := Param.Name;
+				GUIParam.NameLabel.Hint := Param.Caption;
+				GUIParam.NameLabel.ShowHint := True;
+			end;
 		end;
-		GUIParam.NameLabel.Visible := B;
+		if GUIParam.NameLabel <> nil then
+			GUIParam.NameLabel.Visible := B;
 	end;
 end;
 
-procedure TDeckFrame.bFxEnabledClick(Sender: TObject);
-var
-	Fx: TBaseEffect;
-	B: Boolean;
+function TDeckFrame.GetEffectKnob(Sender: TObject): ThKnob;
 begin
-	Fx := Effects[SelectedEffect].Effect;
-
-	B := not Fx.Enabled;
-	bFxEnabled.Down := B;
-
-	if B then
-	begin
-		Fx.Stream := Deck.Stream;
-		bFxEnabled.StateNormal.Background.Style := bbsColor;
-	end
+	if not (Sender is ThKnob) then
+		Result := nil
 	else
-		bFxEnabled.StateNormal.Background.Style := bbsGradient;
-
-	Fx.Enabled := B;
+		Result := ThKnob(Sender);
 end;
 
 procedure TDeckFrame.SliderFxParam0Change(Sender: TObject);
 var
 	Knob: ThKnob;
-	Fx: TBaseEffect;
 	Param: TEffectParam;
 begin
-	if not (Sender is ThKnob) then Exit;
+	Knob := GetEffectKnob(Sender);
+	if Knob <> nil then
+	begin
+		Param := Effects[SelectedEffect].Effect.Params[Knob.Tag];
+		Param.Value := Knob.FloatPosition;
+	end;
+end;
 
-	Knob := ThKnob(Sender);
-	Fx := Effects[SelectedEffect].Effect;
-	Param := Fx.Params[Knob.Tag];
+procedure TDeckFrame.SliderFxParam0MouseEnter(Sender: TObject);
+var
+	Knob: ThKnob;
+begin
+	Knob := GetEffectKnob(Sender);
+	if Knob <> nil then
+	begin
+		Knob.ShowPosition;
+		//GUIEffectParams[Knob.Tag].NameLabel.Caption :=
+		//Knob.PositionLabel.Caption := '%f';
+			//Format('%f', [Knob.FloatPosition]);
+	end;
+end;
 
-	Param.Value := Knob.Position / 100;
+procedure TDeckFrame.SliderFxParam0MouseLeave(Sender: TObject);
+var
+	Knob: ThKnob;
+begin
+	Knob := GetEffectKnob(Sender);
+	if Knob <> nil then
+	begin
+		//GUIEffectParams[Knob.Tag].NameLabel.Caption :=
+		Knob.PositionLabel.Caption :=
+			Effects[SelectedEffect].Effect.Params[Knob.Tag].Name;
+	end;
 end;
 
 procedure TDeckFrame.bEffect0Click(Sender: TObject);
 begin
 	SelectEffect((Sender as TControl).Tag);
 end;
+
+procedure TDeckFrame.bEffect0MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+	X, Y: Integer);
+var
+	Fx: TBaseEffect;
+	B: Boolean;
+begin
+	if Button = mbRight then
+	begin
+		if not (Sender is TDecksButton) then Exit;
+		X := (Sender as TDecksButton).Tag;
+		Fx := Effects[X].Effect;
+		if Fx = nil then Exit;
+		B := not Fx.Enabled;
+		if B then
+			Fx.Stream := Deck.Stream;
+		Effects[X].Button.StateNormal.Border.LightWidth := IfThen(B, 2, 0);
+		Fx.Enabled := B;
+	end;
+end;
+
 
 end.
 

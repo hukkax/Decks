@@ -67,6 +67,7 @@ type
 		bToggleEffects: TDecksButton;
 		bToggleMixer: TDecksButton;
 		miEnableEffects: TMenuItem;
+		bToggleLeftPane: TDecksButton;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -104,6 +105,7 @@ type
 			MousePos: TPoint; var Handled: Boolean);
 		procedure bToggleEffectsClick(Sender: TObject);
 		procedure bToggleMixerClick(Sender: TObject);
+		procedure bToggleLeftPaneClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -984,6 +986,8 @@ function TMainForm.CreateDeck: TDeck;
 var
 	mi: TMenuItem;
 begin
+	BeginFormUpdate;
+
 	Result := TDeck.Create;
 
 	Result.Form := TDeckFrame.Create(DeckPanel);
@@ -1005,6 +1009,7 @@ begin
 	Result.MenuItem := mi;
 	Result.UpdateMenuItem;
 
+	EndFormUpdate;
 	Timer.Enabled := True;
 end;
 
@@ -1321,7 +1326,7 @@ begin
 	else
 		bToggleEffects.StateNormal.Background.Style := bbsGradient;
 
-	H := 116; // !!! pnlEffects.Height;
+	H := 112; // !!! pnlEffects.Height;
 	DeckPanel.Height := MainForm.DeckPanel.Height + IfThen(B, H, -H);
 
 	for Deck in DeckList do
@@ -1346,6 +1351,28 @@ begin
 		bToggleMixer.StateNormal.Background.Style := bbsGradient;
 
 	UpdateMixerVisibility;
+end;
+
+procedure TMainForm.bToggleLeftPaneClick(Sender: TObject);
+var
+	B: Boolean;
+begin
+	B := not LeftPanel.Visible;
+	//B := not Config.Effects.Enabled;
+
+	BeginFormUpdate;
+
+	bToggleLeftPane.Down := B;
+	//miEnableLeftPane.Checked := B;
+
+	if B then
+		bToggleLeftPane.StateNormal.Background.Style := bbsColor
+	else
+		bToggleLeftPane.StateNormal.Background.Style := bbsGradient;
+
+	LeftPanel.Visible := B;
+
+	EndFormUpdate;
 end;
 
 end.
