@@ -8,10 +8,11 @@ interface
 
 uses
 	Classes, SysUtils, Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
-	ExtCtrls, EditBtn, Buttons, LCLType, LCLIntf, LMessages, Menus,
+	ExtCtrls, EditBtn, Buttons, LCLType, LCLIntf, LMessages, Menus, ComCtrls,
 	BGRAVirtualScreen, BGRABitmap, BGRABitmapTypes,
-	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, BASS, BASSmix,
-	hKnob, hSlider, DecksButton, BCTypes;
+	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, Decks.Effects,
+	BASS, BASSmix,
+	hKnob, hSlider, DecksButton, BCTypes, FGL;
 
 const
 	BPMStep = 0.01;
@@ -23,6 +24,21 @@ type
 		Dragging: Boolean;
 		Offset:   Integer;
 	end;
+
+	TGUIEffect = class
+		Effect: TBaseEffect;
+		Button: TDecksButton;
+
+		destructor Destroy; override;
+	end;
+
+	TGUIEffectParam = record
+		Knob:       ThKnob;
+		NameLabel:  TLabel;
+		ValueLabel: TLabel;
+	end;
+
+	TEffectsList = TFPGObjectList<TGUIEffect>;
 
 	TDeckFrame = class(TBaseDeckFrame)
 		bLoopBar: TDecksButton;
@@ -40,7 +56,7 @@ type
 		bBendUp: TDecksButton;
 		bBendDown: TDecksButton;
 		bReverse: TDecksButton;
-		DecksButton1: TDecksButton;
+		bDeckMenu: TDecksButton;
 		miAudioDevices: TMenuItem;
 		miDeckClose: TMenuItem;
 		N1: TMenuItem;
@@ -64,6 +80,34 @@ type
 		miZoneKind3: TMenuItem;
 		miZoneKind4: TMenuItem;
 		pbVU: TBGRAVirtualScreen;
+		pnlControls: TPanel;
+		pnlGraph: TPanel;
+		pnlEffects: TPanel;
+		bEffect0: TDecksButton;
+		bFxEnabled: TDecksButton;
+		bEffect1: TDecksButton;
+		bEffect2: TDecksButton;
+		bEffect3: TDecksButton;
+		bEffect4: TDecksButton;
+		SliderFxParam0: ThKnob;
+		SliderFxParam1: ThKnob;
+		SliderFxParam2: ThKnob;
+		SliderFxParam3: ThKnob;
+		SliderFxParam4: ThKnob;
+		SliderFxParam5: ThKnob;
+		Label1: TLabel;
+		Label2: TLabel;
+		Label3: TLabel;
+		Label4: TLabel;
+		Label5: TLabel;
+		Label6: TLabel;
+		bEffect5: TDecksButton;
+		Label7: TLabel;
+		Label8: TLabel;
+		Label9: TLabel;
+		Label10: TLabel;
+		Label11: TLabel;
+		Label12: TLabel;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -124,6 +168,9 @@ type
 		procedure SliderTempoFracMouseWheelUp(Sender: TObject; Shift: TShiftState;
 			MousePos: TPoint; var Handled: Boolean);
 		procedure miZoneKind0Click(Sender: TObject);
+		procedure bFxEnabledClick(Sender: TObject);
+		procedure SliderFxParam0Change(Sender: TObject);
+		procedure bEffect0Click(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -143,6 +190,9 @@ type
 		procedure ZoomSample(Dir: Integer);
 		procedure ZoomGraph(Dir: Integer);
 		procedure UpdatePlayButton(Kind: Integer);
+		procedure SelectEffect(EffectNum: Integer);
+		procedure AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton);
+		procedure InitGUIEffectParam(Index: Byte; AKnob: ThKnob; ALabel: TLabel);
 	public
 		GraphHover,
 		GraphCue:   TPoint;
@@ -152,6 +202,10 @@ type
 		CurrentDevice: Integer;
 		IsShiftDown,
 		CanCreateNewZone: Boolean;
+
+		Effects: TEffectsList;
+		GUIEffectParams: array[0..5] of TGUIEffectParam;
+		SelectedEffect: Byte;
 
 		constructor Create(AOwner: TComponent); override;
 		destructor  Destroy; override;
@@ -184,6 +238,8 @@ type
 		procedure DrawRuler(Recalc: Boolean = True);
 		procedure DrawGraph;
 		procedure RedrawGraph;
+
+		procedure ShowPanel_Effects;
 	end;
 
 var
@@ -725,6 +781,7 @@ end;
 procedure TDeckFrame.FormResize(Sender: TObject);
 begin
 	RedrawGraph;
+	DrawWaveform;
 end;
 
 procedure TDeckFrame.lTimeClick(Sender: TObject);
@@ -762,6 +819,35 @@ begin
 end;
 *)
 
+procedure TDeckFrame.InitGUIEffectParam(Index: Byte; AKnob: ThKnob; ALabel: TLabel);
+begin
+	with GUIEffectParams[Index] do
+	begin
+		Knob := AKnob;
+		NameLabel := ALabel;
+		ValueLabel := Knob.PositionLabel;
+	end;
+end;
+
+procedure TDeckFrame.AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton);
+var
+	Fx: TGUIEffect;
+begin
+	Fx := TGUIEffect.Create;
+	Fx.Effect := FxObject;
+	Fx.Button := BtnObject;
+	BtnObject.OnClick := bEffect0Click;
+	Fx.Button.Caption := FxObject.Name;
+	Effects.Add(Fx);
+end;
+
+destructor TGUIEffect.Destroy;
+begin
+	if Effect <> nil then
+		Effect.Free;
+	inherited Destroy;
+end;
+
 constructor TDeckFrame.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
@@ -792,12 +878,31 @@ begin
 
 	//ConvertButtons(Self);
 	LoadButtonImages(Self, Config.GetThemePath + 'images');
+
+	Effects := TEffectsList.Create(True);
+
+	AddGUIEffect(TFxEcho.Create,       bEffect0);
+	AddGUIEffect(TFxReverb.Create,     bEffect1);
+	AddGUIEffect(TFxPhaser.Create,     bEffect2);
+	AddGUIEffect(TFxChorus.Create,     bEffect3);
+//	AddGUIEffect(TFxDistortion.Create, bEffect4);
+	AddGUIEffect(TFxCompressor.Create, bEffect4);
+
+	InitGUIEffectParam(0, SliderFxParam0, Label7);
+	InitGUIEffectParam(1, SliderFxParam1, Label8);
+	InitGUIEffectParam(2, SliderFxParam2, Label9);
+	InitGUIEffectParam(3, SliderFxParam3, Label10);
+	InitGUIEffectParam(4, SliderFxParam4, Label11);
+	InitGUIEffectParam(5, SliderFxParam5, Label12);
+
+	SelectEffect(0);
 end;
 
 destructor TDeckFrame.Destroy;
 begin
 	Ruler.Free;
 	Zoner.Free;
+	Effects.Free;
 	//Deck.Free; //owned by MainForm.DeckList
 
 	inherited Destroy;
@@ -1658,6 +1763,105 @@ end;
 procedure TDeckFrame.miZoneKind0Click(Sender: TObject);
 begin
 	SetZoneKind(CurrentZone, TZoneKind((Sender as TMenuItem).Tag));
+end;
+
+procedure TDeckFrame.ShowPanel_Effects;
+var
+	B: Boolean;
+	H: Integer;
+begin
+	B := MainForm.bEffects.Down;
+	pnlEffects.Top := pnlControls.Top - pnlEffects.Height;
+	pnlEffects.Visible := B;
+end;
+
+procedure TDeckFrame.SelectEffect(EffectNum: Integer);
+var
+	Fx: TBaseEffect;
+	Param: TEffectParam;
+	GUIParam: TGUIEffectParam;
+	Knob: ThKnob;
+	i: Integer;
+	B: Boolean;
+begin
+	SelectedEffect := EffectNum;
+
+	for i := 0 to Effects.Count-1 do
+	begin
+		B := (i = EffectNum);
+		Effects[i].Button.Down := B;
+		if B then
+			Effects[i].Button.StateNormal.Background.Color := clPurple
+		else
+			Effects[i].Button.StateNormal.Background.Color := clTeal;
+	end;
+
+	Fx := Effects[SelectedEffect].Effect;
+	bFxEnabled.Down := Fx.Enabled;
+
+	for i := 0 to High(GUIEffectParams) do
+	begin
+		GUIParam := GUIEffectParams[i];
+
+		Knob := GUIParam.Knob;
+		B := (i < Fx.Params.Count);
+		Knob.OnChange := nil;
+		Knob.Visible := B;
+		if B then
+		begin
+			Param := Fx.Params[i];
+			GUIParam.NameLabel.Caption := Param.Name;
+			GUIParam.NameLabel.Hint := Param.Caption;
+			GUIParam.NameLabel.ShowHint := True;
+			Knob.Caption := '%d';
+			Knob.Max := Trunc(Param.Max * 100);
+			Knob.Min := Trunc(Param.Min * 100);
+			Knob.Position := Trunc(Param.Value * 100);
+			Knob.OnChange := SliderFxParam0Change;
+		end;
+		GUIParam.NameLabel.Visible := B;
+	end;
+end;
+
+procedure TDeckFrame.bFxEnabledClick(Sender: TObject);
+var
+	Fx: TBaseEffect;
+	B: Boolean;
+begin
+	Fx := Effects[SelectedEffect].Effect;
+
+	B := not Fx.Enabled;
+	bFxEnabled.Down := B;
+
+	if B then
+	begin
+		Fx.Stream := Deck.Stream;
+		bFxEnabled.StateNormal.Background.Style := bbsColor;
+	end
+	else
+		bFxEnabled.StateNormal.Background.Style := bbsGradient;
+
+	Fx.Enabled := B;
+end;
+
+procedure TDeckFrame.SliderFxParam0Change(Sender: TObject);
+var
+	Knob: ThKnob;
+	Fx: TBaseEffect;
+	Param: TEffectParam;
+begin
+	if not (Sender is ThKnob) then Exit;
+
+	Knob := ThKnob(Sender);
+	Fx := Effects[SelectedEffect].Effect;
+	Param := Fx.Params[Knob.Tag];
+
+	Param.Value := Knob.Position / 100;
+end;
+
+procedure TDeckFrame.bEffect0Click(Sender: TObject);
+begin
+	SelectEffect((Sender as TControl).Tag);
 end;
 
 end.

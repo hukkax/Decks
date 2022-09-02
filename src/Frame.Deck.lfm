@@ -1,1036 +1,1976 @@
 object DeckFrame: TDeckFrame
   Left = 0
-  Height = 352
+  Height = 456
   Top = 0
   Width = 437
-  ClientHeight = 352
+  ClientHeight = 456
   ClientWidth = 437
   Color = 3553082
   OnResize = FormResize
   ParentBackground = False
   ParentColor = False
   TabOrder = 0
-  object shpBorder: TShape
+  object pnlControls: TPanel
     Left = 0
-    Height = 352
+    Height = 56
+    Top = 400
+    Width = 437
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 56
+    ClientWidth = 437
+    TabOrder = 0
+    object bPlay: TDecksButton
+      Left = 8
+      Height = 47
+      Hint = 'Left: Play/Pause'#13#10'Right: Cue'
+      Top = 4
+      Width = 56
+      HelpType = htKeyword
+      HelpKeyword = 'play.png'
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2171169
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 20
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 70
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = 32
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingLeft = 4
+      StateNormal.FontEx.PaddingTop = -4
+      Caption = '▶️'
+      Color = 7565166
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bPlayClick
+      OnMouseDown = bPlayMouseDown
+      OnMouseUp = bPlayMouseUp
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bBendUp: TDecksButton
+      Left = 124
+      Height = 24
+      Top = 4
+      Width = 43
+      HelpType = htKeyword
+      HelpKeyword = 'bend_up.png'
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = 17
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 3
+      Caption = '▲'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnMouseDown = bBendUpMouseDown
+      OnMouseUp = bBendUpMouseUp
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bBendDown: TDecksButton
+      Left = 124
+      Height = 24
+      Top = 27
+      Width = 43
+      HelpType = htKeyword
+      HelpKeyword = 'bend_down.png'
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = 17
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = '▼'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnMouseDown = bBendUpMouseDown
+      OnMouseUp = bBendUpMouseUp
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object SliderAmp: ThKnob
+      Left = 378
+      Height = 47
+      Hint = 'Amplification'
+      Top = 4
+      Width = 47
+      Anchors = [akTop, akRight]
+      Max = 200
+      SmallChange = 0
+      Caption = 'SliderAmp'
+      Indicator.Normal.LineColor = clSilver
+      Indicator.Hovered.LineColor = clWhite
+      Indicator.Disabled.LineColor = clGray
+      Indicator.LineWidth = 5
+      Indicator.RadiusInner = 14
+      Indicator.RadiusOuter = 2
+      Indicator.OffsetX = 0
+      Indicator.OffsetY = 0
+      KnobColor = clNone
+      BorderColor = clGray
+      BorderWidth = 3
+      Position = 100
+      PageSize = 0
+      OnChange = SliderTempoChange
+    end
+    object bLoopBeat: TDecksButton
+      Tag = 1
+      Left = 239
+      Height = 24
+      Hint = 'Loop 1 Beat'
+      Top = 27
+      Width = 24
+      Anchors = [akTop, akRight]
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = '1'
+      Color = 6052184
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bLoopBeatClick
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bLoopBeat2: TDecksButton
+      Tag = 2
+      Left = 263
+      Height = 24
+      Hint = 'Loop 2 Beats'
+      Top = 27
+      Width = 24
+      Anchors = [akTop, akRight]
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = '2'
+      Color = 6052184
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bLoopBeatClick
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bLoopBar: TDecksButton
+      Tag = 4
+      Left = 295
+      Height = 24
+      Hint = 'Loop 1 Bar'
+      Top = 27
+      Width = 24
+      Anchors = [akTop, akRight]
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = '1'
+      Color = 6052184
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bLoopBeatClick
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bLoopBar2: TDecksButton
+      Tag = 8
+      Left = 319
+      Height = 24
+      Hint = 'Loop 2 Bars'
+      Top = 27
+      Width = 24
+      Anchors = [akTop, akRight]
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = '2'
+      Color = 6052184
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bLoopBeatClick
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bLoopBar4: TDecksButton
+      Tag = 16
+      Left = 343
+      Height = 24
+      Hint = 'Loop 4 Bars'
+      Top = 27
+      Width = 24
+      Anchors = [akTop, akRight]
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = '4'
+      Color = 6052184
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bLoopBeatClick
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bLoopZone: TDecksButton
+      Left = 239
+      Height = 24
+      Hint = 'Loop Current Zone'
+      Top = 4
+      Width = 64
+      Anchors = [akTop, akRight]
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = '↩ Zone'
+      Color = 8223096
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bLoopBeatClick
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bLoopSong: TDecksButton
+      Tag = -1
+      Left = 303
+      Height = 24
+      Hint = 'Loop Song'
+      Top = 4
+      Width = 64
+      Anchors = [akTop, akRight]
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = '↩ Song'
+      Color = 8223096
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bLoopBeatClick
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bSync: TDecksButton
+      Left = 67
+      Height = 24
+      Hint = 'Left: Toggle autosynced playback'#13#10'Right: Manually sync to playing deck'
+      Top = 4
+      Width = 54
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = 'Sync'
+      Color = 8881026
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnMouseDown = bSyncMouseDown
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bReverse: TDecksButton
+      Left = 67
+      Height = 24
+      Hint = 'Left: Play backwards temporarily keeping sync'#13#10'Right: Play backwards temporarily without keeping sync'
+      Top = 27
+      Width = 54
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Caption = '◀ Rev. '
+      Color = 12235955
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnMouseDown = bReverseMouseDown
+      OnMouseUp = bReverseMouseUp
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object pbVU: TBGRAVirtualScreen
+      Left = 174
+      Height = 47
+      Top = 4
+      Width = 8
+      Alignment = taLeftJustify
+      Color = clBlack
+      ParentColor = False
+      TabOrder = 0
+    end
+  end
+  object pnlGraph: TPanel
+    Left = 0
+    Height = 282
     Top = 0
     Width = 437
     Align = alClient
-    Brush.Color = 3815222
-    ParentShowHint = False
-    Pen.Color = 2171427
-    Pen.EndCap = pecSquare
-    Pen.JoinStyle = pjsMiter
-    Pen.Width = 3
-    OnMouseDown = bMasterMouseDown
-    ShowHint = True
-  end
-  object shpGraph: TShape
-    Left = 8
-    Height = 254
-    Top = 37
-    Width = 361
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    Brush.Color = 3815222
-    Pen.Color = 2171427
-    Pen.EndCap = pecSquare
-    Pen.JoinStyle = pjsMiter
-    Pen.Width = 3
-  end
-  object bMaster: TLabel
-    Tag = 6962731
-    Left = 32
-    Height = 24
-    Top = 8
-    Width = 337
-    Alignment = taCenter
-    Anchors = [akTop, akLeft, akRight]
-    AutoSize = False
-    Caption = 'Deck'
-    Color = 2171427
-    Font.Color = 13691376
-    Layout = tlCenter
-    ParentFont = False
-    ShowAccelChar = False
-    Transparent = False
-    OnMouseDown = bMasterMouseDown
-  end
-  object lTime: TLabel
-    Left = 374
-    Height = 24
-    Top = 8
-    Width = 55
-    Alignment = taCenter
-    Anchors = [akTop, akRight]
-    AutoSize = False
-    Caption = 'Time'
-    Color = 2171427
-    Font.Color = 9346678
-    Font.Style = [fsBold]
-    Layout = tlCenter
-    ParentFont = False
-    ShowAccelChar = False
-    Transparent = False
-    OnClick = lTimeClick
-  end
-  object bPlay: TDecksButton
-    Left = 8
-    Height = 47
-    Hint = 'Left: Play/Pause'#13#10'Right: Cue'
-    Top = 297
-    Width = 56
-    HelpType = htKeyword
-    HelpKeyword = 'play.png'
-    Anchors = [akLeft, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2171169
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 20
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 70
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Height = 32
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingLeft = 4
-    StateNormal.FontEx.PaddingTop = -4
-    Caption = '▶️'
-    Color = 7565166
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnClick = bPlayClick
-    OnMouseDown = bPlayMouseDown
-    OnMouseUp = bPlayMouseUp
+    BevelOuter = bvNone
+    ClientHeight = 282
+    ClientWidth = 437
+    Color = 3553082
+    DoubleBuffered = False
+    FullRepaint = False
     ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
+    ParentDoubleBuffered = False
+    TabOrder = 1
+    object shpBorder: TShape
+      Left = 0
+      Height = 282
+      Top = 0
+      Width = 437
+      Align = alClient
+      Brush.Color = 3815222
+      ParentShowHint = False
+      Pen.Color = 2171427
+      Pen.EndCap = pecSquare
+      Pen.JoinStyle = pjsMiter
+      Pen.Width = 3
+      OnMouseDown = bMasterMouseDown
+      ShowHint = True
+    end
+    object bMaster: TLabel
+      Tag = 6962731
+      Left = 32
+      Height = 24
+      Top = 8
+      Width = 337
+      Alignment = taCenter
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = False
+      Caption = 'Deck'
+      Color = 2171427
+      Font.Color = 13691376
+      Layout = tlCenter
+      ParentFont = False
+      ShowAccelChar = False
+      Transparent = False
+      OnMouseDown = bMasterMouseDown
+    end
+    object lTime: TLabel
+      Left = 374
+      Height = 24
+      Top = 8
+      Width = 55
+      Alignment = taCenter
+      Anchors = [akTop, akRight]
+      AutoSize = False
+      Caption = 'Time'
+      Color = 2171427
+      Font.Color = 9346678
+      Font.Style = [fsBold]
+      Layout = tlCenter
+      ParentFont = False
+      ShowAccelChar = False
+      Transparent = False
+      OnClick = lTimeClick
+    end
+    object pb: TBGRAVirtualScreen
+      Cursor = crNone
+      Left = 10
+      Height = 122
+      Top = 49
+      Width = 357
+      Alignment = taCenter
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      Color = clBlack
+      ParentColor = False
+      TabOrder = 0
+      OnMouseDown = pbMouseDown
+      OnMouseLeave = pbMouseLeave
+      OnMouseMove = pbMouseMove
+      OnMouseUp = pbMouseUp
+      OnMouseWheel = pbMouseWheel
+    end
+    object pbZones: TBGRAVirtualScreen
+      Left = 10
+      Height = 21
+      Top = 171
+      Width = 357
+      OnRedraw = pbZonesRedraw
+      Alignment = taLeftJustify
+      Anchors = [akLeft, akRight, akBottom]
+      Color = clGray
+      ParentColor = False
+      TabOrder = 1
+      OnDblClick = pbZonesDblClick
+      OnMouseDown = pbZonesMouseDown
+      OnMouseWheel = pbZonesMouseWheel
+    end
+    object pbRuler: TBGRAVirtualScreen
+      Left = 10
+      Height = 10
+      Top = 39
+      Width = 357
+      OnRedraw = pbRulerRedraw
+      Alignment = taLeftJustify
+      Anchors = [akTop, akLeft, akRight]
+      Color = clGray
+      ParentColor = False
+      TabOrder = 2
+      OnMouseDown = pbRulerMouseDown
+    end
+    object pbWave: TBGRAVirtualScreen
+      Tag = -1
+      Cursor = crSizeWE
+      Left = 8
+      Height = 64
+      Top = 211
+      Width = 357
+      OnRedraw = pbWaveRedraw
+      Alignment = taLeftJustify
+      Anchors = [akLeft, akRight, akBottom]
+      Color = clBlack
+      ParentColor = False
+      TabOrder = 3
+      OnMouseDown = pbWaveMouseDown
+      OnMouseMove = pbWaveMouseMove
+      OnMouseUp = pbWaveMouseUp
+      OnMouseWheel = pbWaveMouseWheel
+    end
+    object bDeckMenu: TDecksButton
+      Left = 8
+      Height = 24
+      Top = 8
+      Width = 24
+      StateNormal.Background.Color = 2171427
+      StateNormal.Background.Gradient1.StartColor = 2171427
+      StateNormal.Background.Gradient1.EndColor = 2171427
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = 2171427
+      StateNormal.Background.Gradient2.EndColor = 2171427
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 13691376
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 2
+      Caption = '☰'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+      DropDownMenu = PopupMenu
+      DropDownPosition = bdpBottom
+    end
+    object SliderTempo: ThGaugeBar
+      Left = 374
+      Height = 208
+      Hint = 'BPM Coarse'
+      Top = 39
+      Width = 25
+      Anchors = [akTop, akRight, akBottom]
+      Color = 2171427
+      HandleColor = 8553090
+      ButtonColor = 2171427
+      HighLightColor = 2171427
+      ShadowColor = 2171427
+      BorderColor = 2171427
+      ArrowColor = 8553090
+      Kind = sbVertical
+      Max = 200
+      Min = 50
+      Position = 125
+      OnChange = SliderTempoChange
+    end
+    object SliderGraphX: ThRangeBar
+      Left = 8
+      Height = 21
+      Top = 191
+      Width = 361
+      Anchors = [akLeft, akRight, akBottom]
+      Color = 2171427
+      BorderStyle = bsNone
+      HandleColor = 8553090
+      ButtonColor = 8553090
+      HighLightColor = 2171427
+      ShadowColor = 2171427
+      BorderColor = 2171427
+      ArrowColor = clBlack
+      LightAmount = 15
+      ShowArrows = False
+      OnChange = SliderGraphXChange
+    end
+    object SliderTempoFrac: ThGaugeBar
+      Left = 404
+      Height = 208
+      Hint = 'BPM Fractional'
+      Top = 39
+      Width = 25
+      Anchors = [akTop, akRight, akBottom]
+      Color = 2171427
+      HandleColor = 8553090
+      ButtonColor = 2171427
+      HighLightColor = 2171427
+      ShadowColor = 2171427
+      BorderColor = 2171427
+      ArrowColor = 8553090
+      Kind = sbVertical
+      LargeChange = 10
+      Max = 999
+      Position = 0
+      OnChange = SliderTempoChange
+      OnMouseWheelUp = SliderTempoFracMouseWheelUp
+      OnMouseWheelDown = SliderTempoFracMouseWheelDown
+    end
+    object shpGraph: TShape
+      Left = 8
+      Height = 254
+      Top = 37
+      Width = 361
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      Brush.Color = 3815222
+      Pen.Color = 2171427
+      Pen.EndCap = pecSquare
+      Pen.JoinStyle = pjsMiter
+      Pen.Width = 3
+    end
+    object bStore: TDecksButton
+      Left = 404
+      Height = 26
+      Hint = 'Save song setup'
+      Top = 251
+      Width = 25
+      Anchors = [akRight, akBottom]
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = 20
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = []
+      StateNormal.FontEx.PaddingBottom = 3
+      Caption = '🖫'
+      Color = 11709611
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bStoreClick
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bStart: TDecksButton
+      Left = 374
+      Height = 26
+      Hint = 'Left: Move cue to song start'#13#10'Right: Set song start position to cue'#13#10'Middle: Reset song start position'
+      Top = 251
+      Width = 25
+      Anchors = [akRight, akBottom]
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = 20
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = []
+      StateNormal.FontEx.PaddingBottom = 3
+      Caption = '🡴'
+      Color = 10130579
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnMouseDown = bStartMouseDown
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
   end
-  object bBendUp: TDecksButton
-    Left = 124
-    Height = 24
-    Top = 297
-    Width = 43
-    HelpType = htKeyword
-    HelpKeyword = 'bend_up.png'
-    Anchors = [akLeft, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Height = 17
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 3
-    Caption = '▲'
-    Color = clWhite
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnMouseDown = bBendUpMouseDown
-    OnMouseUp = bBendUpMouseUp
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bBendDown: TDecksButton
-    Left = 124
-    Height = 24
-    Top = 320
-    Width = 43
-    HelpType = htKeyword
-    HelpKeyword = 'bend_down.png'
-    Anchors = [akLeft, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Height = 17
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = '▼'
-    Color = clWhite
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnMouseDown = bBendUpMouseDown
-    OnMouseUp = bBendUpMouseUp
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object SliderTempo: ThGaugeBar
-    Left = 374
-    Height = 222
-    Hint = 'BPM Coarse'
-    Top = 39
-    Width = 25
-    Anchors = [akTop, akRight, akBottom]
-    Color = 2171427
-    HandleColor = 8553090
-    ButtonColor = 2171427
-    HighLightColor = 2171427
-    ShadowColor = 2171427
-    BorderColor = 2171427
-    ArrowColor = 8553090
-    Kind = sbVertical
-    Max = 200
-    Min = 50
-    Position = 125
-    OnChange = SliderTempoChange
-  end
-  object SliderTempoFrac: ThGaugeBar
-    Left = 404
-    Height = 222
-    Hint = 'BPM Fractional'
-    Top = 39
-    Width = 25
-    Anchors = [akTop, akRight, akBottom]
-    Color = 2171427
-    HandleColor = 8553090
-    ButtonColor = 2171427
-    HighLightColor = 2171427
-    ShadowColor = 2171427
-    BorderColor = 2171427
-    ArrowColor = 8553090
-    Kind = sbVertical
-    LargeChange = 10
-    Max = 999
-    Position = 0
-    OnChange = SliderTempoChange
-    OnMouseWheelUp = SliderTempoFracMouseWheelUp
-    OnMouseWheelDown = SliderTempoFracMouseWheelDown
-  end
-  object SliderAmp: ThKnob
-    Left = 378
-    Height = 47
-    Hint = 'Amplification'
-    Top = 298
-    Width = 47
-    Anchors = [akRight, akBottom]
-    Max = 200
-    SmallChange = 0
-    Caption = 'SliderAmp'
-    Indicator.Normal.LineColor = clSilver
-    Indicator.Hovered.LineColor = clWhite
-    Indicator.Disabled.LineColor = clGray
-    Indicator.LineWidth = 5
-    Indicator.RadiusInner = 14
-    Indicator.RadiusOuter = 2
-    Indicator.OffsetX = 0
-    Indicator.OffsetY = 0
-    KnobColor = clNone
-    BorderColor = clGray
-    BorderWidth = 3
-    Position = 100
-    PageSize = 0
-    OnChange = SliderTempoChange
-  end
-  object pb: TBGRAVirtualScreen
-    Cursor = crNone
-    Left = 10
-    Height = 136
-    Top = 49
-    Width = 357
-    Alignment = taCenter
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    Color = clBlack
-    ParentColor = False
+  object pnlEffects: TPanel
+    Left = 0
+    Height = 118
+    Top = 282
+    Width = 437
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 118
+    ClientWidth = 437
     TabOrder = 2
-    OnMouseDown = pbMouseDown
-    OnMouseLeave = pbMouseLeave
-    OnMouseMove = pbMouseMove
-    OnMouseUp = pbMouseUp
-    OnMouseWheel = pbMouseWheel
-  end
-  object SliderGraphX: ThRangeBar
-    Left = 8
-    Height = 21
-    Top = 205
-    Width = 361
-    Anchors = [akLeft, akRight, akBottom]
-    Color = 2171427
-    BorderStyle = bsNone
-    HandleColor = 8553090
-    ButtonColor = 8553090
-    HighLightColor = 2171427
-    ShadowColor = 2171427
-    BorderColor = 2171427
-    ArrowColor = clBlack
-    LightAmount = 15
-    ShowArrows = False
-    OnChange = SliderGraphXChange
-  end
-  object pbWave: TBGRAVirtualScreen
-    Tag = -1
-    Cursor = crSizeWE
-    Left = 10
-    Height = 64
-    Top = 225
-    Width = 357
-    OnRedraw = pbWaveRedraw
-    Alignment = taLeftJustify
-    Anchors = [akLeft, akRight, akBottom]
-    Color = clBlack
-    ParentColor = False
-    TabOrder = 4
-    OnMouseDown = pbWaveMouseDown
-    OnMouseMove = pbWaveMouseMove
-    OnMouseUp = pbWaveMouseUp
-    OnMouseWheel = pbWaveMouseWheel
-  end
-  object pbRuler: TBGRAVirtualScreen
-    Left = 10
-    Height = 10
-    Top = 39
-    Width = 357
-    OnRedraw = pbRulerRedraw
-    Alignment = taLeftJustify
-    Anchors = [akTop, akLeft, akRight]
-    Color = clGray
-    ParentColor = False
-    TabOrder = 5
-    OnMouseDown = pbRulerMouseDown
-  end
-  object pbZones: TBGRAVirtualScreen
-    Left = 10
-    Height = 21
-    Top = 185
-    Width = 357
-    OnRedraw = pbZonesRedraw
-    Alignment = taLeftJustify
-    Anchors = [akLeft, akRight, akBottom]
-    Color = clGray
-    ParentColor = False
-    TabOrder = 6
-    OnDblClick = pbZonesDblClick
-    OnMouseDown = pbZonesMouseDown
-    OnMouseWheel = pbZonesMouseWheel
-  end
-  object bLoopBeat: TDecksButton
-    Tag = 1
-    Left = 239
-    Height = 24
-    Hint = 'Loop 1 Beat'
-    Top = 320
-    Width = 24
-    Anchors = [akRight, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = '1'
-    Color = 6052184
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnClick = bLoopBeatClick
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bLoopBeat2: TDecksButton
-    Tag = 2
-    Left = 263
-    Height = 24
-    Hint = 'Loop 2 Beats'
-    Top = 320
-    Width = 24
-    Anchors = [akRight, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = '2'
-    Color = 6052184
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnClick = bLoopBeatClick
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bLoopBar: TDecksButton
-    Tag = 4
-    Left = 295
-    Height = 24
-    Hint = 'Loop 1 Bar'
-    Top = 320
-    Width = 24
-    Anchors = [akRight, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = '1'
-    Color = 6052184
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnClick = bLoopBeatClick
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bLoopBar2: TDecksButton
-    Tag = 8
-    Left = 319
-    Height = 24
-    Hint = 'Loop 2 Bars'
-    Top = 320
-    Width = 24
-    Anchors = [akRight, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = '2'
-    Color = 6052184
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnClick = bLoopBeatClick
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bLoopBar4: TDecksButton
-    Tag = 16
-    Left = 343
-    Height = 24
-    Hint = 'Loop 4 Bars'
-    Top = 320
-    Width = 24
-    Anchors = [akRight, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = '4'
-    Color = 6052184
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnClick = bLoopBeatClick
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bLoopZone: TDecksButton
-    Left = 239
-    Height = 24
-    Hint = 'Loop Current Zone'
-    Top = 297
-    Width = 64
-    Anchors = [akRight, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = '↩ Zone'
-    Color = 8223096
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnClick = bLoopBeatClick
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bLoopSong: TDecksButton
-    Tag = -1
-    Left = 303
-    Height = 24
-    Hint = 'Loop Song'
-    Top = 297
-    Width = 64
-    Anchors = [akRight, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = '↩ Song'
-    Color = 8223096
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnClick = bLoopBeatClick
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bStart: TDecksButton
-    Left = 374
-    Height = 26
-    Hint = 'Left: Move cue to song start'#13#10'Right: Set song start position to cue'#13#10'Middle: Reset song start position'
-    Top = 265
-    Width = 25
-    Anchors = [akRight, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Height = 20
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = []
-    StateNormal.FontEx.PaddingBottom = 3
-    Caption = '🡴'
-    Color = 10130579
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnMouseDown = bStartMouseDown
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bStore: TDecksButton
-    Left = 404
-    Height = 26
-    Hint = 'Save song setup'
-    Top = 265
-    Width = 25
-    Anchors = [akRight, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Height = 20
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = []
-    StateNormal.FontEx.PaddingBottom = 3
-    Caption = '🖫'
-    Color = 11709611
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnClick = bStoreClick
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object DecksButton1: TDecksButton
-    Left = 8
-    Height = 24
-    Top = 8
-    Width = 24
-    StateNormal.Background.Color = 2171427
-    StateNormal.Background.Gradient1.StartColor = 2171427
-    StateNormal.Background.Gradient1.EndColor = 2171427
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = 2171427
-    StateNormal.Background.Gradient2.EndColor = 2171427
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 13691376
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 2
-    Caption = '☰'
-    Color = clWhite
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-    DropDownMenu = PopupMenu
-    DropDownPosition = bdpBottom
-  end
-  object bSync: TDecksButton
-    Left = 67
-    Height = 24
-    Hint = 'Left: Toggle autosynced playback'#13#10'Right: Manually sync to playing deck'
-    Top = 297
-    Width = 54
-    Anchors = [akLeft, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = 'Sync'
-    Color = 8881026
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnMouseDown = bSyncMouseDown
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object bReverse: TDecksButton
-    Left = 67
-    Height = 24
-    Hint = 'Left: Play backwards temporarily keeping sync'#13#10'Right: Play backwards temporarily without keeping sync'
-    Top = 320
-    Width = 54
-    Anchors = [akLeft, akBottom]
-    StateNormal.Background.Color = 6249562
-    StateNormal.Background.Gradient1.StartColor = 6249562
-    StateNormal.Background.Gradient1.EndColor = 4210494
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = clGray
-    StateNormal.Background.Gradient2.EndColor = 2105376
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsGradient
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 11775917
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 1
-    Caption = '◀ Rev. '
-    Color = 12235955
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    OnMouseDown = bReverseMouseDown
-    OnMouseUp = bReverseMouseUp
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-  end
-  object pbVU: TBGRAVirtualScreen
-    Left = 176
-    Height = 50
-    Top = 295
-    Width = 8
-    Alignment = taLeftJustify
-    Anchors = [akLeft, akBottom]
-    Color = clBlack
-    ParentColor = False
-    TabOrder = 7
+    Visible = False
+    object bEffect0: TDecksButton
+      Left = 11
+      Height = 26
+      Top = 8
+      Width = 102
+      StateNormal.Background.Color = clTeal
+      StateNormal.Background.Gradient1.StartColor = 2171427
+      StateNormal.Background.Gradient1.EndColor = 2171427
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = 2171427
+      StateNormal.Background.Gradient2.EndColor = 2171427
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 13691376
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 2
+      Caption = 'FxName'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnClick = bEffect0Click
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+      DropDownPosition = bdpBottom
+    end
+    object bFxEnabled: TDecksButton
+      Left = 11
+      Height = 69
+      Hint = 'Left: Toggle autosynced playback'#13#10'Right: Manually sync to playing deck'
+      Top = 41
+      Width = 70
+      StateNormal.Background.Color = 6270042
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 1
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      Glyph.Data = {
+        36240000424D3624000000000000360000002800000030000000300000000100
+        2000000000000024000064000000640000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFF04FFFFFF08FFFFFF08FFFF
+        FF04000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FF04FFFFFF40FFFFFF83FFFFFFB8FFFFFFDDFFFFFFF5FFFFFFFDFFFFFFFDFFFF
+        FFF4FFFFFFDDFFFFFFB7FFFFFF82FFFFFF40FFFFFF0400000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000000000000000000000000000FFFFFF20FFFFFF8BFFFF
+        FFE9FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE8FFFFFF8BFFFFFF200000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF18FFFFFF99FFFFFFF9FFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF9FFFF
+        FF98FFFFFF170000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF61FFFFFFEEFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFEEFFFFFF6100000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFF08FFFFFFA1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFA1FFFFFF080000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FF0EFFFFFFC0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC0FFFFFF0E00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000FFFFFF09FFFF
+        FFC0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFE1FFFFFFBBFFFFFFA8FFFFFFA8FFFF
+        FFBBFFFFFFE1FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC0FFFFFF08000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000FFFFFFA1FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFD7FFFFFF71FFFFFF20000000000000000000000000000000000000
+        000000000000FFFFFF20FFFFFF71FFFFFFD7FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA1000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000000000000000000000000000FFFFFF61FFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE5FFFF
+        FF5BFFFFFF020000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF02FFFFFF5BFFFFFFE5FFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF610000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFF18FFFFFFEFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB3FFFFFF130000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000000000000000000000000000FFFFFF13FFFFFFB3FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFF
+        FF18000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFF9AFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF9DFFFFFF03000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000FFFFFF03FFFF
+        FF9DFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FF9A000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF21FFFFFFFAFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB3FFFFFF0300000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FF03FFFFFFB3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFAFFFFFF210000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF8CFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFE5FFFFFF130000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFF13FFFFFFE5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFF8C0000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF04FFFFFFE9FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFF5A000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000FFFFFF5BFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFE9FFFFFF0400000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF40FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFD7FFFFFF02000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000FFFFFF02FFFFFFD7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF4000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF84FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF7000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF70FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF8300000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFB8FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFEFFFFFF1F00000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF20FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFB800000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFE10000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFE1FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFDF00000000000000000000000000000000000000000000
+        000000000000FFFFFF04FFFFFFF5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFBB0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFBBFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFF4FFFFFF04000000000000000000000000000000000000
+        000000000000FFFFFF08FFFFFFFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFA80000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFA8FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFDFFFFFF08000000000000000000000000000000000000
+        000000000000FFFFFF08FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFA80000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF0FFFFFFF9DFFFFFFF2FFFFFFF2FFFF
+        FF9DFFFFFF0F0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFA8FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFDFFFFFF08000000000000000000000000000000000000
+        000000000000FFFFFF04FFFFFFF6FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFBA0000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF01FFFFFFBDFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFBCFFFFFF0100000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFBBFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFF5FFFFFF04000000000000000000000000000000000000
+        00000000000000000000FFFFFFE1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFE00000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF37FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF3700000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFE0FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFE100000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFBBFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFDFFFFFF1D00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF1EFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFBB00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF88FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF6C00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF6CFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF8800000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF47FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFD3FFFFFF01000000000000000000000000000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000000000000000
+        000000000000FFFFFF01FFFFFFD3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF4600000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF07FFFFFFEEFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFF56000000000000000000000000000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000000000000000
+        000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFEEFFFFFF0700000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF96FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFE3FFFFFF110000000000000000000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000000000000000
+        0000FFFFFF12FFFFFFE3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFF960000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF29FFFFFFFCFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB3FFFFFF0300000000000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF560000000000000000000000000000000000000000FFFF
+        FF03FFFFFFB3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFCFFFFFF290000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFFA5FFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF9FFFFFFF04000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000FFFFFF04FFFF
+        FF9FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFA5000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFF1EFFFFFFF3FFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB5FFFFFF100000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF56000000000000000000000000FFFFFF10FFFFFFB5FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2FFFF
+        FF1E000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000000000000000000000000000FFFFFF69FFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBEFFFF
+        FF010000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF560000000000000000FFFFFF01FFFFFFBEFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF680000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000000000000000000000000000FFFFFF01FFFFFFA7FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FF310000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF560000000000000000FFFFFF31FFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA6FFFFFF010000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000FFFFFF09FFFF
+        FFC1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FF4D0000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF560000000000000000FFFFFF4DFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC1FFFFFF09000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FF0EFFFFFFBFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFF
+        FF1D0000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF560000000000000000FFFFFF1DFFFFFFFBFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFFFF0E00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFF08FFFFFF9EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F0000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF56000000000000000000000000FFFFFF7FFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFF9EFFFFFF080000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF4DFFFFFFA0FFFFFF9FFFFFFF50000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000FFFFFF50FFFF
+        FF9FFFFFFFA0FFFFFF4E00000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF56FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF5600000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF4BFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF4B00000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF0EFFFFFFECFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFEBFFFFFF0E00000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF42FFFFFFEDFFFFFFFFFFFFFFFFFFFF
+        FFEDFFFFFF420000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFF11FFFFFF52FFFFFF52FFFF
+        FF11000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000
+      }
+      OnClick = bFxEnabledClick
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bEffect1: TDecksButton
+      Tag = 1
+      Left = 120
+      Height = 26
+      Top = 8
+      Width = 102
+      StateNormal.Background.Color = clTeal
+      StateNormal.Background.Gradient1.StartColor = 2171427
+      StateNormal.Background.Gradient1.EndColor = 2171427
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = 2171427
+      StateNormal.Background.Gradient2.EndColor = 2171427
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 13691376
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 2
+      Caption = 'FxName'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+      DropDownPosition = bdpBottom
+    end
+    object bEffect2: TDecksButton
+      Tag = 2
+      Left = 229
+      Height = 26
+      Top = 8
+      Width = 102
+      StateNormal.Background.Color = clTeal
+      StateNormal.Background.Gradient1.StartColor = 2171427
+      StateNormal.Background.Gradient1.EndColor = 2171427
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = 2171427
+      StateNormal.Background.Gradient2.EndColor = 2171427
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 13691376
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 2
+      Caption = 'FxName'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+      DropDownPosition = bdpBottom
+    end
+    object bEffect3: TDecksButton
+      Tag = 3
+      Left = 338
+      Height = 26
+      Top = 8
+      Width = 102
+      StateNormal.Background.Color = clTeal
+      StateNormal.Background.Gradient1.StartColor = 2171427
+      StateNormal.Background.Gradient1.EndColor = 2171427
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = 2171427
+      StateNormal.Background.Gradient2.EndColor = 2171427
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 13691376
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 2
+      Caption = 'FxName'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+      DropDownPosition = bdpBottom
+    end
+    object bEffect4: TDecksButton
+      Tag = 4
+      Left = 447
+      Height = 26
+      Top = 8
+      Width = 102
+      StateNormal.Background.Color = clTeal
+      StateNormal.Background.Gradient1.StartColor = 2171427
+      StateNormal.Background.Gradient1.EndColor = 2171427
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = 2171427
+      StateNormal.Background.Gradient2.EndColor = 2171427
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 13691376
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 2
+      Caption = 'FxName'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+      DropDownPosition = bdpBottom
+    end
+    object SliderFxParam0: ThKnob
+      Left = 98
+      Height = 40
+      Hint = 'Amplification'
+      Top = 59
+      Width = 40
+      Max = 200
+      SmallChange = 0
+      Caption = 'SliderFxParam0'
+      Indicator.Normal.LineColor = clSilver
+      Indicator.Hovered.LineColor = clWhite
+      Indicator.Disabled.LineColor = clGray
+      Indicator.LineWidth = 5
+      Indicator.RadiusInner = 14
+      Indicator.RadiusOuter = 2
+      Indicator.OffsetX = 0
+      Indicator.OffsetY = 0
+      KnobColor = clNone
+      BorderColor = clGray
+      BorderWidth = 3
+      Position = 100
+      PageSize = 0
+      PositionLabel = Label1
+      OnChange = SliderFxParam0Change
+    end
+    object SliderFxParam1: ThKnob
+      Tag = 1
+      Left = 162
+      Height = 40
+      Hint = 'Amplification'
+      Top = 59
+      Width = 40
+      Max = 200
+      SmallChange = 0
+      Caption = 'SliderFxParam1'
+      Indicator.Normal.LineColor = clSilver
+      Indicator.Hovered.LineColor = clWhite
+      Indicator.Disabled.LineColor = clGray
+      Indicator.LineWidth = 5
+      Indicator.RadiusInner = 14
+      Indicator.RadiusOuter = 2
+      Indicator.OffsetX = 0
+      Indicator.OffsetY = 0
+      KnobColor = clNone
+      BorderColor = clGray
+      BorderWidth = 3
+      Position = 100
+      PageSize = 0
+      PositionLabel = Label2
+    end
+    object SliderFxParam2: ThKnob
+      Tag = 2
+      Left = 226
+      Height = 40
+      Hint = 'Amplification'
+      Top = 59
+      Width = 40
+      Max = 200
+      SmallChange = 0
+      Caption = 'SliderFxParam2'
+      Indicator.Normal.LineColor = clSilver
+      Indicator.Hovered.LineColor = clWhite
+      Indicator.Disabled.LineColor = clGray
+      Indicator.LineWidth = 5
+      Indicator.RadiusInner = 14
+      Indicator.RadiusOuter = 2
+      Indicator.OffsetX = 0
+      Indicator.OffsetY = 0
+      KnobColor = clNone
+      BorderColor = clGray
+      BorderWidth = 3
+      Position = 100
+      PageSize = 0
+      PositionLabel = Label3
+    end
+    object SliderFxParam3: ThKnob
+      Tag = 3
+      Left = 290
+      Height = 40
+      Hint = 'Amplification'
+      Top = 59
+      Width = 40
+      Max = 200
+      SmallChange = 0
+      Caption = 'SliderFxParam3'
+      Indicator.Normal.LineColor = clSilver
+      Indicator.Hovered.LineColor = clWhite
+      Indicator.Disabled.LineColor = clGray
+      Indicator.LineWidth = 5
+      Indicator.RadiusInner = 14
+      Indicator.RadiusOuter = 2
+      Indicator.OffsetX = 0
+      Indicator.OffsetY = 0
+      KnobColor = clNone
+      BorderColor = clGray
+      BorderWidth = 3
+      Position = 100
+      PageSize = 0
+      PositionLabel = Label4
+    end
+    object SliderFxParam4: ThKnob
+      Tag = 4
+      Left = 354
+      Height = 40
+      Hint = 'Amplification'
+      Top = 59
+      Width = 40
+      Max = 200
+      SmallChange = 0
+      Caption = 'SliderFxParam4'
+      Indicator.Normal.LineColor = clSilver
+      Indicator.Hovered.LineColor = clWhite
+      Indicator.Disabled.LineColor = clGray
+      Indicator.LineWidth = 5
+      Indicator.RadiusInner = 14
+      Indicator.RadiusOuter = 2
+      Indicator.OffsetX = 0
+      Indicator.OffsetY = 0
+      KnobColor = clNone
+      BorderColor = clGray
+      BorderWidth = 3
+      Position = 100
+      PageSize = 0
+      PositionLabel = Label5
+    end
+    object SliderFxParam5: ThKnob
+      Tag = 5
+      Left = 418
+      Height = 40
+      Hint = 'Amplification'
+      Top = 59
+      Width = 40
+      Max = 200
+      SmallChange = 0
+      Caption = 'SliderFxParam5'
+      Indicator.Normal.LineColor = clSilver
+      Indicator.Hovered.LineColor = clWhite
+      Indicator.Disabled.LineColor = clGray
+      Indicator.LineWidth = 5
+      Indicator.RadiusInner = 14
+      Indicator.RadiusOuter = 2
+      Indicator.OffsetX = 0
+      Indicator.OffsetY = 0
+      KnobColor = clNone
+      BorderColor = clGray
+      BorderWidth = 3
+      Position = 100
+      PageSize = 0
+      PositionLabel = Label6
+    end
+    object Label1: TLabel
+      Left = 91
+      Height = 20
+      Top = 95
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'SliderFxParam0'
+    end
+    object Label2: TLabel
+      Left = 155
+      Height = 20
+      Top = 95
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'SliderFxParam1'
+    end
+    object Label3: TLabel
+      Left = 219
+      Height = 20
+      Top = 95
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'SliderFxParam2'
+    end
+    object Label4: TLabel
+      Left = 283
+      Height = 20
+      Top = 95
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'SliderFxParam3'
+    end
+    object Label5: TLabel
+      Left = 347
+      Height = 20
+      Top = 95
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'SliderFxParam4'
+    end
+    object Label6: TLabel
+      Left = 411
+      Height = 20
+      Top = 95
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'SliderFxParam5'
+    end
+    object bEffect5: TDecksButton
+      Tag = 4
+      Left = 556
+      Height = 26
+      Top = 8
+      Width = 102
+      StateNormal.Background.Color = clTeal
+      StateNormal.Background.Gradient1.StartColor = 2171427
+      StateNormal.Background.Gradient1.EndColor = 2171427
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = 2171427
+      StateNormal.Background.Gradient2.EndColor = 2171427
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 13691376
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 2
+      Caption = 'FxName'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      Visible = False
+      ClickOffset = True
+      DropDownPosition = bdpBottom
+    end
+    object Label7: TLabel
+      Left = 90
+      Height = 20
+      Top = 38
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'FxParam'
+    end
+    object Label8: TLabel
+      Left = 154
+      Height = 20
+      Top = 38
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'FxParam'
+    end
+    object Label9: TLabel
+      Left = 218
+      Height = 20
+      Top = 38
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'FxParam'
+    end
+    object Label10: TLabel
+      Left = 282
+      Height = 20
+      Top = 38
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'FxParam'
+    end
+    object Label11: TLabel
+      Left = 346
+      Height = 20
+      Top = 38
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'FxParam'
+    end
+    object Label12: TLabel
+      Left = 410
+      Height = 20
+      Top = 38
+      Width = 56
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'FxParam'
+    end
   end
   object Timer: TTimer
     Enabled = False

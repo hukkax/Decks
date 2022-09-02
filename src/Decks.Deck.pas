@@ -9,14 +9,10 @@ interface
 uses
 	Classes, SysUtils, Forms, Menus,
 	BASS, BASSmix, BASS_FX,
-	Decks.Audio, Decks.Song, Decks.SongInfo, Decks.BeatGraph;
-
-type
-	TEQBand = ( EQ_BAND_LOW, EQ_BAND_MID, EQ_BAND_HIGH );
+	Decks.Audio, Decks.Song, Decks.SongInfo, Decks.BeatGraph,
+	Decks.Effects;
 
 const
-	CenterFreqs: array[TEQBand] of Word = (125, 1000, 8000);
-
 	LOOP_OFF   = 0;
 	LOOP_SONG  = 0;
 	LOOP_ZONE  = 1;
@@ -49,25 +45,6 @@ type
 		Diff:	Single;
 	end;
 
-	TEQBandData = record
-		CenterFreq: Word;   // Hz
-		Gain,
-		KilledGain: Single; // -15..+15
-		Killed:     Boolean;
-	end;
-
-	TEqualizer = record
-		Handle:   HFX;
-		Stream:   HSTREAM;
-		Band:     array[TEQBand] of TEQBandData; // low, mid, high
-		FX:       BASS_BFX_PEAKEQ;
-
-		procedure Reset;
-		procedure Init(TheStream: HSTREAM);
-		procedure SetEQ(BandNum: TEQBand; Gain: Single);
-		procedure Apply(BandNum: Integer = -1);
-	end;
-
 	TDeck = class(TSong)
 	private
 		CurrVolume: Single;
@@ -91,7 +68,7 @@ type
 		LoopInfo_Zone,
 		LoopInfo_Misc: TLoopInfo;
 
-		Equalizer:	TEqualizer;
+		Equalizer:    TEqualizer;
 
 		function	BPMToHz(aBPM: Single; Zone: Word = 0): Cardinal;
 		function	HzToBPM(Hz: Single; Zone: Word = 0): Single;
@@ -133,66 +110,6 @@ uses
 	Math, IniFiles,
 	Form.Main,
 	Decks.Config;
-
-//
-// Equalizer
-//
-
-procedure TEqualizer.Reset;
-var
-	i: TEQBand;
-begin
-	Stream := 0;
-	for i in TEQBand do
-	begin
-		Band[i].CenterFreq := CenterFreqs[i];
-		Band[i].Gain := 1.0;
-	end;
-end;
-
-procedure TEqualizer.Init(TheStream: HSTREAM);
-begin
-	Stream := TheStream;
-	Handle := BASS_ChannelSetFX(Stream, BASS_FX_BFX_PEAKEQ, 0);
-	Assert(Handle <> 0, 'TEqualizer.Init: BASS_ChannelSetFX failed! Stream=' + TheStream.ToString);
-	Apply;
-end;
-
-procedure TEqualizer.SetEQ(BandNum: TEQBand; Gain: Single);
-begin
-	Assert(BandNum <= High(Band), 'TEqualizer.SetEQ: Invalid BandNum');
-	Band[BandNum].Gain := Gain;
-	Apply(Ord(BandNum));
-end;
-
-procedure TEqualizer.Apply(BandNum: Integer = -1);
-var
-	i: TEQBand;
-	B: Boolean;
-begin
-	with FX do
-	begin
-		fBandwidth := 2.0;
-		fQ := 0;
-		lChannel := BASS_BFX_CHANALL;
-		for i in TEQBand do
-		begin
-			if (BandNum < 0) or (i = TEQBand(BandNum)) then
-			begin
-				lBand := Ord(i);
-				fCenter := Band[i].CenterFreq;
-				fGain := Band[i].Gain;
-				B := BASS_FXSetParameters(Handle, @FX);
-				Assert(B = True, 'TEqualizer.Apply: BASS_FXSetParameters failed! Handle=' + Handle.ToString);
-			end;
-		end;
-	end;
-
-	//for v := 0 to 2 do
-	//	Audio_SetEqualizer(deck, v, d_fxEQ[deck].Gain[v]);
-
-	//Audio_SetEQKill(deck, d_isEQKilled[deck]);
-end;
 
 procedure TDeck.ToggleEQKill(BandNum: TEQBand);
 begin
