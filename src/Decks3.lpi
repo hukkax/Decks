@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="17">
       <Unit0>
         <Filename Value="Decks3.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -104,7 +104,7 @@
         <IsPartOfProject Value="True"/>
       </Unit13>
       <Unit14>
-        <Filename Value="decks.tagscanner.pas"/>
+        <Filename Value="Decks.TagScanner.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Decks.TagScanner"/>
       </Unit14>
@@ -113,6 +113,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="MouseWheelAccelerator"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="Decks.Effects.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Decks.Effects"/>
+      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

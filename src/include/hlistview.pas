@@ -23,6 +23,7 @@ type
 	Color,
 	Background: TColor;
 	SubItems:   TStringList;
+	Tag:        PtrInt;
 
     constructor Create(AOwner: ThListView);
     destructor  Destroy; override;

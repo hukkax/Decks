@@ -10,7 +10,8 @@ uses
 	Types, ShellCtrls, ComCtrls, Menus, FGL, LMessages, LCLIntf, LCLType,
 	BGRABitmap, BGRABitmapTypes, BCLabel, BGRAVirtualScreen,
 	hListView, hShellTree, DecksButton, hSlider, hKnob,
-	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Deck, Frame.Deck;
+	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
+	Frame.Deck;
 
 const
 	SupportedFormats = '.mp3 .ogg .wav .mod .sid .nsf';
@@ -59,6 +60,11 @@ type
 		MenuItem1: TMenuItem;
 		MenuItem2: TMenuItem;
 		miAbout: TMenuItem;
+		DecksButton3: TDecksButton;
+		DecksButton6: TDecksButton;
+		SplitterH1: TSplitter;
+		EmbeddedImage: TImage;
+		bEffects: TDecksButton;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -95,12 +101,14 @@ type
 		procedure miAboutClick(Sender: TObject);
 		procedure FileListMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
 			MousePos: TPoint; var Handled: Boolean);
+		procedure bEffectsClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
 
 		procedure ResizeFrames;
 		function  FindFileListEntry(const Filename: String): ThListItem;
+		function ReadImageFromTags(const Filename: String): Boolean;
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
@@ -140,7 +148,6 @@ type
 		procedure Apply(ApplyEQ: Boolean = True);
 	end;
 
-
 var
 	MainForm: TMainForm;
 
@@ -167,8 +174,9 @@ implementation
 
 uses
 	Math, FileUtil, StrUtils,
-	MouseWheelAccelerator,
+	MouseWheelAccelerator, BCTypes,
 	AudioTag, basetag, file_Wave, file_mp3, file_ogg,
+BASS,
 	Decks.TagScanner,
 	Decks.Song, Decks.SongInfo, Decks.Beatgraph;
 
@@ -516,6 +524,25 @@ begin
 
 	miEnableMixer.Checked := Config.Mixer.Enabled;
 	UpdateMixerVisibility;
+(*
+	Effects := TEffectsList.Create(True);
+
+	AddGUIEffect(TFxEcho.Create,       bEffect0);
+	AddGUIEffect(TFxReverb.Create,     bEffect1);
+	AddGUIEffect(TFxPhaser.Create,     bEffect2);
+	AddGUIEffect(TFxChorus.Create,     bEffect3);
+//	AddGUIEffect(TFxDistortion.Create, bEffect4);
+	AddGUIEffect(TFxCompressor.Create, bEffect4);
+
+	InitGUIEffectParam(0, SliderFxParam0, Label7);
+	InitGUIEffectParam(1, SliderFxParam1, Label8);
+	InitGUIEffectParam(2, SliderFxParam2, Label9);
+	InitGUIEffectParam(3, SliderFxParam3, Label10);
+	InitGUIEffectParam(4, SliderFxParam4, Label11);
+	InitGUIEffectParam(5, SliderFxParam5, Label12);
+
+	SelectEffect(0);
+*)
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -622,10 +649,50 @@ begin
 	end;
 end;
 
+function TMainForm.ReadImageFromTags(const Filename: String): Boolean;
+var
+	TagReader: TTagReader;
+	ImageStream: TMemoryStream;
+begin
+	Result := False;
+	TagReader := ReadTags(Filename);
+
+	if Assigned(TagReader) then
+	begin
+		TagReader.GetCommonTags;
+		Result := TagReader.Tags.ImageCount > 0;
+		if Result then
+		begin
+			TagReader.Tags.Images[0].Image.Position := 0;
+			ImageStream := TMemoryStream.Create;
+			ImageStream.CopyFrom(TagReader.Tags.Images[0].Image,
+				TagReader.Tags.Images[0].Image.Size);
+			TagReader.Tags.Images[0].Image.Position := 0;
+			EmbeddedImage.Picture.LoadFromStream(TagReader.Tags.Images[0].Image);
+			ImageStream.Free;
+		end;
+	end
+	else
+		Result := False;
+
+	TagReader.Free;
+end;
+
 procedure TMainForm.FileListSelectItem(Sender: TObject; Item: ThListItem);
+var
+	B: Boolean = False;
 begin
 	if Item <> nil then
+	begin
 		SelectedFile := CurrentDir + Item.Caption;
+		if Item.Tag > 0 then
+		begin
+			Application.ProcessMessages;
+			B := ReadImageFromTags(SelectedFile);
+		end;
+		EmbeddedImage.Height := IfThen(B, EmbeddedImage.Width, 0);
+		if not B then EmbeddedImage.Picture.Clear;
+	end;
 end;
 
 function TMainForm.FindFileListEntry(const Filename: String): ThListItem;
@@ -673,6 +740,7 @@ var
 	Item: ThListItem;
 	Info: TSongInfo;
 	Filename, S: String;
+	Tags: TStringList;
 begin
 	Filename := ExtractFileName(TagScanner.CurrentFilename);
 	Item := FindFileListEntry(Filename);
@@ -691,9 +759,11 @@ begin
 			S := '';
 		Item.SubItems.Add(S);
 
-		if TagScanner.CurrentTags <> nil then
-			for S in TagScanner.CurrentTags do
-				Item.SubItems.Add(S);
+		Tags := TagsToStringList(TagScanner.CurrentTags);
+		for S in Tags do
+			Item.SubItems.Add(S);
+		Item.Tag := IfThen(TagScanner.CurrentTags.HasImage, 1, 0);
+		Tags.Free;
 
 		FileList.Invalidate;
 		Application.ProcessMessages;
@@ -1086,7 +1156,7 @@ begin
 		pbBeats.Bitmap.FillRect(Bounds(W, 0, W, H),
 			Grays[Deck.BeatFadeCounter], dmSet);
 
-	pbBeats.Refresh;
+	pbBeats.Repaint;
 end;
 
 procedure TMainForm.sDirsChange(Sender: TObject);
@@ -1229,6 +1299,28 @@ begin
 	Handled := True;
 	WheelDelta := Round(WheelDelta * WheelAcceleration.Process(WHEEL_FILELIST, WheelDelta, 1.2) / 120);
 	FileList.ScrollBy(0, WheelDelta);
+end;
+
+procedure TMainForm.bEffectsClick(Sender: TObject);
+var
+	B: Boolean;
+	Deck: TDeck;
+begin
+	BeginFormUpdate;
+
+	B := not bEffects.Down;
+	bEffects.Down := B;
+	if B then
+		bEffects.StateNormal.Background.Style := bbsColor
+	else
+		bEffects.StateNormal.Background.Style := bbsGradient;
+
+//	H := pnlEffects.Height;
+//	MainForm.DeckPanel.Height := MainForm.DeckPanel.Height + IfThen(B, H, -H);
+	for Deck in DeckList do
+		TDeckFrame(Deck.Form).ShowPanel_Effects;
+
+	EndFormUpdate;
 end;
 
 end.

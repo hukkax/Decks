@@ -12,8 +12,8 @@ type
 	TTagScannerJob = class(TObject)
 	private
 		FThread:       TThread;
-		FFileList,
-		FTagsList:     TStringList;
+		FFileList:     TStringList;
+		FTagsList:     TCommonTags;
 		Terminated,
 		Queued:        Boolean;
 
@@ -35,8 +35,8 @@ type
 
 		property Directory:  String read FDirectory  write FDirectory;
 		property Extensions: String read FExtensions write FExtensions;
-		property CurrentFilename: String read FCurrentFilename;
-		property CurrentTags: TStringList read FTagsList;
+		property CurrentFilename: String   read FCurrentFilename;
+		property CurrentTags: TCommonTags  read FTagsList;
 
 		property OnFileAdded: TNotifyEvent read FOnFileAdd  write FOnFileAdd;
 		property OnTagsRead:  TNotifyEvent read FOnFileRead write FOnFileRead;
@@ -54,7 +54,8 @@ type
 	end;
 
 	function ReadTags(const Filename: String): TTagReader;
-	function ReadFileTags(const Filename: String): TStringList;
+	function ReadFileTags(const Filename: String): TCommonTags;
+	function TagsToStringList(const Tags: TCommonTags): TStringList;
 
 
 implementation
@@ -103,7 +104,6 @@ begin
 		if Terminated then Exit;
 		FTagsList := ReadFileTags(S);
 		InternalFileProcessed(S);
-		FTagsList.Free;
 	end;
 end;
 
@@ -185,34 +185,42 @@ begin
 	end;
 end;
 
-function ReadFileTags(const Filename: String): TStringList;
+function ReadFileTags(const Filename: String): TCommonTags;
 var
 	TagReader: TTagReader;
-	Tags: TCommonTags;
 begin
-	Result := TStringList.Create;
 	TagReader := ReadTags(Filename);
 
 	if Assigned(TagReader) then
 	begin
-		Tags := TagReader.GetCommonTags;
+		Result := TagReader.GetCommonTags;
+		Result.Index := TagReader.MediaProperty.Bitrate;
+	end
+	else
+		Result := Default(TCommonTags);
 
-		if Tags.Duration > 0 then
-			Result.Add(
-				FormatDateTime('nn:ss', Tags.Duration / MSecsPerDay).Replace('.',':'))
-		else
-			Result.Add('');
-
-		if TagReader.MediaProperty.BitRate > 0 then
-			Result.Add('%d', [TagReader.MediaProperty.Bitrate])
-		else
-			Result.Add('');
-		Result.Add(Tags.Artist);
-		Result.Add(Tags.Title);
-
-		TagReader.Free;
-	end;
+	TagReader.Free;
 end;
+
+function TagsToStringList(const Tags: TCommonTags): TStringList;
+begin
+	Result := TStringList.Create;
+
+	if Tags.Duration > 0 then
+		Result.Add(
+			FormatDateTime('nn:ss', Tags.Duration / MSecsPerDay).Replace('.',':'))
+	else
+		Result.Add('');
+
+	if Tags.Index > 0 then // bitrate
+		Result.Add(Tags.Index.ToString)
+	else
+		Result.Add('');
+
+	Result.Add(Tags.Artist);
+	Result.Add(Tags.Title);
+end;
+
 
 end.
 
