@@ -106,7 +106,6 @@
       <Unit14>
         <Filename Value="Decks.TagScanner.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Decks.TagScanner"/>
       </Unit14>
       <Unit15>
         <Filename Value="include\mousewheelaccelerator.pas"/>
@@ -116,7 +115,6 @@
       <Unit16>
         <Filename Value="Decks.Effects.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Decks.Effects"/>
       </Unit16>
     </Units>
   </ProjectOptions>

@@ -67,7 +67,6 @@ type
 		PopupMenu: TPopupMenu;
 		SliderAmp: ThKnob;
 		lTime: TLabel;
-		shpBorder: TShape;
 		shpGraph: TShape;
 		SliderGraphX: ThRangeBar;
 		SliderTempo: ThGaugeBar;
@@ -896,6 +895,7 @@ begin
 	InitGUIEffectParam(5, SliderFxParam5, Label12);
 
 	SelectEffect(0);
+	ShowPanel_Effects;
 end;
 
 destructor TDeckFrame.Destroy;
@@ -1770,7 +1770,7 @@ var
 	B: Boolean;
 	H: Integer;
 begin
-	B := MainForm.bEffects.Down;
+	B := MainForm.bToggleEffects.Down;
 	pnlEffects.Top := pnlControls.Top - pnlEffects.Height;
 	pnlEffects.Visible := B;
 end;

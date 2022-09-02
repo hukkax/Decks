@@ -2,9 +2,9 @@ object DeckFrame: TDeckFrame
   Left = 0
   Height = 456
   Top = 0
-  Width = 437
+  Width = 707
   ClientHeight = 456
-  ClientWidth = 437
+  ClientWidth = 707
   Color = 3553082
   OnResize = FormResize
   ParentBackground = False
@@ -14,11 +14,12 @@ object DeckFrame: TDeckFrame
     Left = 0
     Height = 56
     Top = 400
-    Width = 437
+    Width = 707
     Align = alBottom
-    BevelOuter = bvNone
+    BevelColor = 2171427
+    BevelOuter = bvLowered
     ClientHeight = 56
-    ClientWidth = 437
+    ClientWidth = 707
     TabOrder = 0
     object bPlay: TDecksButton
       Left = 8
@@ -186,7 +187,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
     end
     object SliderAmp: ThKnob
-      Left = 378
+      Left = 648
       Height = 47
       Hint = 'Amplification'
       Top = 4
@@ -212,7 +213,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBeat: TDecksButton
       Tag = 1
-      Left = 239
+      Left = 509
       Height = 24
       Hint = 'Loop 1 Beat'
       Top = 27
@@ -265,7 +266,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBeat2: TDecksButton
       Tag = 2
-      Left = 263
+      Left = 533
       Height = 24
       Hint = 'Loop 2 Beats'
       Top = 27
@@ -318,7 +319,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar: TDecksButton
       Tag = 4
-      Left = 295
+      Left = 565
       Height = 24
       Hint = 'Loop 1 Bar'
       Top = 27
@@ -371,7 +372,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar2: TDecksButton
       Tag = 8
-      Left = 319
+      Left = 589
       Height = 24
       Hint = 'Loop 2 Bars'
       Top = 27
@@ -424,7 +425,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar4: TDecksButton
       Tag = 16
-      Left = 343
+      Left = 613
       Height = 24
       Hint = 'Loop 4 Bars'
       Top = 27
@@ -476,7 +477,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
     end
     object bLoopZone: TDecksButton
-      Left = 239
+      Left = 509
       Height = 24
       Hint = 'Loop Current Zone'
       Top = 4
@@ -529,7 +530,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopSong: TDecksButton
       Tag = -1
-      Left = 303
+      Left = 573
       Height = 24
       Hint = 'Loop Song'
       Top = 4
@@ -696,40 +697,26 @@ object DeckFrame: TDeckFrame
   end
   object pnlGraph: TPanel
     Left = 0
-    Height = 282
+    Height = 284
     Top = 0
-    Width = 437
+    Width = 707
     Align = alClient
-    BevelOuter = bvNone
-    ClientHeight = 282
-    ClientWidth = 437
+    BevelColor = 2171427
+    BevelOuter = bvLowered
+    ClientHeight = 284
+    ClientWidth = 707
     Color = 3553082
     DoubleBuffered = False
     FullRepaint = False
     ParentColor = False
     ParentDoubleBuffered = False
     TabOrder = 1
-    object shpBorder: TShape
-      Left = 0
-      Height = 282
-      Top = 0
-      Width = 437
-      Align = alClient
-      Brush.Color = 3815222
-      ParentShowHint = False
-      Pen.Color = 2171427
-      Pen.EndCap = pecSquare
-      Pen.JoinStyle = pjsMiter
-      Pen.Width = 3
-      OnMouseDown = bMasterMouseDown
-      ShowHint = True
-    end
     object bMaster: TLabel
       Tag = 6962731
       Left = 32
       Height = 24
       Top = 8
-      Width = 337
+      Width = 607
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
@@ -743,7 +730,7 @@ object DeckFrame: TDeckFrame
       OnMouseDown = bMasterMouseDown
     end
     object lTime: TLabel
-      Left = 374
+      Left = 644
       Height = 24
       Top = 8
       Width = 55
@@ -763,9 +750,9 @@ object DeckFrame: TDeckFrame
     object pb: TBGRAVirtualScreen
       Cursor = crNone
       Left = 10
-      Height = 122
+      Height = 124
       Top = 49
-      Width = 357
+      Width = 627
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight, akBottom]
       Color = clBlack
@@ -780,8 +767,8 @@ object DeckFrame: TDeckFrame
     object pbZones: TBGRAVirtualScreen
       Left = 10
       Height = 21
-      Top = 171
-      Width = 357
+      Top = 173
+      Width = 627
       OnRedraw = pbZonesRedraw
       Alignment = taLeftJustify
       Anchors = [akLeft, akRight, akBottom]
@@ -796,7 +783,7 @@ object DeckFrame: TDeckFrame
       Left = 10
       Height = 10
       Top = 39
-      Width = 357
+      Width = 627
       OnRedraw = pbRulerRedraw
       Alignment = taLeftJustify
       Anchors = [akTop, akLeft, akRight]
@@ -810,8 +797,8 @@ object DeckFrame: TDeckFrame
       Cursor = crSizeWE
       Left = 8
       Height = 64
-      Top = 211
-      Width = 357
+      Top = 213
+      Width = 627
       OnRedraw = pbWaveRedraw
       Alignment = taLeftJustify
       Anchors = [akLeft, akRight, akBottom]
@@ -875,8 +862,8 @@ object DeckFrame: TDeckFrame
       DropDownPosition = bdpBottom
     end
     object SliderTempo: ThGaugeBar
-      Left = 374
-      Height = 208
+      Left = 644
+      Height = 210
       Hint = 'BPM Coarse'
       Top = 39
       Width = 25
@@ -897,8 +884,8 @@ object DeckFrame: TDeckFrame
     object SliderGraphX: ThRangeBar
       Left = 8
       Height = 21
-      Top = 191
-      Width = 361
+      Top = 193
+      Width = 631
       Anchors = [akLeft, akRight, akBottom]
       Color = 2171427
       BorderStyle = bsNone
@@ -913,8 +900,8 @@ object DeckFrame: TDeckFrame
       OnChange = SliderGraphXChange
     end
     object SliderTempoFrac: ThGaugeBar
-      Left = 404
-      Height = 208
+      Left = 674
+      Height = 210
       Hint = 'BPM Fractional'
       Top = 39
       Width = 25
@@ -936,9 +923,9 @@ object DeckFrame: TDeckFrame
     end
     object shpGraph: TShape
       Left = 8
-      Height = 254
+      Height = 242
       Top = 37
-      Width = 361
+      Width = 631
       Anchors = [akTop, akLeft, akRight, akBottom]
       Brush.Color = 3815222
       Pen.Color = 2171427
@@ -947,10 +934,10 @@ object DeckFrame: TDeckFrame
       Pen.Width = 3
     end
     object bStore: TDecksButton
-      Left = 404
+      Left = 674
       Height = 26
       Hint = 'Save song setup'
-      Top = 251
+      Top = 253
       Width = 25
       Anchors = [akRight, akBottom]
       StateNormal.Background.Color = 6249562
@@ -1000,10 +987,10 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
     end
     object bStart: TDecksButton
-      Left = 374
+      Left = 644
       Height = 26
       Hint = 'Left: Move cue to song start'#13#10'Right: Set song start position to cue'#13#10'Middle: Reset song start position'
-      Top = 251
+      Top = 253
       Width = 25
       Anchors = [akRight, akBottom]
       StateNormal.Background.Color = 6249562
@@ -1055,19 +1042,20 @@ object DeckFrame: TDeckFrame
   end
   object pnlEffects: TPanel
     Left = 0
-    Height = 118
-    Top = 282
-    Width = 437
+    Height = 116
+    Top = 284
+    Width = 707
     Align = alBottom
-    BevelOuter = bvNone
-    ClientHeight = 118
-    ClientWidth = 437
+    BevelColor = 2171427
+    BevelOuter = bvLowered
+    ClientHeight = 116
+    ClientWidth = 707
     TabOrder = 2
     Visible = False
     object bEffect0: TDecksButton
-      Left = 11
+      Left = 8
       Height = 26
-      Top = 8
+      Top = 6
       Width = 102
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
@@ -1116,8 +1104,8 @@ object DeckFrame: TDeckFrame
       DropDownPosition = bdpBottom
     end
     object bFxEnabled: TDecksButton
-      Left = 11
-      Height = 69
+      Left = 8
+      Height = 71
       Hint = 'Left: Toggle autosynced playback'#13#10'Right: Manually sync to playing deck'
       Top = 41
       Width = 70
@@ -1459,9 +1447,9 @@ object DeckFrame: TDeckFrame
     end
     object bEffect1: TDecksButton
       Tag = 1
-      Left = 120
+      Left = 117
       Height = 26
-      Top = 8
+      Top = 6
       Width = 102
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
@@ -1510,9 +1498,9 @@ object DeckFrame: TDeckFrame
     end
     object bEffect2: TDecksButton
       Tag = 2
-      Left = 229
+      Left = 226
       Height = 26
-      Top = 8
+      Top = 6
       Width = 102
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
@@ -1561,9 +1549,9 @@ object DeckFrame: TDeckFrame
     end
     object bEffect3: TDecksButton
       Tag = 3
-      Left = 338
+      Left = 335
       Height = 26
-      Top = 8
+      Top = 6
       Width = 102
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
@@ -1612,9 +1600,9 @@ object DeckFrame: TDeckFrame
     end
     object bEffect4: TDecksButton
       Tag = 4
-      Left = 447
+      Left = 444
       Height = 26
-      Top = 8
+      Top = 6
       Width = 102
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
@@ -1665,7 +1653,7 @@ object DeckFrame: TDeckFrame
       Left = 98
       Height = 40
       Hint = 'Amplification'
-      Top = 59
+      Top = 58
       Width = 40
       Max = 200
       SmallChange = 0
@@ -1691,7 +1679,7 @@ object DeckFrame: TDeckFrame
       Left = 162
       Height = 40
       Hint = 'Amplification'
-      Top = 59
+      Top = 58
       Width = 40
       Max = 200
       SmallChange = 0
@@ -1716,7 +1704,7 @@ object DeckFrame: TDeckFrame
       Left = 226
       Height = 40
       Hint = 'Amplification'
-      Top = 59
+      Top = 58
       Width = 40
       Max = 200
       SmallChange = 0
@@ -1741,7 +1729,7 @@ object DeckFrame: TDeckFrame
       Left = 290
       Height = 40
       Hint = 'Amplification'
-      Top = 59
+      Top = 58
       Width = 40
       Max = 200
       SmallChange = 0
@@ -1766,7 +1754,7 @@ object DeckFrame: TDeckFrame
       Left = 354
       Height = 40
       Hint = 'Amplification'
-      Top = 59
+      Top = 58
       Width = 40
       Max = 200
       SmallChange = 0
@@ -1791,7 +1779,7 @@ object DeckFrame: TDeckFrame
       Left = 418
       Height = 40
       Hint = 'Amplification'
-      Top = 59
+      Top = 58
       Width = 40
       Max = 200
       SmallChange = 0
@@ -1812,7 +1800,7 @@ object DeckFrame: TDeckFrame
       PositionLabel = Label6
     end
     object Label1: TLabel
-      Left = 91
+      Left = 90
       Height = 20
       Top = 95
       Width = 56
@@ -1821,7 +1809,7 @@ object DeckFrame: TDeckFrame
       Caption = 'SliderFxParam0'
     end
     object Label2: TLabel
-      Left = 155
+      Left = 154
       Height = 20
       Top = 95
       Width = 56
@@ -1830,7 +1818,7 @@ object DeckFrame: TDeckFrame
       Caption = 'SliderFxParam1'
     end
     object Label3: TLabel
-      Left = 219
+      Left = 218
       Height = 20
       Top = 95
       Width = 56
@@ -1839,7 +1827,7 @@ object DeckFrame: TDeckFrame
       Caption = 'SliderFxParam2'
     end
     object Label4: TLabel
-      Left = 283
+      Left = 282
       Height = 20
       Top = 95
       Width = 56
@@ -1848,7 +1836,7 @@ object DeckFrame: TDeckFrame
       Caption = 'SliderFxParam3'
     end
     object Label5: TLabel
-      Left = 347
+      Left = 346
       Height = 20
       Top = 95
       Width = 56
@@ -1857,7 +1845,7 @@ object DeckFrame: TDeckFrame
       Caption = 'SliderFxParam4'
     end
     object Label6: TLabel
-      Left = 411
+      Left = 410
       Height = 20
       Top = 95
       Width = 56
@@ -1867,9 +1855,9 @@ object DeckFrame: TDeckFrame
     end
     object bEffect5: TDecksButton
       Tag = 4
-      Left = 556
+      Left = 553
       Height = 26
-      Top = 8
+      Top = 6
       Width = 102
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427

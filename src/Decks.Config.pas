@@ -42,6 +42,10 @@ type
 			Config: String;
 		end;
 
+		Effects: record
+			Enabled: Boolean;
+		end;
+
 		Mixer: record
 			Enabled,
 			Enable_Crossfader,

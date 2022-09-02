@@ -64,7 +64,9 @@ type
 		DecksButton6: TDecksButton;
 		SplitterH1: TSplitter;
 		EmbeddedImage: TImage;
-		bEffects: TDecksButton;
+		bToggleEffects: TDecksButton;
+		bToggleMixer: TDecksButton;
+		miEnableEffects: TMenuItem;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -97,11 +99,11 @@ type
 		procedure TimerTimer(Sender: TObject);
 		procedure miFileRenameClick(Sender: TObject);
 		procedure miFileDeleteClick(Sender: TObject);
-		procedure miEnableMixerClick(Sender: TObject);
 		procedure miAboutClick(Sender: TObject);
 		procedure FileListMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
 			MousePos: TPoint; var Handled: Boolean);
-		procedure bEffectsClick(Sender: TObject);
+		procedure bToggleEffectsClick(Sender: TObject);
+		procedure bToggleMixerClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -668,7 +670,11 @@ begin
 			ImageStream.CopyFrom(TagReader.Tags.Images[0].Image,
 				TagReader.Tags.Images[0].Image.Size);
 			TagReader.Tags.Images[0].Image.Position := 0;
-			EmbeddedImage.Picture.LoadFromStream(TagReader.Tags.Images[0].Image);
+			try
+				EmbeddedImage.Picture.LoadFromStream(TagReader.Tags.Images[0].Image);
+			except
+				Result := False;
+			end;
 			ImageStream.Free;
 		end;
 	end
@@ -940,8 +946,10 @@ end;
 
 procedure TMainForm.UpdateMixerVisibility;
 begin
+	BeginFormUpdate;
 	MixerPanel.Visible := Config.Mixer.Enabled;
 	MixerPanel.Enabled := MixerPanel.Visible;
+	EndFormUpdate;
 end;
 
 procedure TMainForm.ApplyMixer(ApplyEQ: Boolean = True);
@@ -1275,13 +1283,6 @@ begin
 	end;
 end;
 
-procedure TMainForm.miEnableMixerClick(Sender: TObject);
-begin
-	Config.Mixer.Enabled := not Config.Mixer.Enabled;
-	miEnableMixer.Checked := Config.Mixer.Enabled;
-	UpdateMixerVisibility;
-end;
-
 procedure TMainForm.miAboutClick(Sender: TObject);
 var
 	S: String;
@@ -1301,26 +1302,50 @@ begin
 	FileList.ScrollBy(0, WheelDelta);
 end;
 
-procedure TMainForm.bEffectsClick(Sender: TObject);
+procedure TMainForm.bToggleEffectsClick(Sender: TObject);
 var
 	B: Boolean;
+	H: Integer;
 	Deck: TDeck;
 begin
+	B := not Config.Effects.Enabled;
+	Config.Effects.Enabled := B;
+
 	BeginFormUpdate;
 
-	B := not bEffects.Down;
-	bEffects.Down := B;
-	if B then
-		bEffects.StateNormal.Background.Style := bbsColor
-	else
-		bEffects.StateNormal.Background.Style := bbsGradient;
+	bToggleEffects.Down := B;
+	miEnableEffects.Checked := B;
 
-//	H := pnlEffects.Height;
-//	MainForm.DeckPanel.Height := MainForm.DeckPanel.Height + IfThen(B, H, -H);
+	if B then
+		bToggleEffects.StateNormal.Background.Style := bbsColor
+	else
+		bToggleEffects.StateNormal.Background.Style := bbsGradient;
+
+	H := 116; // !!! pnlEffects.Height;
+	DeckPanel.Height := MainForm.DeckPanel.Height + IfThen(B, H, -H);
+
 	for Deck in DeckList do
 		TDeckFrame(Deck.Form).ShowPanel_Effects;
 
 	EndFormUpdate;
+end;
+
+procedure TMainForm.bToggleMixerClick(Sender: TObject);
+var
+	B: Boolean;
+begin
+	B := not Config.Mixer.Enabled;
+	Config.Mixer.Enabled := B;
+
+	bToggleMixer.Down := B;
+	miEnableMixer.Checked := B;
+
+	if B then
+		bToggleMixer.StateNormal.Background.Style := bbsColor
+	else
+		bToggleMixer.StateNormal.Background.Style := bbsGradient;
+
+	UpdateMixerVisibility;
 end;
 
 end.
