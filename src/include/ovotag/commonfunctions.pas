@@ -278,6 +278,7 @@ begin
          (pword(p + 2)^ = 0) then
       begin
         Inc(p, 4);
+		if l < 4 then Exit('');
         DEC(l, 4);
       end
     else

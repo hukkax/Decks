@@ -190,16 +190,17 @@ var
 	TagReader: TTagReader;
 begin
 	TagReader := ReadTags(Filename);
-
-	if Assigned(TagReader) then
-	begin
-		Result := TagReader.GetCommonTags;
-		Result.Index := TagReader.MediaProperty.Bitrate;
-	end
-	else
-		Result := Default(TCommonTags);
-
-	TagReader.Free;
+	try
+		if Assigned(TagReader) then
+		begin
+			Result := TagReader.GetCommonTags;
+			Result.Index := TagReader.MediaProperty.Bitrate;
+		end
+		else
+			Result := Default(TCommonTags);
+	finally
+		TagReader.Free;
+	end;
 end;
 
 function TagsToStringList(const Tags: TCommonTags): TStringList;
@@ -231,6 +232,7 @@ begin
 
 	Result.Add(Tags.Artist);
 	Result.Add(Tags.Title);
+	Result.Add(Tags.Comment);
 end;
 
 
