@@ -383,7 +383,6 @@ object MainForm: TMainForm
       ItemHeight = 22
       Scrollbar = sFiles
       ParentShowHint = False
-      PopupMenu = PopupFile
       ShowHint = True
       OnSelectItem = FileListSelectItem
       OnDblClick = FileListDblClick
@@ -1034,5 +1033,9 @@ object MainForm: TMainForm
       Caption = 'About...'
       OnClick = miAboutClick
     end
+  end
+  object PopupListHeader: TPopupMenu
+    Left = 176
+    Top = 140
   end
 end

@@ -213,9 +213,21 @@ begin
 		Result.Add('');
 
 	if Tags.Index > 0 then // bitrate
-		Result.Add(Tags.Index.ToString)
+	begin
+		if Tags.Index < 100 then
+			Result.Add(' ' + Tags.Index.ToString)
+		else
+			Result.Add(Tags.Index.ToString);
+	end
 	else
 		Result.Add('');
+
+	if Length(Tags.Year) < 4 then
+		Result.Add('')
+	else
+		Result.Add(Copy(Tags.Year, 1, 4));
+
+	Result.Add(Tags.Genre);
 
 	Result.Add(Tags.Artist);
 	Result.Add(Tags.Title);

@@ -2,6 +2,7 @@ unit Form.Main;
 
 {$mode Delphi}
 {$INLINE ON}
+{$WARN 5024 off : Parameter "$1" not used}
 
 interface
 
@@ -68,6 +69,7 @@ type
 		bToggleMixer: TDecksButton;
 		miEnableEffects: TMenuItem;
 		bToggleLeftPane: TDecksButton;
+		PopupListHeader: TPopupMenu;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -180,7 +182,6 @@ uses
 	Math, FileUtil, StrUtils,
 	MouseWheelAccelerator, BCTypes,
 	AudioTag, basetag, file_Wave, file_mp3, file_ogg,
-BASS,
 	Decks.TagScanner,
 	Decks.Song, Decks.SongInfo, Decks.Beatgraph;
 
@@ -478,8 +479,13 @@ begin
 		AddColumn(' BPM', 50);
 		AddColumn('Duration', 60);
 		AddColumn('Bitrate', 46);
+		AddColumn('Year', 42);
+		AddColumn('Genre', 100, False);
 		AddColumn('Artist', -23);
 		AddColumn('Title', -23);
+
+		PopupList := PopupFile;
+		PopupHeader := PopupListHeader;
 	end;
 
 	ListDirs.OnScroll := ListDirsScrolled;
@@ -799,10 +805,6 @@ begin
 end;
 
 procedure TMainForm.ListFilesInDir(const Dir: String);
-var
-	S, Fn: String;
-	Files: TStringList;
-	Item: ThListItem;
 begin
 	if (Dir <> '') and (DirectoryExists(Dir)) then
 	begin
