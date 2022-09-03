@@ -77,7 +77,8 @@ type
 
 	//FHintData: TMyHintData;
 	FHoveredColumn,
-	FHoveredItem: Integer;
+	FHoveredItem,
+	FPreviousHoveredItem: Integer;
 	FClickedColumn: Integer;
 	FHintTextWidth: Integer;
 	FHintRect: TRect;
@@ -127,7 +128,7 @@ type
 	procedure SetHeaderColor(C: TColor);
 	procedure SetHeaderTextColor(C: TColor);
 
-	procedure Draw;
+	procedure Draw(FullRedraw: Boolean = True);
 	procedure UpdateScrollbar;
 
 	procedure Paint; override;
@@ -299,6 +300,7 @@ begin
 
 	FScrollPos := 0;
 	FHoveredItem := -1;
+	FPreviousHoveredItem := -1;
 	FItemIndex := 0;
 
 	Width := 200;
@@ -733,7 +735,7 @@ begin
 	begin
 		case Button of
 			mbLeft:  SetSortColumn(FClickedColumn);
-			mbRight: ShowColumnPopup(P);
+			mbRight: ShowColumnPopup(P{%H-});
 		end;
 	end
 	else
@@ -786,7 +788,10 @@ begin
 			FHoveredColumn := ColumnAt(X);
 	end;
 	if FHoveredItem <> Old then
-		Invalidate;
+	begin
+		FPreviousHoveredItem := Old;
+		Draw(False);
+	end;
 
 	inherited MouseMove(Shift, X, Y);
 end;
@@ -888,7 +893,7 @@ end;
 
 procedure ThListView.Paint;
 begin
-	Draw;
+	Draw(True);
 	inherited;
 	if csDesigning in ComponentState then
 	with inherited Canvas do
@@ -899,7 +904,7 @@ begin
 	end;
 end;
 
-procedure ThListView.Draw;
+procedure ThListView.Draw(FullRedraw: Boolean = True);
 
 	procedure FillRect(R: TRect; C: TColor);
 	begin
@@ -916,10 +921,12 @@ var
 begin
 	C := FColor;
 
+	Canvas.Lock;
+
 	Canvas.Font.Assign(FFont);
 	Canvas.Brush.Style := bsSolid;
 	Canvas.Brush.Color := C;
-	Canvas.Clear;
+
 
 	CR := Rect(0, 0, ClientWidth, ClientHeight-FHeaderHeight);
 
@@ -929,33 +936,37 @@ begin
 		W := CR.Width;
 	Y := FHeaderHeight;
 
-	if Y > 0 then
+	if FullRedraw then
 	begin
-		IR := Bounds(0, 0, ClientWidth, Y);
-		FillRect(IR, FHeaderColor);
-		Canvas.Font.Color := FHeaderTextColor;
-		X := 0;
-		if Columns.Count > 0 then
-		for Col := 0 to Columns.Count-1 do
+		Canvas.Clear;
+
+		if Y > 0 then
 		begin
-			if not (Columns[Col].Visible) then Continue;
-
-			IR := Bounds(X, 0, Columns[Col].Width-1, Y);
-			Columns[Col].DrawnRect := IR;
-			if Col = FSortColumn then
+			IR := Bounds(0, 0, ClientWidth, Y);
+			FillRect(IR, FHeaderColor);
+			Canvas.Font.Color := FHeaderTextColor;
+			X := 0;
+			if Columns.Count > 0 then
+			for Col := 0 to Columns.Count-1 do
 			begin
-				FillRect(IR, $333333); //Gray32(40)
-				Canvas.TextRect(IR,
-					IR.Left + FTextOffset.X, FTextOffset.Y,
-					ColumnSortText[FSortReverse] + Columns[Col].Caption);
-			end
-			else
-				Canvas.TextRect(IR,
-					IR.Left + FTextOffset.X, FTextOffset.Y,
-					Columns[Col].Caption);
-			Inc(X, Columns[Col].Width);
-		end;
+				if not (Columns[Col].Visible) then Continue;
 
+				IR := Bounds(X, 0, Columns[Col].Width-1, Y);
+				Columns[Col].DrawnRect := IR;
+				if Col = FSortColumn then
+				begin
+					FillRect(IR, $333333); //Gray32(40)
+					Canvas.TextRect(IR,
+						IR.Left + FTextOffset.X, FTextOffset.Y,
+						ColumnSortText[FSortReverse] + Columns[Col].Caption);
+				end
+				else
+					Canvas.TextRect(IR,
+						IR.Left + FTextOffset.X, FTextOffset.Y,
+						Columns[Col].Caption);
+				Inc(X, Columns[Col].Width);
+			end;
+		end;
 	end;
 
 	for I := Max(FFirstVisibleIndex, 0) to Items.Count-1 do
@@ -964,6 +975,19 @@ begin
 
 		Item := Items[I];
 		Hovered := (I = FHoveredItem);
+
+		if not FullRedraw then
+		begin
+			if I = FPreviousHoveredItem then
+				FillRect(Bounds(0, Y, Width, FItemHeight), C)
+			else
+			if not Hovered then
+			begin
+				Inc(Y, FItemHeight);
+				FLastVisibleIndex := I;
+				Continue;
+			end;
+		end;
 
 		IR := Bounds(0, Y, W, FItemHeight);
 
@@ -981,7 +1005,7 @@ begin
 				FillRect(Bounds(0, Y, Width, FItemHeight), FColorHover);
 				SetLength(HintColumn, Item.SubItems.Count + 1);
 				HintColumn[0] := IR;
-			end
+			end;
 		end;
 
 		Canvas.TextRect(IR,
@@ -1045,7 +1069,7 @@ begin
 			end;
 	end;
 
-	Canvas.Changed;
+	Canvas.Unlock;
 end;
 
 
