@@ -570,25 +570,6 @@ begin
 
 	miEnableMixer.Checked := Config.Mixer.Enabled;
 	UpdateMixerVisibility;
-(*
-	Effects := TEffectsList.Create(True);
-
-	AddGUIEffect(TFxEcho.Create,       bEffect0);
-	AddGUIEffect(TFxReverb.Create,     bEffect1);
-	AddGUIEffect(TFxPhaser.Create,     bEffect2);
-	AddGUIEffect(TFxChorus.Create,     bEffect3);
-//	AddGUIEffect(TFxDistortion.Create, bEffect4);
-	AddGUIEffect(TFxCompressor.Create, bEffect4);
-
-	InitGUIEffectParam(0, SliderFxParam0, Label7);
-	InitGUIEffectParam(1, SliderFxParam1, Label8);
-	InitGUIEffectParam(2, SliderFxParam2, Label9);
-	InitGUIEffectParam(3, SliderFxParam3, Label10);
-	InitGUIEffectParam(4, SliderFxParam4, Label11);
-	InitGUIEffectParam(5, SliderFxParam5, Label12);
-
-	SelectEffect(0);
-*)
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -613,7 +594,7 @@ var
 	i: Integer;
 	S: String;
 	Item: TPlayedFileInfo;
-	First: TDateTime;
+	First: TDateTime = 0;
 	Sl: TStringList;
 begin
 	Sl := TStringList.Create;
@@ -622,7 +603,7 @@ begin
 		begin
 			Item := TPlayedFileInfo(PlayedFilenames.Objects[i]);
 			if Item = nil then Continue;
-			if i = 0 then
+			if First = 0 then
 				First := Item.Timestamp;
 			if (Item.Artist.IsEmpty) or (Item.Title.IsEmpty) then
 				S := Item.Filename
