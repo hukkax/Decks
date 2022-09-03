@@ -32,6 +32,14 @@ const
 	COLUMN_COMMENT   = 8;
 
 type
+	TPlayedFileInfo = class
+	public
+		Filename,
+		Artist, Title: String;
+		Timestamp:     TDateTime;
+		constructor Create(const AFilename: String; ATime: TDateTime);
+	end;
+
 	TMainForm = class(TForm)
 		DecksButton1: TDecksButton;
 		miMIDIInput: TMenuItem;
@@ -126,6 +134,7 @@ type
 		procedure ResizeFrames;
 		function  FindFileListEntry(const Filename: String): ThListItem;
 		function ReadImageFromTags(const Filename: String): Boolean;
+		procedure SaveTrackList;
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
@@ -485,6 +494,7 @@ begin
 	SelectedFile := '';
 	MasterDeck := nil;
 	PlayedFilenames := TStringList.Create;
+	PlayedFilenames.OwnsObjects := True;
 	AudioManager := TAudioManager.Create;
 	DeckList := TFPGObjectList<TDeck>.Create(True);
 	sBPMChange(Self);
@@ -589,13 +599,43 @@ begin
 	CanClose := True;
 end;
 
+procedure TMainForm.SaveTrackList;
+var
+	i: Integer;
+	S: String;
+	Item: TPlayedFileInfo;
+	First: TDateTime;
+	Sl: TStringList;
+begin
+	Sl := TStringList.Create;
+	try
+		for i := 0 to PlayedFilenames.Count-1 do
+		begin
+			Item := TPlayedFileInfo(PlayedFilenames.Objects[i]);
+			if Item = nil then Continue;
+			if i = 0 then
+				First := Item.Timestamp;
+			if (Item.Artist.IsEmpty) or (Item.Title.IsEmpty) then
+				S := Item.Filename
+			else
+				S := Format('%s - %s', [Item.Artist, Item.Title]);
+			Sl.Add(Format('%s %s', [FormatDateTime('hh:nn:ss', Item.Timestamp-First), S]));
+		end;
+		if Sl.Count > 0 then
+			Sl.SaveToFile(IncludeTrailingPathDelimiter(Config.AppPath) + Format(
+				'tracklist-%s.txt', [FormatDateTime('YYYY-MM-DD_hh-nn', Now)]));
+	finally
+		Sl.Free;
+	end;
+end;
+
 procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
 	Config.Save;
-
 	{$IFDEF USEMIDI}
 	MIDI.Uninit;
 	{$ENDIF}
+	SaveTrackList;
 	PlayedFilenames.Free;
 	MasterDeck := nil;
 	//FileList.Free;
@@ -826,19 +866,31 @@ begin
 	Result := nil;
 end;
 
+constructor TPlayedFileInfo.Create(const AFilename: String; ATime: TDateTime);
+begin
+ 	inherited Create;
+	Filename := AFilename;
+	Timestamp := ATime;
+end;
+
 procedure TMainForm.MarkSongAsPlayed(Filename: String);
 var
+	i: Integer;
 	Item: ThListItem;
+	Info: TPlayedFileInfo;
 begin
 	if PlayedFilenames.IndexOf(Filename) >= 0 then Exit;
 
-	PlayedFilenames.Add(Filename);
+	i := PlayedFilenames.Add(Filename);
+	Info := TPlayedFileInfo.Create(Filename, Now);
+	PlayedFilenames.Objects[i] := Info;
 	Item := FindFileListEntry(ExtractFileName(Filename));
 	if Item <> nil then
 	begin
+		Info.Artist := Item.SubItems[COLUMN_ARTIST-1];
+		Info.Title  := Item.SubItems[COLUMN_TITLE-1];
 		Item.Color := COLOR_FILE_PLAYED;
 		FileList.Invalidate;
-//		Application.ProcessMessages;
 	end;
 end;
 
