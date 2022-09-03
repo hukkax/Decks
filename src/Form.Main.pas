@@ -847,8 +847,8 @@ var
 	Filename: String;
 	Item: ThListItem;
 begin
-	Filename := ExtractFileName(TagScanner.CurrentFilename);
-	Item := FileList.AddItem(Filename);
+	Filename := TagScanner.CurrentFilename;
+	Item := FileList.AddItem(ExtractFileName(Filename));
 	if PlayedFilenames.IndexOf(Filename) >= 0 then
 		Item.Color := COLOR_FILE_PLAYED;
 	FileList.Invalidate;
