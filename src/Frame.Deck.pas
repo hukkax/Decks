@@ -827,7 +827,7 @@ begin
 	Lbl := TLabel.Create(AKnob.Parent);
 	Lbl.AutoSize := False;
 	Lbl.Transparent := True;
-	Lbl.SetBounds(AKnob.Left-15, 0, AKnob.Width+30, 20);
+	Lbl.SetBounds(AKnob.Left-15, 0, AKnob.Width+30-1, 20);
 	Lbl.Alignment := taCenter;
 	Lbl.Font.Color := clWhite;
 	Lbl.Parent := AKnob.Parent;

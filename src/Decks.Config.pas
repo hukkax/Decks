@@ -27,6 +27,12 @@ type
 		ThemePath,
 		ThemeName:	String;
 
+		Window: record
+			DirList: record
+				Enabled: Boolean;
+			end;
+		end;
+
 		Directory: record
 			BPM,
 			Audio: String;
@@ -143,6 +149,9 @@ begin
 	Directory.BPM   := ReadPath(Ini.ReadString(Sect, 'bpm',   Directory.BPM));
 	Directory.Audio := ReadPath(Ini.ReadString(Sect, 'audio', Directory.Audio));
 
+	Sect := 'window';
+	Window.DirList.Enabled := Ini.ReadBool(Sect, 'dirlist.enabled', True);
+
 	Sect := 'audio';
 	Audio.Buffer       := Ini.ReadInteger(Sect, 'buffer', 20);
 	Audio.UpdatePeriod := Ini.ReadInteger(Sect, 'updateperiod', 60);
@@ -159,6 +168,9 @@ begin
 	Mixer.EQ.Low := Ini.ReadInteger(Sect, 'low',  125);
 	Mixer.EQ.Mid := Ini.ReadInteger(Sect, 'mid',  1000);
 	Mixer.EQ.High:= Ini.ReadInteger(Sect, 'high', 8000);
+
+	Sect := 'effects';
+	Effects.Enabled := Ini.ReadBool(Sect, 'enabled', False);
 
 	Sect := 'deck';
 	Deck.Bend.Normal   := Ini.ReadInteger(Sect, 'bend.normal',   800);
@@ -181,6 +193,9 @@ begin
 	Ini.WriteString(Sect, 'bpm',   WritePath(Directory.BPM));
 	Ini.WriteString(Sect, 'audio', WritePath(Directory.Audio));
 
+	Sect := 'window';
+	Ini.WriteBool(Sect, 'dirlist.enabled', Window.DirList.Enabled);
+
 	Sect := 'audio';
 	Ini.WriteInteger(Sect, 'buffer',       Audio.Buffer);
 	Ini.WriteInteger(Sect, 'updateperiod', Audio.UpdatePeriod);
@@ -189,6 +204,9 @@ begin
 
 	Sect := 'mixer';
 	Ini.WriteBool(Sect, 'enabled', Mixer.Enabled);
+
+	Sect := 'effects';
+	Ini.WriteBool(Sect, 'enabled', Effects.Enabled);
 
 	Ini.Free;
 end;

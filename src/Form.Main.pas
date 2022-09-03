@@ -135,6 +135,8 @@ type
 		function  FindFileListEntry(const Filename: String): ThListItem;
 		function ReadImageFromTags(const Filename: String): Boolean;
 		procedure SaveTrackList;
+		procedure SetButtonDown(Button: TDecksButton; MenuItem: TMenuItem; Down: Boolean);
+		procedure UpdateToggleButtons;
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
@@ -568,8 +570,8 @@ begin
 	EQControls[2, EQ_BAND_MID]  := sEQ2M;
 	EQControls[2, EQ_BAND_HIGH] := sEQ2H;
 
-	miEnableMixer.Checked := Config.Mixer.Enabled;
 	UpdateMixerVisibility;
+	UpdateToggleButtons;
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -1448,31 +1450,42 @@ begin
 	FileList.ScrollBy(0, WheelDelta);
 end;
 
+procedure TMainForm.SetButtonDown(Button: TDecksButton; MenuItem: TMenuItem; Down: Boolean);
+begin
+	if Button = nil then Exit;
+	Button.Down := Down;
+	if Down then
+		Button.StateNormal.Background.Style := bbsColor
+	else
+		Button.StateNormal.Background.Style := bbsGradient;
+	if MenuItem <> nil then MenuItem.Checked := Down;
+end;
+
+procedure TMainForm.UpdateToggleButtons;
+begin
+	SetButtonDown(bToggleEffects, miEnableEffects, Config.Effects.Enabled);
+	SetButtonDown(bToggleMixer, miEnableMixer, Config.Mixer.Enabled);
+	SetButtonDown(bToggleLeftPane, {miEnableLeftPane}nil, Config.Window.DirList.Enabled);
+	LeftPanel.Visible := Config.Window.DirList.Enabled;
+end;
+
 procedure TMainForm.bToggleEffectsClick(Sender: TObject);
 var
 	B: Boolean;
 	H: Integer;
 	Deck: TDeck;
 begin
+	BeginFormUpdate;
 	B := not Config.Effects.Enabled;
 	Config.Effects.Enabled := B;
-
-	BeginFormUpdate;
-
-	bToggleEffects.Down := B;
-	miEnableEffects.Checked := B;
-
-	if B then
-		bToggleEffects.StateNormal.Background.Style := bbsColor
-	else
-		bToggleEffects.StateNormal.Background.Style := bbsGradient;
-
-	H := 112; // !!! pnlEffects.Height;
-	DeckPanel.Height := MainForm.DeckPanel.Height + IfThen(B, H, -H);
-
-	for Deck in DeckList do
-		TDeckFrame(Deck.Form).ShowPanel_Effects;
-
+	UpdateToggleButtons;
+	if DeckList.Count > 0 then
+	begin
+		H := 62; // !!! pnlEffects.Height;
+		DeckPanel.Height := MainForm.DeckPanel.Height + IfThen(B, H, -H);
+		for Deck in DeckList do
+			TDeckFrame(Deck.Form).ShowPanel_Effects;
+	end;
 	EndFormUpdate;
 end;
 
@@ -1480,17 +1493,8 @@ procedure TMainForm.bToggleMixerClick(Sender: TObject);
 var
 	B: Boolean;
 begin
-	B := not Config.Mixer.Enabled;
-	Config.Mixer.Enabled := B;
-
-	bToggleMixer.Down := B;
-	miEnableMixer.Checked := B;
-
-	if B then
-		bToggleMixer.StateNormal.Background.Style := bbsColor
-	else
-		bToggleMixer.StateNormal.Background.Style := bbsGradient;
-
+	Config.Mixer.Enabled := not Config.Mixer.Enabled;
+	UpdateToggleButtons;
 	UpdateMixerVisibility;
 end;
 
@@ -1498,21 +1502,9 @@ procedure TMainForm.bToggleLeftPaneClick(Sender: TObject);
 var
 	B: Boolean;
 begin
-	B := not LeftPanel.Visible;
-	//B := not Config.Effects.Enabled;
-
 	BeginFormUpdate;
-
-	bToggleLeftPane.Down := B;
-	//miEnableLeftPane.Checked := B;
-
-	if B then
-		bToggleLeftPane.StateNormal.Background.Style := bbsColor
-	else
-		bToggleLeftPane.StateNormal.Background.Style := bbsGradient;
-
-	LeftPanel.Visible := B;
-
+	Config.Window.DirList.Enabled := not Config.Window.DirList.Enabled;
+	UpdateToggleButtons;
 	EndFormUpdate;
 end;
 
