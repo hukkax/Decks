@@ -124,9 +124,12 @@ type
 		procedure miAboutClick(Sender: TObject);
 		procedure FileListMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
 			MousePos: TPoint; var Handled: Boolean);
-		procedure bToggleEffectsClick(Sender: TObject);
-		procedure bToggleMixerClick(Sender: TObject);
-		procedure bToggleLeftPaneClick(Sender: TObject);
+		procedure bToggleEffectsMouseDown(Sender: TObject; Button: TMouseButton;
+			Shift: TShiftState; X, Y: Integer);
+		procedure bToggleLeftPaneMouseDown(Sender: TObject; Button: TMouseButton;
+			Shift: TShiftState; X, Y: Integer);
+		procedure bToggleMixerMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -492,7 +495,7 @@ begin
 	if not DirectoryExists(CurrentDir) then
 		CurrentDir := Config.AppPath;
 
-	Caption := AppVersionString;
+	Caption := AppVersionString.Replace('/', '-', [rfReplaceAll]);
 	SelectedFile := '';
 	MasterDeck := nil;
 	PlayedFilenames := TStringList.Create;
@@ -1469,12 +1472,24 @@ begin
 	LeftPanel.Visible := Config.Window.DirList.Enabled;
 end;
 
-procedure TMainForm.bToggleEffectsClick(Sender: TObject);
+procedure TMainForm.bToggleLeftPaneMouseDown(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: Integer);
+begin
+	if Button <> mbLeft then Exit;
+	BeginFormUpdate;
+	Config.Window.DirList.Enabled := not Config.Window.DirList.Enabled;
+	UpdateToggleButtons;
+	EndFormUpdate;
+end;
+
+procedure TMainForm.bToggleEffectsMouseDown(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: Integer);
 var
 	B: Boolean;
 	H: Integer;
 	Deck: TDeck;
 begin
+	if Button <> mbLeft then Exit;
 	BeginFormUpdate;
 	B := not Config.Effects.Enabled;
 	Config.Effects.Enabled := B;
@@ -1489,23 +1504,14 @@ begin
 	EndFormUpdate;
 end;
 
-procedure TMainForm.bToggleMixerClick(Sender: TObject);
-var
-	B: Boolean;
+procedure TMainForm.bToggleMixerMouseDown(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: Integer);
 begin
+	if Button <> mbLeft then Exit;
 	Config.Mixer.Enabled := not Config.Mixer.Enabled;
 	UpdateToggleButtons;
 	UpdateMixerVisibility;
 end;
 
-procedure TMainForm.bToggleLeftPaneClick(Sender: TObject);
-var
-	B: Boolean;
-begin
-	BeginFormUpdate;
-	Config.Window.DirList.Enabled := not Config.Window.DirList.Enabled;
-	UpdateToggleButtons;
-	EndFormUpdate;
-end;
 
 end.

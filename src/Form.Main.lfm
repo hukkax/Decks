@@ -199,7 +199,7 @@ object MainForm: TMainForm
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bToggleEffectsClick
+      OnMouseDown = bToggleEffectsMouseDown
       ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
@@ -252,7 +252,7 @@ object MainForm: TMainForm
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bToggleMixerClick
+      OnMouseDown = bToggleMixerMouseDown
       ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
@@ -305,7 +305,7 @@ object MainForm: TMainForm
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bToggleLeftPaneClick
+      OnMouseDown = bToggleLeftPaneMouseDown
       ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
@@ -1013,12 +1013,10 @@ object MainForm: TMainForm
     Top = 140
     object miEnableEffects: TMenuItem
       Caption = 'Enable Effects'
-      OnClick = bToggleEffectsClick
     end
     object miEnableMixer: TMenuItem
       Caption = 'Enable Mixer'
       Checked = True
-      OnClick = bToggleMixerClick
     end
     object MenuItem1: TMenuItem
       Caption = '-'
