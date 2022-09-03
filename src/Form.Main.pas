@@ -593,6 +593,15 @@ end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
+	{$IFNDEF DEBUG}
+	if PlayedFilenames.Count > 5 then
+	begin
+		if MessageDlg('Save Tracklist', 'Save tracklist for current session?',
+			TMsgDlgType.mtConfirmation, mbYesNo, 0, mbYes) <> mrNo then
+				SaveTrackList;
+	end;
+	{$ENDIF}
+
 	FileList.Tag := 0;
 	OnResize := nil;
 	ListDirs.OnCollapsed := nil;
@@ -623,7 +632,7 @@ begin
 		end;
 		if Sl.Count > 0 then
 			Sl.SaveToFile(IncludeTrailingPathDelimiter(Config.AppPath) + Format(
-				'tracklist-%s.txt', [FormatDateTime('YYYY-MM-DD_hh-nn', Now)]));
+				'tracklist-%s.txt', [FormatDateTime('YYYY-MM-DD_hh-nn', First)]));
 	finally
 		Sl.Free;
 	end;
@@ -635,7 +644,6 @@ begin
 	{$IFDEF USEMIDI}
 	MIDI.Uninit;
 	{$ENDIF}
-	SaveTrackList;
 	PlayedFilenames.Free;
 	MasterDeck := nil;
 	//FileList.Free;
