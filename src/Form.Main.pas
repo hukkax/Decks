@@ -21,6 +21,16 @@ const
 	COLOR_FILE_HASBPM  = $DDEEFF;
 	COLOR_FILE_PLAYED  = $5EB078;
 
+	COLUMN_FILENAME  = 0;
+	COLUMN_BPM       = 1;
+	COLUMN_DURATION  = 2;
+	COLUMN_BITRATE   = 3;
+	COLUMN_YEAR      = 4;
+	COLUMN_GENRE     = 5;
+	COLUMN_ARTIST    = 6;
+	COLUMN_TITLE     = 7;
+	COLUMN_COMMENT   = 8;
+
 type
 	TMainForm = class(TForm)
 		DecksButton1: TDecksButton;
@@ -85,7 +95,8 @@ type
 		procedure ListDirsCollapsed(Sender: TObject; Node: TTreeNode);
 		procedure ListDirsMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
-		procedure FileListSelectItem(Sender: TObject; Item: ThListItem);
+		procedure FileListClickItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
+		procedure FileListSelectItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
 		procedure miLoadFileClick(Sender: TObject);
 		procedure PopupFilePopup(Sender: TObject);
 		procedure sBPMChange(Sender: TObject);
@@ -195,6 +206,20 @@ var
 procedure Log(const S: String);
 begin
 	{$IFDEF DEBUG}{$IFNDEF WINDOWS}WriteLn(S);{$ENDIF}{$ENDIF}
+end;
+
+procedure ErrorMessage(const MsgText: String);
+begin
+	MessageDlg('Error', MsgText, mtError, [mbOK], '');
+end;
+
+function ToTitleCase(const S: String): String;
+begin
+	Result := Trim(S);
+	Result := Result.Replace('_', ' ', [rfReplaceAll]);
+	while Result.Contains('  ') do
+		Result := Result.Replace('  ', ' ', [rfReplaceAll]);
+	Result := AnsiProperCase(Result, [' ', '-', '(', '[']);
 end;
 
 procedure LoadButtonImages(Form: TWinControl; Path: String);
@@ -473,19 +498,20 @@ begin
 	//
 	with FileList do
 	begin
-		Font.Color := COLOR_FILE_DEFAULT;
 		Columns.Clear;
-		AddColumn('Filename', -54);
-		AddColumn(' BPM', 50);
-		AddColumn('Duration', 60);
-		AddColumn('Bitrate', 46);
-		AddColumn('Year', 42);
-		AddColumn('Genre', 100, False);
-		AddColumn('Artist', -23);
-		AddColumn('Title', -23);
-
+		AddColumn('Filename', -54).Tag := COLUMN_FILENAME;
+		AddColumn(' BPM', 50).Tag := COLUMN_BPM;
+		AddColumn('Duration', 60).Tag := COLUMN_DURATION;
+		AddColumn('Bitrate', 46).Tag := COLUMN_BITRATE;
+		AddColumn('Year', 42).Tag := COLUMN_YEAR;
+		AddColumn('Genre', 100, False).Tag := COLUMN_GENRE;
+		AddColumn('Artist', -16).Tag := COLUMN_ARTIST;
+		AddColumn('Title', -16).Tag := COLUMN_TITLE;
+		AddColumn('Comment', -16).Tag := COLUMN_COMMENT;
+		Font.Color := COLOR_FILE_DEFAULT;
 		PopupList := PopupFile;
 		PopupHeader := PopupListHeader;
+		OnClickItem := FileListClickItem;
 	end;
 
 	ListDirs.OnScroll := ListDirsScrolled;
@@ -668,7 +694,7 @@ begin
 	TagReader := ReadTags(Filename);
 
 	if Assigned(TagReader) then
-	begin
+	try
 		TagReader.GetCommonTags;
 		Result := TagReader.Tags.ImageCount > 0;
 		if Result then
@@ -685,14 +711,94 @@ begin
 			end;
 			ImageStream.Free;
 		end;
+	finally
+		TagReader.Free;
 	end
 	else
 		Result := False;
-
-	TagReader.Free;
 end;
 
-procedure TMainForm.FileListSelectItem(Sender: TObject; Item: ThListItem);
+procedure TMainForm.FileListClickItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
+var
+	ShiftDown: Boolean;
+	Col, i: Integer;
+	Tag, S: String;
+	TagReader: TTagReader;
+	Tags: TCommonTags;
+begin
+	if Button <> mbMiddle then Exit;
+
+	Col := FileList.ClickedColumn;
+	S := FileList.GetSubItemFor(Item, Col);
+	case Col of
+		COLUMN_FILENAME:
+			miFileRename.Click;
+
+		COLUMN_YEAR, COLUMN_GENRE, COLUMN_ARTIST, COLUMN_TITLE, COLUMN_COMMENT:
+		begin
+			case Col of
+				COLUMN_GENRE, COLUMN_ARTIST, COLUMN_TITLE:
+					Tag := ToTitleCase(S);
+				else Tag := S;
+			end;
+
+			ShiftDown := (ssShift in Shift);
+			if not ShiftDown then
+				Tag := InputBox('Tag Editor: ' + FileList.Columns[Col].Caption , 'New value:', Tag);
+
+			if (ShiftDown) or (Tag <> S) then
+			try
+				TagReader := ReadTags(SelectedFile);
+				if not TagReader.isUpdateable then
+				begin
+					ShowMessage('Sorry, unsupported tag format!');
+					Exit;
+				end;
+
+				Tags := TagReader.GetCommonTags;
+				if ShiftDown then
+				begin
+					if Tags.Artist <> '' then Exit;
+					Tag := Tags.Title;
+					i := Pos(' - ', Tag);
+					if i < 1 then i := Pos(' / ', Tag);
+					if i < 1 then Exit;
+					Tags.Artist := Trim(Copy(Tag, 1, i));
+					Tags.Title  := Trim(Copy(Tag, i+3, MaxInt));
+				end
+				else
+				begin
+					case Col of
+						COLUMN_YEAR:	Tags.Year := Tag;
+						COLUMN_GENRE:	Tags.Genre := Tag;
+						COLUMN_ARTIST:	Tags.Artist := Tag;
+						COLUMN_TITLE:	Tags.Title := Tag;
+						COLUMN_COMMENT:	Tags.Comment := Tag;
+						else Exit;
+					end;
+				end;
+				TagReader.SetCommonTags(Tags);
+				TagReader.UpdateFile;
+
+				if ShiftDown then
+				begin
+					Item.SubItems[COLUMN_ARTIST-1] := Tags.Artist;
+					Item.SubItems[COLUMN_TITLE-1]  := Tags.Title;
+				end
+				else
+					if Col > 0 then
+						Item.SubItems[Col-1] := Tag;
+
+				FileList.Invalidate;
+				Application.ProcessMessages;
+			finally
+				TagReader.Free;
+			end;
+		end;
+	end;
+end;
+
+procedure TMainForm.FileListSelectItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
 var
 	B: Boolean = False;
 begin
@@ -774,10 +880,13 @@ begin
 		Item.SubItems.Add(S);
 
 		Tags := TagsToStringList(TagScanner.CurrentTags);
-		for S in Tags do
-			Item.SubItems.Add(S);
-		Item.Tag := IfThen(TagScanner.CurrentTags.HasImage, 1, 0);
-		Tags.Free;
+		try
+			for S in Tags do
+				Item.SubItems.Add(S);
+			Item.Tag := IfThen(TagScanner.CurrentTags.HasImage, 1, 0);
+		finally
+			Tags.Free;
+		end;
 
 		FileList.Invalidate;
 		Application.ProcessMessages;
@@ -901,7 +1010,7 @@ begin
 	begin
 		I := FileList.ItemIndex;
 		if I >= 0 then
-			FileListSelectItem(Self, FileList.Items[I]);
+			FileListSelectItem(Self, mbLeft, [], FileList.Items[I]);
 	end;
 	if not SelectedFile.IsEmpty then
 	begin
@@ -1204,11 +1313,6 @@ begin
 	Application.ProcessMessages;
 end;
 
-procedure ErrorMessage(const MsgText: String);
-begin
-	MessageDlg('Error', MsgText, mtError, [mbOK], '');
-end;
-
 procedure TMainForm.miFileRenameClick(Sender: TObject);
 var
 	Path, Fn, Ext, NewName: String;
@@ -1222,13 +1326,7 @@ begin
 	NewName := Fn;
 
 	if not IsShiftDown then
-	begin
-		NewName := Trim(NewName);
-		NewName := NewName.Replace('_', ' ', [rfReplaceAll]);
-		while NewName.Contains('  ') do
-			NewName := NewName.Replace('  ', ' ', [rfReplaceAll]);
-		NewName := AnsiProperCase(NewName, [' ', '-', '(', '[']);
-	end;
+		NewName := ToTitleCase(NewName);
 
 	NewName := InputBox('Rename File', 'Type a new filename:', NewName);
 	if NewName = Fn then Exit;

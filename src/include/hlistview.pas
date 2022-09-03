@@ -37,12 +37,13 @@ type
 	Visible:    Boolean;
 	DrawnRect:  TRect;
 	Caption:    String;
+	Tag:        PtrInt;
 
     constructor Create(AOwner: ThListView; ACaption: String; AWidth: Integer);
     destructor  Destroy; override;
   end;
 
-  TSelectItemProc = procedure(Sender: TObject; Item: ThListItem) of Object;
+  TSelectItemProc = procedure(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem) of Object;
 
   (*
   TMyHintData = record
@@ -72,6 +73,8 @@ type
 	FMouseOver: Boolean;
 	FFont: TFont;
 
+	FSelectedItem: ThListItem;
+
 	//FHintData: TMyHintData;
 	FHoveredColumn,
 	FHoveredItem: Integer;
@@ -93,6 +96,7 @@ type
 	FPopupHeader,
 	FPopupList: TPopupMenu;
 
+	FOnClickItem,
 	FOnSelectItem: TSelectItemProc;
 
 	procedure SetColorGrid(AValue: TColor);
@@ -145,6 +149,7 @@ type
 	function  AddItem(const Caption: String): ThListItem;
 	function  AddColumn(const ACaption: String; AWidth: Integer; AVisible: Boolean = True): ThListColumn;
 	function  ColumnAt(X: Integer): Integer;
+	function  GetSubItemFor(const Item: ThListItem; var Column: Integer): String;
 
 	function  GetVisibleRows: Integer;
 	procedure ScrollToView(const Item: ThListItem);
@@ -156,6 +161,7 @@ type
 	property LastVisibleIndex:  Integer read FLastVisibleIndex  write SetLastVisibleIndex;
 	property ItemIndex: Integer read FItemIndex write SetItemIndex;
 	property HoveredItem: Integer read FHoveredItem;
+	property SelectedItem: ThListItem read FSelectedItem;
 
   published
 	property Align;
@@ -185,6 +191,7 @@ type
 	property Visible;
 
 	property OnSelectItem: TSelectItemProc read FOnSelectItem write FOnSelectItem;
+	property OnClickItem:  TSelectItemProc read FOnClickItem  write FOnClickItem;
 	property OnClick;
 	property OnDblClick;
 	property OnEnter;
@@ -343,6 +350,29 @@ begin
 	Resized;
 end;
 
+function ThListView.GetSubItemFor(const Item: ThListItem; var Column: Integer): String;
+var
+	i: Integer;
+	j: Integer = 0;
+begin
+	if Item = nil then Exit;
+	if Column < 0 then
+		Column := FClickedColumn;
+
+	for i := 1 to Columns.Count-1 do
+	begin
+		if Columns[i].Visible then
+			Inc(j);
+		if j >= Column then Break;
+	end;
+
+	if Column = 0 then
+		Result := Item.Caption
+	else
+	if Column > 0 then
+		Result := Item.SubItems[Column-1];
+end;
+
 procedure ThListView.ScrollToView(const Item: ThListItem);
 var
 	I: Integer;
@@ -390,9 +420,9 @@ begin
 	if Assigned(FOnSelectItem) then
 	begin
 		if FItemIndex >= 0 then
-			FOnSelectItem(Self, Items[FItemIndex])
+			FOnSelectItem(Self, mbLeft, [], Items[FItemIndex])
 		else
-			FOnSelectItem(Self, nil);
+			FOnSelectItem(Self, mbLeft, [], nil);
 	end;
 	Invalidate;
 end;
@@ -714,7 +744,9 @@ begin
 			Item := Items[FItemIndex]; // else Item := nil;
 			if FItemIndex <> I then
 				if Assigned(FOnSelectItem) then
-					FOnSelectItem(Self, Item);
+					FOnSelectItem(Self, Button, Shift, Item);
+			if Assigned(FOnClickItem) then
+				FOnClickItem(Self, Button, Shift, Item);
 		end
 		else
 			SetItemIndex(I); // select previously selected
