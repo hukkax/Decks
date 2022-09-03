@@ -5,7 +5,7 @@ unit hListView;
 interface
 
 uses
-	Classes, SysUtils, Graphics, Controls, StdCtrls, ExtCtrls, Forms,
+	Classes, SysUtils, Graphics, Controls, ExtCtrls, Forms, Menus,
 	LMessages, LResources, FGL,
 	hSlider;
 
@@ -75,6 +75,7 @@ type
 	//FHintData: TMyHintData;
 	FHoveredColumn,
 	FHoveredItem: Integer;
+	FClickedColumn: Integer;
 	FHintTextWidth: Integer;
 	FHintRect: TRect;
 
@@ -89,6 +90,9 @@ type
 	FFirstVisibleIndex,
 	FLastVisibleIndex: Integer;
 
+	FPopupHeader,
+	FPopupList: TPopupMenu;
+
 	FOnSelectItem: TSelectItemProc;
 
 	procedure SetColorGrid(AValue: TColor);
@@ -101,6 +105,8 @@ type
 	procedure CMMouseEnter(var Message: TLMessage); message CM_MouseEnter;
 	procedure CMMouseLeave(var Message: TLMessage); message CM_MouseLeave;
     procedure CMHintShow(var Message: TCMHintShow); message CM_HintShow;
+	procedure ShowColumnPopup(P: TPoint);
+	procedure ToggleColumnVisibilityFromMenu(Sender: TObject);
   protected
 	procedure SetEnabled(Value: Boolean);
 	procedure SetItemHeight(H: Integer);
@@ -137,13 +143,14 @@ type
 	destructor  Destroy; override;
 
 	function  AddItem(const Caption: String): ThListItem;
-	function  AddColumn(const ACaption: String; AWidth: Integer): ThListColumn;
+	function  AddColumn(const ACaption: String; AWidth: Integer; AVisible: Boolean = True): ThListColumn;
 	function  ColumnAt(X: Integer): Integer;
 
 	function  GetVisibleRows: Integer;
 	procedure ScrollToView(const Item: ThListItem);
 	procedure ScrollBy(DeltaX, DeltaY: Integer); override;
 
+	property ClickedColumn: Integer read FClickedColumn;
 	property ScrollPos: Integer read FScrollPos write SetScrollPos default 0;
 	property FirstVisibleIndex: Integer read FFirstVisibleIndex write SetFirstVisibleIndex;
 	property LastVisibleIndex:  Integer read FLastVisibleIndex  write SetLastVisibleIndex;
@@ -171,7 +178,9 @@ type
 	property Scrollbar: ThRangebar read FScrollbar write SetScrollbar;
 
 	property ParentShowHint;
-	property PopupMenu;
+	//property PopupMenu;
+	property PopupHeader: TPopupMenu read FPopupHeader write FPopupHeader;
+	property PopupList:   TPopupMenu read FPopupList   write FPopupList;
 	property ShowHint;
 	property Visible;
 
@@ -326,9 +335,10 @@ begin
 	UpdateScrollbar;
 end;
 
-function ThListView.AddColumn(const ACaption: String; AWidth: Integer): ThListColumn;
+function ThListView.AddColumn(const ACaption: String; AWidth: Integer; AVisible: Boolean = True): ThListColumn;
 begin
 	Result := ThListColumn.Create(Self, ACaption, AWidth);
+	Result.Visible := AVisible;
 	Columns.Add(Result);
 	Resized;
 end;
@@ -541,30 +551,51 @@ var
 	W, I: Integer;
 	Col: ThListColumn;
 begin
+	W := ClientWidth;
+
 	if Columns.Count = 1 then
-		Columns.First.Width := Width
+		Columns.First.Width := W
 	else
 	if Columns.Count > 1 then
 	begin
-		W := 0;
 		for I := 1 to Columns.Count-1 do
-			if Columns[I].Percentage = 0 then
-				W := W + Columns[I].Width;
+		begin
+			Col := Columns[i];
+			if (Col.Visible) and (Col.Percentage = 0) then
+				Dec(W, Col.Width);
+		end;
 
-		W := ClientWidth - W;
-		for I := 0 to Columns.Count-1 do
-			if Columns[I].Percentage > 0 then
-				Columns[I].Width := Trunc(W / 100 * Columns[I].Percentage);
+		for Col in Columns do
+			if (Col.Visible) and (Col.Percentage > 0) then
+				Col.Width := Trunc(W / 100 * Col.Percentage);
 
 		W := 0;
 		for Col in Columns do
+			if Col.Visible then
+			begin
+				Col.Left := W;
+				Inc(W, Col.Width);
+			end;
+
+		for i := Columns.Count-1 downto 0 do
 		begin
-			Col.Left := W;
-			Inc(W, Col.Width);
+			Col := Columns[i];
+			if not Col.Visible then Continue;
+			if Col.Percentage > 0 then
+				Col.Width := ClientWidth - 1 - Col.Left
+			else
+			begin
+				W := ClientWidth - W;
+				for Col in Columns do
+				begin
+					if Col = Columns.First then
+						Col.Width := Col.Width + W
+					else
+						Col.Left := Col.Left + W;
+				end;
+			end;
+			Break;
 		end;
-		Col := Columns.Last;
-		if Col.Percentage > 0 then
-			Col.Width := ClientWidth - 1 - Col.Left;
 	end;
 
 	SetBounds(Left, Top, Width, Height);
@@ -584,7 +615,7 @@ var
 begin
 	PT := Point(X, 1);
 	for I := 0 to Columns.Count-1 do
-		if Columns[I].DrawnRect.Contains(PT) then
+		if (Columns[I].Visible) and (Columns[I].DrawnRect.Contains(PT)) then
 			Exit(I);
 	Result := 0;
 end;
@@ -615,18 +646,65 @@ begin
 		inherited KeyDown(Key, Shift);
 end;
 
+procedure ThListView.ToggleColumnVisibilityFromMenu(Sender: TObject);
+var
+	i: Integer;
+begin
+	if not (Sender is TMenuItem) then Exit;
+
+	i := (Sender as TMenuItem).Tag;
+	if (i >= 0) and (i < Columns.Count) then
+	begin
+		Columns[i].Visible := not Columns[i].Visible;
+		Resized;
+	end;
+end;
+
+procedure ThListView.ShowColumnPopup(P: TPoint);
+var
+	Col: ThListColumn;
+	Mi: TMenuItem;
+	i: Integer = 0;
+begin
+	if FPopupHeader = nil then Exit;
+
+	FPopupHeader.Items.Clear;
+
+	for Col in Columns do
+	begin
+		Mi := TMenuItem.Create(FPopupHeader);
+		Mi.Caption := Trim(Col.Caption);
+		Mi.Checked := Col.Visible;
+		Mi.Tag := i;
+		Mi.OnClick := ToggleColumnVisibilityFromMenu;
+		FPopupHeader.Items.Add(Mi);
+		Inc(i);
+	end;
+
+	FPopupHeader.PopUp(P.X, P.Y);
+end;
+
 procedure ThListView.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
 	I: Integer;
 	Item: ThListItem;
+	P: TPoint;
 begin
 	SetFocus;
 	I := FItemIndex;
 	Y := Y - FHeaderHeight;
 
+	if Button = mbRight then
+		P := ClientToScreen(Point(X, Y));
+
+	FClickedColumn := ColumnAt(X);
+
 	if Y < 0 then // clicked on header
 	begin
-		SetSortColumn(ColumnAt(X));
+		case Button of
+			mbLeft:  SetSortColumn(FClickedColumn);
+			mbRight: ShowColumnPopup(P);
+		end;
 	end
 	else
 	begin
@@ -640,6 +718,10 @@ begin
 		end
 		else
 			SetItemIndex(I); // select previously selected
+
+		if Button = mbRight then
+			if FPopupList <> nil then
+				FPopupList.PopUp(P.X, P.Y);
 	end;
 
 	inherited MouseDown(Button, Shift, X, Y);
@@ -824,6 +906,8 @@ begin
 		if Columns.Count > 0 then
 		for Col := 0 to Columns.Count-1 do
 		begin
+			if not (Columns[Col].Visible) then Continue;
+
 			IR := Bounds(X, 0, Columns[Col].Width-1, Y);
 			Columns[Col].DrawnRect := IR;
 			if Col = FSortColumn then
@@ -844,8 +928,8 @@ begin
 
 	for I := Max(FFirstVisibleIndex, 0) to Items.Count-1 do
 	begin
-		if Y >= ClientHeight then
-			Break;
+		if Y >= ClientHeight then Break;
+
 		Item := Items[I];
 		Hovered := (I = FHoveredItem);
 
@@ -884,6 +968,8 @@ begin
 			if Columns.Count > 1 then
 			for Col := 1 to Columns.Count-1 do
 			begin
+				if not (Columns[Col].Visible) then Continue;
+
 				IR := Bounds(X, Y, Columns[Col].Width-1, FItemHeight);
 				if Col <= Item.SubItems.Count then
 				begin
@@ -919,11 +1005,12 @@ begin
 		X := 0;
 		Canvas.Pen.Color := C;
 		for Col := 0 to Columns.Count-1 do
-		begin
-			Inc(X, Columns[Col].Width);
-			Canvas.Line(X-1, 0, X-1, Canvas.Height-1);
-//			Buffer.VertLineS(X-1, 0, ClientHeight, C);
-		end;
+			if Columns[Col].Visible then
+			begin
+				Inc(X, Columns[Col].Width);
+				Canvas.Line(X-1, 0, X-1, Canvas.Height-1);
+	//			Buffer.VertLineS(X-1, 0, ClientHeight, C);
+			end;
 	end;
 
 	Canvas.Changed;
