@@ -1027,11 +1027,15 @@ end;
 procedure TMainForm.LoadDeck(Index: Integer = 0);
 var
 	Deck: TDeck;
+	HadNone: Boolean;
 begin
+	HadNone := DeckList.Count = 0;
 	Deck := FindDeck(Index);
 	if Deck = nil then
 		Deck := CreateDeck;
 	Deck.Load(SelectedFile);
+	if HadNone then
+		sBPM.Position := Trunc(Deck.OrigBPM * 1000);
 end;
 
 procedure TMainForm.PopupFilePopup(Sender: TObject);
@@ -1512,6 +1516,5 @@ begin
 	UpdateToggleButtons;
 	UpdateMixerVisibility;
 end;
-
 
 end.
