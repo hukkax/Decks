@@ -81,7 +81,6 @@ type
 		miAbout: TMenuItem;
 		DecksButton3: TDecksButton;
 		DecksButton6: TDecksButton;
-		SplitterH1: TSplitter;
 		EmbeddedImage: TImage;
 		bToggleEffects: TDecksButton;
 		bToggleMixer: TDecksButton;
@@ -130,6 +129,11 @@ type
 			Shift: TShiftState; X, Y: Integer);
 		procedure bToggleMixerMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
 			X, Y: Integer);
+		procedure LeftPanelResize(Sender: TObject);
+		procedure EmbeddedImageMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
+		procedure EmbeddedImageMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -140,6 +144,7 @@ type
 		procedure SaveTrackList;
 		procedure SetButtonDown(Button: TDecksButton; MenuItem: TMenuItem; Down: Boolean);
 		procedure UpdateToggleButtons;
+		procedure AlignEmbeddedImage;
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
@@ -832,6 +837,19 @@ begin
 	end;
 end;
 
+procedure TMainForm.AlignEmbeddedImage;
+var
+	W, H: Integer;
+	AR: Single;
+begin
+	if EmbeddedImage.Picture.Width < 10 then Exit;
+	W := LeftPanel.ClientWidth;
+	AR := EmbeddedImage.Picture.Height / EmbeddedImage.Picture.Width;
+	H := Round(AR * W);
+	EmbeddedImage.Width  := W;
+	EmbeddedImage.Height := H;
+end;
+
 procedure TMainForm.FileListSelectItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
 var
 	B: Boolean = False;
@@ -844,8 +862,13 @@ begin
 			Application.ProcessMessages;
 			B := ReadImageFromTags(SelectedFile);
 		end;
-		EmbeddedImage.Height := IfThen(B, EmbeddedImage.Width, 0);
-		if not B then EmbeddedImage.Picture.Clear;
+		if B then
+			AlignEmbeddedImage
+		else
+		begin
+			EmbeddedImage.Height := 0;
+			EmbeddedImage.Picture.Clear;
+		end;
 	end;
 end;
 
@@ -1034,7 +1057,7 @@ begin
 	if Deck = nil then
 		Deck := CreateDeck;
 	Deck.Load(SelectedFile);
-	if HadNone then
+	if (HadNone) and (Config.Deck.FirstSetsMasterBPM) then
 		sBPM.Position := Trunc(Deck.OrigBPM * 1000);
 end;
 
@@ -1515,6 +1538,32 @@ begin
 	Config.Mixer.Enabled := not Config.Mixer.Enabled;
 	UpdateToggleButtons;
 	UpdateMixerVisibility;
+end;
+
+procedure TMainForm.LeftPanelResize(Sender: TObject);
+begin
+	AlignEmbeddedImage;
+end;
+
+procedure TMainForm.EmbeddedImageMouseDown(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: Integer);
+var
+	W, H: Integer;
+	DR: TRect;
+begin
+	W := FileList.ClientWidth  div 2;
+	H := FileList.ClientHeight div 2;
+	X := Min(W, H);
+	DR := Rect(W-X, H-X, W+X, H+X);
+	FileList.Canvas.AntialiasingMode := amOn;
+	FileList.Canvas.StretchDraw(DR, EmbeddedImage.Picture.Bitmap);
+	FileList.Canvas.AntialiasingMode := amDontCare;
+end;
+
+procedure TMainForm.EmbeddedImageMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+	X, Y: Integer);
+begin
+	FileList.Invalidate;
 end;
 
 end.

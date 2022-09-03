@@ -630,9 +630,10 @@ object MainForm: TMainForm
     Constraints.MinWidth = 220
     ParentColor = False
     TabOrder = 3
+    OnResize = LeftPanelResize
     object ListDirs: ThShellTree
       Left = 0
-      Height = 608
+      Height = 614
       Top = 0
       Width = 210
       Align = alClient
@@ -664,7 +665,7 @@ object MainForm: TMainForm
     end
     object sDirs: ThRangeBar
       Left = 210
-      Height = 608
+      Height = 614
       Top = 0
       Width = 20
       Align = alRight
@@ -681,18 +682,6 @@ object MainForm: TMainForm
       ShowArrows = False
       OnChange = sDirsChange
     end
-    object SplitterH1: TSplitter
-      Cursor = crVSplit
-      Left = 0
-      Height = 6
-      Top = 608
-      Width = 230
-      Align = alBottom
-      Color = 5395800
-      ParentColor = False
-      ResizeAnchor = akBottom
-      ResizeStyle = rsLine
-    end
     object EmbeddedImage: TImage
       Left = 0
       Height = 1
@@ -700,8 +689,8 @@ object MainForm: TMainForm
       Width = 230
       AntialiasingMode = amOn
       Align = alBottom
-      AutoSize = True
-      Center = True
+      OnMouseDown = EmbeddedImageMouseDown
+      OnMouseUp = EmbeddedImageMouseUp
       Proportional = True
       Stretch = True
     end
