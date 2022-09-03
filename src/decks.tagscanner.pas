@@ -203,6 +203,17 @@ begin
 	end;
 end;
 
+function Fix(const S: String): String;
+var
+	X: Integer;
+begin
+	X := Pos(#0, S);
+	if X < 1 then
+		Result := S
+	else
+		Result := Copy(S, 1, X-1);
+end;
+
 function TagsToStringList(const Tags: TCommonTags): TStringList;
 begin
 	Result := TStringList.Create;
@@ -230,9 +241,9 @@ begin
 
 	Result.Add(Tags.Genre);
 
-	Result.Add(Tags.Artist);
-	Result.Add(Tags.Title);
-	Result.Add(Tags.Comment);
+	Result.Add(Fix(Tags.Artist));
+	Result.Add(Fix(Tags.Title));
+	Result.Add(Fix(Tags.Comment));
 end;
 
 
