@@ -210,7 +210,7 @@ implementation
 
 uses
 	Math, FileUtil, StrUtils,
-	MouseWheelAccelerator, BCTypes,
+	MouseWheelAccelerator, BCTypes, TextInputDialog,
 	AudioTag, basetag, file_Wave, file_mp3, file_ogg,
 	Decks.TagScanner,
 	Decks.Song, Decks.SongInfo, Decks.Beatgraph;
@@ -230,15 +230,6 @@ end;
 procedure ErrorMessage(const MsgText: String);
 begin
 	MessageDlg('Error', MsgText, mtError, [mbOK], '');
-end;
-
-function ToTitleCase(const S: String): String;
-begin
-	Result := Trim(S);
-	Result := Result.Replace('_', ' ', [rfReplaceAll]);
-	while Result.Contains('  ') do
-		Result := Result.Replace('  ', ' ', [rfReplaceAll]);
-	Result := AnsiProperCase(Result, [' ', '-', '(', '[']);
 end;
 
 procedure LoadButtonImages(Form: TWinControl; Path: String);
@@ -775,15 +766,16 @@ begin
 
 		COLUMN_YEAR, COLUMN_GENRE, COLUMN_ARTIST, COLUMN_TITLE, COLUMN_COMMENT:
 		begin
-			case Col of
+			{case Col of
 				COLUMN_GENRE, COLUMN_ARTIST, COLUMN_TITLE:
 					Tag := ToTitleCase(S);
 				else Tag := S;
-			end;
-
+			end;}
+			Tag := S;
 			ShiftDown := (ssShift in Shift);
 			if not ShiftDown then
-				Tag := InputBox('Tag Editor: ' + FileList.Columns[Col].Caption , 'New value:', Tag);
+				if not AskString('Tag Editor: ' + FileList.Columns[Col].Caption, Tag)
+					then Exit;
 
 			if (ShiftDown) or (Tag <> S) then
 			try
@@ -1401,8 +1393,7 @@ begin
 	if not IsShiftDown then
 		NewName := ToTitleCase(NewName);
 
-	NewName := InputBox('Rename File', 'Type a new filename:', NewName);
-	if NewName = Fn then Exit;
+	if (not AskString('Rename File', NewName)) or (NewName = Fn) then Exit;
 	NewName := NewName + Ext;
 
 	ListItem := FindFileListEntry(Fn + Ext);
