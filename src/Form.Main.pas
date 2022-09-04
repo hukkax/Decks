@@ -510,12 +510,12 @@ begin
 	with FileList do
 	begin
 		Columns.Clear;
-		AddColumn('Filename', -54);
-		AddColumn(' BPM', 50);
+		AddColumn('Filename', -54).AlwaysShow := True;
+		AddColumn(' BPM', 50).AlwaysShow := True;
 		AddColumn('Duration', 60);
 		AddColumn('Bitrate', 46);
 		AddColumn('Year', 42);
-		AddColumn('Genre', 100, False);
+		AddColumn('Genre', 100);
 		AddColumn('Artist', -16);
 		AddColumn('Title', -16);
 		AddColumn('Comment', -16);

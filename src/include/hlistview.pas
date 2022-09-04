@@ -38,6 +38,7 @@ type
 	DrawnRect:  TRect;
 	Caption:    String;
 	Tag:        PtrInt;
+	AlwaysShow: Boolean;
 
     constructor Create(AOwner: ThListView; ACaption: String; AWidth: Integer);
     destructor  Destroy; override;
@@ -704,12 +705,15 @@ begin
 
 	for Col in Columns do
 	begin
-		Mi := TMenuItem.Create(FPopupHeader);
-		Mi.Caption := Trim(Col.Caption);
-		Mi.Checked := Col.Visible;
-		Mi.Tag := i;
-		Mi.OnClick := ToggleColumnVisibilityFromMenu;
-		FPopupHeader.Items.Add(Mi);
+		if not Col.AlwaysShow then
+		begin
+			Mi := TMenuItem.Create(FPopupHeader);
+			Mi.Caption := Trim(Col.Caption);
+			Mi.Checked := Col.Visible;
+			Mi.Tag := i;
+			Mi.OnClick := ToggleColumnVisibilityFromMenu;
+			FPopupHeader.Items.Add(Mi);
+		end;
 		Inc(i);
 	end;
 
