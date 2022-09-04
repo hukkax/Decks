@@ -31,11 +31,15 @@ type
 			DirList: record
 				Enabled: Boolean;
 			end;
+			FileList: record
+				ColumnVisible: array[0..9] of Boolean;
+			end;
 		end;
 
 		Directory: record
 			BPM,
 			Audio: String;
+			AutoUpdate: Boolean;
 		end;
 
 		Audio: record
@@ -67,6 +71,7 @@ type
 				JogWheel,
 				Max: Integer;
 			end;
+			FirstSetsMasterBPM: Boolean;
 		end;
 
 		function  GetConfigFilePath: String;
@@ -148,9 +153,13 @@ begin
 	Sect := 'directory';
 	Directory.BPM   := ReadPath(Ini.ReadString(Sect, 'bpm',   Directory.BPM));
 	Directory.Audio := ReadPath(Ini.ReadString(Sect, 'audio', Directory.Audio));
+	Directory.AutoUpdate := Ini.ReadBool(Sect, 'autoupdate', True);
 
 	Sect := 'window';
 	Window.DirList.Enabled := Ini.ReadBool(Sect, 'dirlist.enabled', True);
+	for i := 0 to High(Window.FileList.ColumnVisible) do
+		Window.FileList.ColumnVisible[i] :=
+			Ini.ReadBool(Sect, Format('filelist.columns.%d.visible', [i]), True);
 
 	Sect := 'audio';
 	Audio.Buffer       := Ini.ReadInteger(Sect, 'buffer', 20);
@@ -176,6 +185,7 @@ begin
 	Deck.Bend.Normal   := Ini.ReadInteger(Sect, 'bend.normal',   800);
 	Deck.Bend.JogWheel := Ini.ReadInteger(Sect, 'bend.jogwheel', 100);
 	Deck.Bend.Max      := Ini.ReadInteger(Sect, 'bend.max',      4000);
+	Deck.FirstSetsMasterBPM := Ini.ReadBool(Sect, 'setmasterbpm', True);
 
 	Ini.Free;
 	Result := True;
@@ -192,9 +202,13 @@ begin
 	Sect := 'directory';
 	Ini.WriteString(Sect, 'bpm',   WritePath(Directory.BPM));
 	Ini.WriteString(Sect, 'audio', WritePath(Directory.Audio));
+	Ini.WriteBool(Sect, 'autoupdate', Directory.AutoUpdate);
 
 	Sect := 'window';
 	Ini.WriteBool(Sect, 'dirlist.enabled', Window.DirList.Enabled);
+	for i := 0 to High(Window.FileList.ColumnVisible) do
+		Ini.WriteBool(Sect, Format('filelist.columns.%d.visible', [i]),
+			Window.FileList.ColumnVisible[i]);
 
 	Sect := 'audio';
 	Ini.WriteInteger(Sect, 'buffer',       Audio.Buffer);
@@ -207,6 +221,9 @@ begin
 
 	Sect := 'effects';
 	Ini.WriteBool(Sect, 'enabled', Effects.Enabled);
+
+	Sect := 'deck';
+	Ini.WriteBool(Sect, 'setmasterbpm', Deck.FirstSetsMasterBPM);
 
 	Ini.Free;
 end;

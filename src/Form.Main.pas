@@ -510,15 +510,17 @@ begin
 	with FileList do
 	begin
 		Columns.Clear;
-		AddColumn('Filename', -54).Tag := COLUMN_FILENAME;
-		AddColumn(' BPM', 50).Tag := COLUMN_BPM;
-		AddColumn('Duration', 60).Tag := COLUMN_DURATION;
-		AddColumn('Bitrate', 46).Tag := COLUMN_BITRATE;
-		AddColumn('Year', 42).Tag := COLUMN_YEAR;
-		AddColumn('Genre', 100, False).Tag := COLUMN_GENRE;
-		AddColumn('Artist', -16).Tag := COLUMN_ARTIST;
-		AddColumn('Title', -16).Tag := COLUMN_TITLE;
-		AddColumn('Comment', -16).Tag := COLUMN_COMMENT;
+		AddColumn('Filename', -54);
+		AddColumn(' BPM', 50);
+		AddColumn('Duration', 60);
+		AddColumn('Bitrate', 46);
+		AddColumn('Year', 42);
+		AddColumn('Genre', 100, False);
+		AddColumn('Artist', -16);
+		AddColumn('Title', -16);
+		AddColumn('Comment', -16);
+		for i := 0 to Columns.Count-1 do
+			Columns[i].Tag := i;
 		Font.Color := COLOR_FILE_DEFAULT;
 		PopupList := PopupFile;
 		PopupHeader := PopupListHeader;
@@ -568,6 +570,10 @@ begin
 	EQControls[2, EQ_BAND_LOW]  := sEQ2L;
 	EQControls[2, EQ_BAND_MID]  := sEQ2M;
 	EQControls[2, EQ_BAND_HIGH] := sEQ2H;
+
+	for i := 0 to High(Config.Window.FileList.ColumnVisible) do
+		if i < FileList.Columns.Count then
+			FileList.Columns[i].Visible := Config.Window.FileList.ColumnVisible[i];
 
 	UpdateMixerVisibility;
 	UpdateToggleButtons;
@@ -621,7 +627,13 @@ begin
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+var
+	i: Integer;
 begin
+	for i := 0 to High(Config.Window.FileList.ColumnVisible) do
+		if i < FileList.Columns.Count then
+			Config.Window.FileList.ColumnVisible[i] := FileList.Columns[i].Visible;
+
 	Config.Save;
 	{$IFDEF USEMIDI}
 	MIDI.Uninit;
