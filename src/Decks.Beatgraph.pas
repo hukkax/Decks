@@ -215,7 +215,7 @@ destructor TZone.Destroy;
 begin
 	{$IFDEF DEBUGLOG} Log('TZone.Destroy'); {$ENDIF}
 	if Sync <> 0 then
-		BASS_Mixer_ChannelRemoveSync(Graph.Song.OrigStream, Sync);
+		BASS_ChannelRemoveSync(Graph.Song.OrigStream, Sync);
 	if MixSync <> 0 then
 		BASS_Mixer_ChannelRemoveSync(Graph.Song.OrigStream, MixSync);
 	ChangeEvent.Free;
@@ -280,14 +280,11 @@ end;
 procedure TBeatGraph.ZonesChanged;
 var
 	Z: TZone;
-	i, b, ZZ: Integer;
+	i, ZZ: Integer;
+	b: Cardinal;
 	P, SP: QWord;
 begin
 	if Generating then Exit;
-
-	{$IFDEF DEBUGLOG}
-	Log('[ZonesChanged]');
-	{$ENDIF}
 
 	EndSyncEvent.Event := OnZoneChange;
 
@@ -295,7 +292,7 @@ begin
 	amount_bars := 0;
 
 	{$IFDEF DEBUGLOG}
-	Log(Format('   height=%d  bars=%d  zones=%d', [Height, amount_bars, Zones.Count]));
+	Log(Format('[ZonesChanged] height=%d  bars=%d  zones=%d', [Height, amount_bars, Zones.Count]));
 	{$ENDIF}
 
 	if (Height < 4) or (Zones.Count < 1) then Exit;
@@ -323,16 +320,16 @@ begin
 		Z.Calculate;
 		Inc(amount_bars, Z.amount_bars);
 		Inc(P, Z.length);
+		SP := GraphToSongBytes(Z.Pos);
 
 		if Z.Sync <> 0 then
-			BASS_Mixer_ChannelRemoveSync(Song.OrigStream, Z.Sync);
-		if Z.MixSync <> 0 then
-			BASS_Mixer_ChannelRemoveSync(Song.OrigStream, Z.MixSync);
-
-		SP := GraphToSongBytes(Z.Pos);
-        Z.Sync := BASS_Mixer_ChannelSetSync(Song.OrigStream,
+			BASS_ChannelRemoveSync(Song.OrigStream, Z.Sync);
+        Z.Sync := BASS_ChannelSetSync(Song.OrigStream,
 			BASS_SYNC_POS, SP,
 			@Audio_Callback_ZoneSync, @Z.ChangeEvent);
+
+		if Z.MixSync <> 0 then
+			BASS_Mixer_ChannelRemoveSync(Song.OrigStream, Z.MixSync);
         Z.MixSync := BASS_Mixer_ChannelSetSync(Song.OrigStream,
 			BASS_SYNC_POS or BASS_SYNC_MIXTIME, SP,
 			@Audio_Callback_ZoneSync_MixTime, @Z.ChangeEvent);

@@ -326,7 +326,7 @@ end;
 
 procedure TDeckFrame.ZoneChangedMessage(var Msg: TLMessage);
 begin
-	ZoneChanged(Msg.lParam, True, False);
+	ZoneChanged(Msg.lParam, False, False);
 end;
 
 procedure TDeckFrame.OnZoneChanged(Zone: Integer; MixTime: Boolean);
@@ -338,12 +338,15 @@ end;
 procedure TDeckFrame.ZoneChanged(Zone: Integer; FromCallback, MixTime: Boolean);
 var
 	Z: TZone;
-	Buf: Single;
 begin
+	{$IFDEF DEBUG}
+	Log(Format('ZoneChanged %d  CB=%s  MT=%s', [Zone, FromCallback.ToString, MixTime.ToString]));
+	{$ENDIF}
+
 	if Zone = ZONECHANGE_STOPPED then
 	begin
 		Deck.Stop;
-//		SetCue(TPoint.Zero); // crashes on Qt5
+		//SetCue(TPoint.Zero); // crashes on Qt5
 		GraphCue := TPoint.Zero;
 		CuePos := Deck.Graph.GraphToPos(GraphCue, True);
 		SliderGraphX.Position := 0;
@@ -363,7 +366,7 @@ begin
 
 	if FromCallback then
 	begin
-		if Zone = Deck.PlayingZone then Exit;
+		//if Zone = Deck.PlayingZone then Exit;
 		Deck.PlayingZone := Zone;
 		if MixTime then
 		begin
@@ -381,18 +384,19 @@ begin
 				// loop current zone indefinitely
 				zkLoop:	Deck.LoopZone(Zone);
 			end;
-		end;
+			Deck.SetBPM(MasterBPM);
+		end
+		else
+			PostMessage(Self.Handle, WM_ZONE, Zone, Zone);
 	end
 	else
 	if not MixTime then
 	begin
 		SetSlider(SliderTempo, Trunc(Z.BPM));
 		SetSlider(SliderTempoFrac, Trunc(Frac(Z.BPM) * 1000));
-	end;
-
-	Deck.SetBPM(MasterBPM);
-	if not MixTime then
+		Deck.SetBPM(MasterBPM);
 		DrawZones(True);
+	end;
 end;
 
 procedure TDeckFrame.DoInit;
@@ -436,13 +440,14 @@ end;
 procedure TDeckFrame.SliderTempoChange(Sender: TObject);
 begin
 	// fix choppiness of slider movement
-	if Assigned(Sender) then
-		(Sender as TControl).Repaint;
+	if Assigned(Sender) then (Sender as TControl).Repaint;
 
 	Deck.SetBPM(MasterBPM);
+	SliderTempo.OnChange := nil;
 	Deck.Graph.ZonesChanged;
 	RedrawGraph;
 	DrawWaveform;
+	SliderTempo.OnChange := SliderTempoChange;
 end;
 
 procedure TDeckFrame.GetPlayPosition;
@@ -493,7 +498,10 @@ begin
 		lTime.Tag := time_e;
 	end;
 
-	bPlay.StateNormal.Border.Color := Grays[Deck.BeatFadeCounter];
+	if Deck.Paused then
+		bPlay.StateNormal.Border.Color := Grays[0]
+	else
+		bPlay.StateNormal.Border.Color := Grays[Deck.BeatFadeCounter];
 
 	with pbVU do
 	begin
@@ -519,6 +527,7 @@ begin
 			X := Trunc((W * ((Vol shr 16) / 32767)));
 			Bitmap.FillRect(Bounds(0, H, X, H+H), BGRAWhite, dmSet);
 		end;
+
 		Repaint;
 	end;
 
@@ -1076,6 +1085,7 @@ begin
 	Deck.UnloopZone;
 	Deck.PlayingZone := Zone;
 	ZoneChanged(Zone, True, True);
+	PostMessage(Self.Handle, WM_ZONE, Zone, Zone);
 	if Deck.Graph.Zones[Zone].Kind = zkLoop then
 		Deck.LoopZone(Zone); // reapply loop, dumb
 	ShowPosition;
@@ -1415,7 +1425,8 @@ begin
 
 			if Z = Deck.PlayingZone then
 			begin
-				Zoner.HorizLine(R.Left+2, R.Bottom-2, R.Right-2, BGRA(0, 100, 70));
+				Zoner.HorizLine(R.Left+1, R.Bottom-2, R.Right-1, BGRAWhite);
+				Zoner.HorizLine(R.Left+1, R.Bottom-1, R.Right-1, BGRAWhite);
 				//Zoner.RaiseRectTS(R, +30);
 			end;
 
@@ -1426,7 +1437,7 @@ begin
 	end;
 
 	pbZones.Bitmap.PutImage(-Deck.Graph.Scroll.X, 0, Zoner, dmSet);
-	pbZones.Repaint;
+	pbZones.Invalidate;
 end;
 
 procedure TDeckFrame.DrawRuler(Recalc: Boolean = True);
@@ -1648,6 +1659,7 @@ begin
 			bPlay.StateNormal.Border.LightWidth := IfThen(Deck.Cueing, 1, 2);
 			bPlay.StateNormal.Border.LightColor := $0035D95F;
 			if not Deck.Cueing then MainForm.MarkSongAsPlayed(Deck.Filename);
+			Log('MODE_PLAY_START');
 		end;
 
 		MODE_PLAY_STOP,
@@ -1659,9 +1671,10 @@ begin
 
 		MODE_PLAY_FAILURE:
 		begin
+			Log('MODE_PLAY_FAILURE');
 			bPlay.Color := clRed;
 			bPlay.Down := False;
-			ShowMessage('Failed to start playback!');
+			ErrorMessage('Failed to start playback!');
 		end;
 
 	end;
@@ -1694,6 +1707,7 @@ begin
 
 		MODE_LOAD_START:
 		begin
+			Log('MODE_LOAD_START');
 			BASS_SetDevice(CurrentDevice);
 			CurrentZone := 0;
 			Deck.Graph.Zones.Clear;
@@ -1709,6 +1723,7 @@ begin
 
 		MODE_LOAD_FINISH:
 		begin
+			Log('MODE_LOAD_FINISH');
 			RedrawGraph;
 			SetCue(TPoint.Zero);
 			DrawWaveform;
@@ -1724,6 +1739,7 @@ begin
 
 		MODE_LOAD_GRAPH:
 		begin
+			Log('MODE_LOAD_GRAPH:');
 			Deck.Graph.Generate;
 			Deck.Graph.BitmapSize := Point(pb.ClientWidth, pb.ClientHeight);
 			Enabled := True;
@@ -1732,6 +1748,7 @@ begin
 
 		MODE_LOAD_SUCCESS:
 		begin
+			Log('MODE_LOAD_SUCCESS');
 			S := ExtractFileName(Deck.Filename);
 			bMaster.Caption := Format('%d: %s', [Deck.Index, S]);
 
@@ -1763,7 +1780,8 @@ begin
 
 		MODE_LOAD_FAILURE:
 		begin
-			Caption := '';
+			Log('MODE_LOAD_FAILURE');
+			bMaster.Caption := '';
 			S := '';
 			case BASS_ErrorGetCode of
 				BASS_ERROR_FILEOPEN:	S := 'The file could not be opened.';
@@ -1774,7 +1792,8 @@ begin
 				BASS_ERROR_MEM:			S := 'Insufficient memory.';
 				BASS_ERROR_UNKNOWN:		S := 'Mystery problem!';
 			end;
-			ShowMessage('Failed to open file: ' + S);
+			ErrorMessage('Load error: ' + S);
+			Log(S);
 		end;
 
 		MODE_PLAY_START, MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:

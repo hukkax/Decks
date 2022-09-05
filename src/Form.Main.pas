@@ -140,7 +140,7 @@ type
 
 		procedure ResizeFrames;
 		function  FindFileListEntry(const Filename: String): ThListItem;
-		function ReadImageFromTags(const Filename: String): Boolean;
+		function  ReadImageFromTags(const Filename: String): Boolean;
 		procedure SaveTrackList;
 		procedure SetButtonDown(Button: TDecksButton; MenuItem: TMenuItem; Down: Boolean);
 		procedure UpdateToggleButtons;
@@ -206,6 +206,7 @@ var
 	procedure SetMasterBPM(BPM: Single);
 
 	procedure Log(const S: String);
+	procedure ErrorMessage(const MsgText: String);
 	procedure LoadButtonImages(Form: TWinControl; Path: String);
 
 
@@ -229,7 +230,13 @@ var
 
 procedure Log(const S: String);
 begin
-	{$IFDEF DEBUG}{$IFNDEF WINDOWS}WriteLn(S);{$ENDIF}{$ENDIF}
+	{$IFDEF DEBUG}
+	{$IFDEF WINDOWS}
+	//MainForm.LogMemo.Lines.Add(S);
+	{$ELSE}
+	WriteLn(S);
+	{$ENDIF}
+	{$ENDIF}
 end;
 
 procedure ErrorMessage(const MsgText: String);
@@ -486,8 +493,6 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 var
 	i: Integer;
-	S: String;
-	mi: TMenuItem;
 begin
 	DefaultFormatSettings.DecimalSeparator := '.';
 	Config.Load;
@@ -1350,23 +1355,24 @@ end;
 
 procedure TMainForm.TimerTimer(Sender: TObject);
 var
-	W, H: Integer;
+	i, W, H: Integer;
 	Deck: TDeck;
+	Col: TBGRAPixel;
 begin
 	if not Config.Mixer.Enabled then Exit;
 
 	W := pbBeats.ClientWidth div 2;
 	H := pbBeats.ClientHeight - 1;
 
-	Deck := MixerDeck[1].Deck;
-	if (Deck <> nil) and (Deck.Loaded) then
-		pbBeats.Bitmap.FillRect(Bounds(0, 0, W, H),
-			Grays[Deck.BeatFadeCounter], dmSet);
-
-	Deck := MixerDeck[2].Deck;
-	if (Deck <> nil) and (Deck.Loaded) then
-		pbBeats.Bitmap.FillRect(Bounds(W, 0, W, H),
-			Grays[Deck.BeatFadeCounter], dmSet);
+	for i := 0 to 1 do
+	begin
+		Deck := MixerDeck[i+1].Deck;
+		if (Deck = nil) or (Deck.Paused) then
+			Col := BGRABlack
+		else
+			Col := Grays[Deck.BeatFadeCounter];
+		pbBeats.Bitmap.FillRect(Bounds(i*W, 0, W, H), Col, dmSet);
+	end;
 
 	pbBeats.Repaint;
 end;
