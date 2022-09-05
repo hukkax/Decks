@@ -682,6 +682,7 @@ object DeckFrame: TDeckFrame
     ClientWidth = 707
     TabOrder = 2
     Visible = False
+    OnResize = pnlEffectsResize
     object bEffect0: TDecksButton
       Left = 8
       Height = 28
@@ -720,19 +721,21 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.PaddingBottom = 2
       Caption = 'FxName'
       Color = clWhite
-      DropDownWidth = 16
-      DropDownArrowSize = 8
+      DropDownWidth = 19
+      DropDownArrowSize = 9
       GlobalOpacity = 255
-      OnClick = bEffect0Click
+      OnButtonClick = bEffect0Click
       OnMouseDown = bEffect0MouseDown
       ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
+      Rounding.RoundOptions = [rrTopRightSquare, rrBottomRightSquare, rrBottomLeftSquare]
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       TextApplyGlobalOpacity = False
       ClickOffset = True
-      DropDownPosition = bdpBottom
+      DropDownArrow = True
+      DropDownMenu = PopupEffectPresets
     end
     object bEffect1: TDecksButton
       Tag = 1
@@ -773,17 +776,19 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.PaddingBottom = 2
       Caption = 'FxName'
       Color = clWhite
-      DropDownWidth = 16
-      DropDownArrowSize = 8
+      DropDownWidth = 19
+      DropDownArrowSize = 9
       GlobalOpacity = 255
       ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
+      Rounding.RoundOptions = [rrTopLeftSquare, rrTopRightSquare, rrBottomRightSquare]
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       TextApplyGlobalOpacity = False
       ClickOffset = True
-      DropDownPosition = bdpBottom
+      DropDownArrow = True
+      DropDownMenu = PopupEffectPresets
     end
     object bEffect2: TDecksButton
       Tag = 2
@@ -824,8 +829,8 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.PaddingBottom = 2
       Caption = 'FxName'
       Color = clWhite
-      DropDownWidth = 16
-      DropDownArrowSize = 8
+      DropDownWidth = 19
+      DropDownArrowSize = 9
       GlobalOpacity = 255
       ParentColor = False
       Rounding.RoundX = 0
@@ -834,7 +839,8 @@ object DeckFrame: TDeckFrame
       RoundingDropDown.RoundY = 1
       TextApplyGlobalOpacity = False
       ClickOffset = True
-      DropDownPosition = bdpBottom
+      DropDownArrow = True
+      DropDownMenu = PopupEffectPresets
     end
     object bEffect3: TDecksButton
       Tag = 3
@@ -875,8 +881,8 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.PaddingBottom = 2
       Caption = 'FxName'
       Color = clWhite
-      DropDownWidth = 16
-      DropDownArrowSize = 8
+      DropDownWidth = 19
+      DropDownArrowSize = 9
       GlobalOpacity = 255
       ParentColor = False
       Rounding.RoundX = 0
@@ -885,7 +891,8 @@ object DeckFrame: TDeckFrame
       RoundingDropDown.RoundY = 1
       TextApplyGlobalOpacity = False
       ClickOffset = True
-      DropDownPosition = bdpBottom
+      DropDownArrow = True
+      DropDownMenu = PopupEffectPresets
     end
     object bEffect4: TDecksButton
       Tag = 4
@@ -926,17 +933,19 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.PaddingBottom = 2
       Caption = 'FxName'
       Color = clWhite
-      DropDownWidth = 16
-      DropDownArrowSize = 8
+      DropDownWidth = 19
+      DropDownArrowSize = 9
       GlobalOpacity = 255
       ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
+      Rounding.RoundOptions = [rrTopLeftSquare, rrBottomRightSquare, rrBottomLeftSquare]
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       TextApplyGlobalOpacity = False
       ClickOffset = True
-      DropDownPosition = bdpBottom
+      DropDownArrow = True
+      DropDownMenu = PopupEffectPresets
     end
     object bEffect5: TDecksButton
       Tag = 5
@@ -944,6 +953,7 @@ object DeckFrame: TDeckFrame
       Height = 28
       Top = 30
       Width = 86
+      HelpContext = 1
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -983,19 +993,21 @@ object DeckFrame: TDeckFrame
       ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
+      Rounding.RoundOptions = [rrTopLeftSquare, rrTopRightSquare, rrBottomLeftSquare]
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       TextApplyGlobalOpacity = False
       ClickOffset = True
-      DropDownPosition = bdpBottom
+      DropDownMenu = PopupEffectPresets
     end
     object bLoopBeat: TDecksButton
       Tag = 1
-      Left = 257
+      Left = 571
       Height = 26
       Hint = 'Loop 1 Beat'
       Top = 32
       Width = 24
+      Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1043,11 +1055,12 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBeat2: TDecksButton
       Tag = 2
-      Left = 281
+      Left = 595
       Height = 26
       Hint = 'Loop 2 Beats'
       Top = 32
       Width = 24
+      Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1095,11 +1108,12 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar: TDecksButton
       Tag = 4
-      Left = 313
+      Left = 627
       Height = 26
       Hint = 'Loop 1 Bar'
       Top = 32
       Width = 24
+      Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1147,11 +1161,12 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar2: TDecksButton
       Tag = 8
-      Left = 337
+      Left = 651
       Height = 26
       Hint = 'Loop 2 Bars'
       Top = 32
       Width = 24
+      Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1199,11 +1214,12 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar4: TDecksButton
       Tag = 16
-      Left = 361
+      Left = 675
       Height = 26
       Hint = 'Loop 4 Bars'
       Top = 32
       Width = 24
+      Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1250,11 +1266,12 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
     end
     object bLoopZone: TDecksButton
-      Left = 257
+      Left = 571
       Height = 28
       Hint = 'Loop Current Zone'
       Top = 4
       Width = 64
+      Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1302,11 +1319,12 @@ object DeckFrame: TDeckFrame
     end
     object bLoopSong: TDecksButton
       Tag = -1
-      Left = 321
+      Left = 635
       Height = 28
       Hint = 'Loop Song'
       Top = 4
       Width = 64
+      Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1353,15 +1371,16 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
     end
     object pnlEffectKnobs: TPanel
-      Left = 247
+      Tag = 300
+      Left = 410
       Height = 62
       Top = 3
-      Width = 459
-      Anchors = [akTop, akLeft, akRight, akBottom]
+      Width = 300
+      Anchors = [akTop, akRight, akBottom]
       BevelColor = 2171427
       BevelOuter = bvNone
       ClientHeight = 62
-      ClientWidth = 459
+      ClientWidth = 300
       TabOrder = 0
       object SliderFxParam0: ThKnob
         Left = 4
@@ -1572,5 +1591,9 @@ object DeckFrame: TDeckFrame
       RadioItem = True
       OnClick = miZoneKind0Click
     end
+  end
+  object PopupEffectPresets: TPopupMenu
+    Left = 232
+    Top = 72
   end
 end

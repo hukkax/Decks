@@ -935,7 +935,7 @@ end;
 
 procedure TDecksButton.Click;
 begin
-  if (FActiveButt = bbtDropDown) and Assigned(FOnButtonClick) then
+  if Assigned(FOnButtonClick) and ((FActiveButt = bbtDropDown) or (FStyle = bbtButton)) then
   begin
     FOnButtonClick(Self);
     Exit;

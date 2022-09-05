@@ -164,6 +164,9 @@ type
 		procedure Execute(Action: TDecksAction; Pressed: Boolean = True; Value: Integer = 0);
 		procedure UpdateController(Deck: TDeck; Event: Integer);
 
+		procedure StartUpdate; inline;
+		procedure EndUpdate; inline;
+
 		procedure DeckLayoutChanged;
 		function  CreateDeck: TDeck;
 		procedure CloseDeck(DeckFrame: TDeckFrame);
@@ -183,6 +186,7 @@ type
 		TempEQKnob: array[TEQBand] of Integer;
 		procedure Apply(ApplyEQ: Boolean = True);
 	end;
+
 
 var
 	MainForm: TMainForm;
@@ -535,10 +539,9 @@ begin
 	// Misc GUI fixings
 	//
 	Application.HintColor := FileList.Color;
-	Screen.HintFont.Color := FileList.Font.Color;
+	Screen.HintFont.Color := $EEEEEE;
 	Screen.HintFont.Name := FileList.Font.Name;
 	Screen.HintFont.Size := FileList.Font.Size;
-	Application.ShowHint := False;
 	Application.ShowHint := True;
 	{$IFDEF LCLGTK2} // fix buggy colors
 	shpBorder.Brush.Style := bsSolid; // it's white otherwise?
@@ -1438,7 +1441,7 @@ begin
 
 	if MessageDlg('Delete File', 'Are you sure?', mtConfirmation, mbYesNo, '') = mrYes then
 	begin
-		if not DeleteFile(SelectedFile) then
+		if not SysUtils.DeleteFile(SelectedFile) then
 		begin
 			ErrorMessage('Could not delete the file.');
 			Exit;
@@ -1451,7 +1454,7 @@ begin
 		begin
 			if MessageDlg('Delete Metadata', 'Also delete the associated .BPM file?',
 				mtConfirmation, mbYesNo, '') = mrYes then
-					DeleteFile(SelectedFile);
+					SysUtils.DeleteFile(SelectedFile);
 		end;
 
 		if ListItem <> nil then
@@ -1469,9 +1472,7 @@ var
 	S: String;
 begin
 	S := AppVersionString;
-
 	S := S + LineEnding + 'BASS version ' + AudioManager.BASSVersion;
-
 	ShowMessage(S);
 end;
 
@@ -1506,10 +1507,10 @@ procedure TMainForm.bToggleLeftPaneMouseDown(Sender: TObject; Button: TMouseButt
 	Shift: TShiftState; X, Y: Integer);
 begin
 	if Button <> mbLeft then Exit;
-	BeginFormUpdate;
+	StartUpdate;
 	Config.Window.DirList.Enabled := not Config.Window.DirList.Enabled;
 	UpdateToggleButtons;
-	EndFormUpdate;
+	EndUpdate;
 end;
 
 procedure TMainForm.bToggleEffectsMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1520,7 +1521,7 @@ var
 	Deck: TDeck;
 begin
 	if Button <> mbLeft then Exit;
-	BeginFormUpdate;
+	StartUpdate;
 	B := not Config.Effects.Enabled;
 	Config.Effects.Enabled := B;
 	UpdateToggleButtons;
@@ -1531,6 +1532,16 @@ begin
 		for Deck in DeckList do
 			TDeckFrame(Deck.Form).ShowPanel_Effects;
 	end;
+	EndUpdate;
+end;
+
+procedure TMainForm.StartUpdate;
+begin
+	BeginFormUpdate;
+end;
+
+procedure TMainForm.EndUpdate;
+begin
 	EndFormUpdate;
 end;
 

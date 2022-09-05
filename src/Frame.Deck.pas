@@ -95,6 +95,7 @@ type
 		SliderFxParam5: ThKnob;
 		bEffect5: TDecksButton;
 		pnlEffectKnobs: TPanel;
+		PopupEffectPresets: TPopupMenu;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -157,10 +158,12 @@ type
 		procedure miZoneKind0Click(Sender: TObject);
 		procedure SliderFxParam0Change(Sender: TObject);
 		procedure bEffect0Click(Sender: TObject);
+		procedure miApplyPresetClick(Sender: TObject);
 		procedure bEffect0MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
 			X, Y: Integer);
 		procedure SliderFxParam0MouseEnter(Sender: TObject);
 		procedure SliderFxParam0MouseLeave(Sender: TObject);
+		procedure pnlEffectsResize(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -184,6 +187,7 @@ type
 		procedure AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton);
 		procedure InitGUIEffectParam(Index: Byte; AKnob: ThKnob);
 		function GetEffectKnob(Sender: TObject): ThKnob;
+		procedure ResizeEffectButtons;
 	public
 		GraphHover,
 		GraphCue:   TPoint;
@@ -206,6 +210,8 @@ type
 		procedure OnGraphIteration;
 
 		procedure DoInit; override;
+		procedure BeginFormUpdate;
+		procedure EndFormUpdate;
 
 		function  ProcessKeyUp(var Key: Word; Shift: TShiftState): Boolean;
 		function  ProcessKeyDown(var Key: Word; Shift: TShiftState): Boolean;
@@ -241,7 +247,7 @@ implementation
 {$R *.lfm}
 
 uses
-	Math, FileUtil,
+	Math, FileUtil, BCButton,
 	MouseWheelAccelerator,
 	Form.Main,
 	Decks.Config, Decks.Song;
@@ -850,8 +856,10 @@ begin
 	Fx := TGUIEffect.Create;
 	Fx.Effect := FxObject;
 	Fx.Button := BtnObject;
-	BtnObject.OnClick := bEffect0Click;
+	BtnObject.OnClick := nil;
+	BtnObject.OnButtonClick := bEffect0Click;
 	BtnObject.OnMouseDown := bEffect0MouseDown;
+	BtnObject.DropDownStyle := bdsCommon;
 	if FxObject <> nil then
 		Fx.Button.Caption := FxObject.Name;
 	Effects.Add(Fx);
@@ -896,6 +904,7 @@ begin
 	LoadButtonImages(Self, Config.GetThemePath + 'images');
 
 	Effects := TEffectsList.Create(True);
+	SelectedEffect := 255;
 
 	AddGUIEffect(TFxEcho.Create,       bEffect0);
 	AddGUIEffect(TFxReverb.Create,     bEffect1);
@@ -1792,64 +1801,130 @@ begin
 	pnlEffects.Visible := B;
 end;
 
+procedure TDeckFrame.BeginFormUpdate;
+begin
+	MainForm.StartUpdate;
+end;
+
+procedure TDeckFrame.EndFormUpdate;
+begin
+	MainForm.EndUpdate;
+end;
+
 procedure TDeckFrame.SelectEffect(EffectNum: Integer);
 var
 	Fx: TBaseEffect;
 	Param: TEffectParam;
 	GUIParam: TGUIEffectParam;
 	Knob: ThKnob;
+	Button: TDecksButton;
+	MI: TMenuItem;
 	i, M: Integer;
 	B: Boolean;
 begin
+	if SelectedEffect = EffectNum then Exit;
+	BeginFormUpdate;
+
 	SelectedEffect := EffectNum;
 
 	for i := 0 to Effects.Count-1 do
 	begin
 		B := (i = EffectNum);
-		//Effects[i].Button.Down := B;
+		Button := Effects[i].Button;
 		if B then
-			Effects[i].Button.StateNormal.Background.Color := clPurple
+		begin
+			Button.StateNormal.Background.Color := clPurple;
+			if Button.HelpContext = 0 then
+			begin
+				Button.DropDownMenu := PopupEffectPresets;
+				Button.Style := bbtDropDown;
+			end;
+		end
 		else
-			Effects[i].Button.StateNormal.Background.Color := clTeal;
+		begin
+			Button.StateNormal.Background.Color := clTeal;
+			Button.DropDownMenu := nil;
+			Button.Style := bbtButton;
+		end;
 	end;
 
+	PopupEffectPresets.Items.Clear;
 
 	Fx := Effects[SelectedEffect].Effect;
 	B := Fx <> nil;
 	pnlEffectKnobs.Visible := B;
-	if not B then Exit;
-
-//	bFxEnabled.Down := Fx.Enabled;
-	Effects[SelectedEffect].Button.StateNormal.Border.LightWidth := IfThen(Fx.Enabled, 2, 0);
-
-	for i := 0 to High(GUIEffectParams) do
+	if B then
 	begin
-		GUIParam := GUIEffectParams[i];
+		Button := Effects[SelectedEffect].Button;
+		Button.StateNormal.Border.LightWidth := IfThen(Fx.Enabled, 2, 0);
+		//pnlEffectKnobs.Tag := 0;
 
-		Knob := GUIParam.Knob;
-		B := (i < Fx.Params.Count);
-		Knob.OnChange := nil;
-		Knob.Visible := B;
-		if B then
+		for i := 0 to High(GUIEffectParams) do
 		begin
-			Param := Fx.Params[i];
-			M := Param.Multiplier;
-			Knob.Max := Trunc(Param.Max * M);
-			Knob.Min := Trunc(Param.Min * M);
-			Knob.Multiplier := M;
-			Knob.FloatPosition := Param.Value;
-			Knob.Hint := Param.Name;
-			Knob.OnChange := SliderFxParam0Change;
-			if GUIParam.NameLabel <> nil then
+			GUIParam := GUIEffectParams[i];
+
+			Knob := GUIParam.Knob;
+			B := (i < Fx.Params.Count);
+			Knob.OnChange := nil;
+			Knob.Visible := B;
+			if B then
 			begin
-				GUIParam.NameLabel.Caption := Param.Name;
-				GUIParam.NameLabel.Hint := Param.Caption;
-				GUIParam.NameLabel.ShowHint := True;
+				//pnlEffectKnobs.Tag := pnlEffectKnobs.Tag + 48;
+				Param := Fx.Params[i];
+				M := Param.Multiplier;
+				Knob.Max := Trunc(Param.Max * M);
+				Knob.Min := Trunc(Param.Min * M);
+				Knob.Multiplier := M;
+				Knob.FloatPosition := Param.Value;
+				Knob.Hint := Param.Name;
+				Knob.OnChange := SliderFxParam0Change;
+				if GUIParam.NameLabel <> nil then
+				begin
+					GUIParam.NameLabel.Caption := Param.Name;
+					GUIParam.NameLabel.Hint := Param.Caption;
+					GUIParam.NameLabel.ShowHint := True;
+				end;
 			end;
+			if GUIParam.NameLabel <> nil then
+				GUIParam.NameLabel.Visible := B;
 		end;
-		if GUIParam.NameLabel <> nil then
-			GUIParam.NameLabel.Visible := B;
+
+		for i := 0 to Fx.Presets.Count-1 do
+		begin
+			MI := TMenuItem.Create(PopupEffectPresets);
+			MI.Caption := Fx.Presets[i].Name;
+			MI.Tag := i;
+			MI.OnClick := miApplyPresetClick;
+			PopupEffectPresets.Items.Add(MI);
+		end;
 	end;
+
+	ResizeEffectButtons;
+	EndFormUpdate;
+end;
+
+procedure TDeckFrame.ResizeEffectButtons;
+var
+	i, X, W: Integer;
+	Button: TDecksButton;
+begin
+	BeginFormUpdate;
+
+	X := 8;
+	W := Min(180, (pnlEffects.ClientWidth - 16 - 300) div 3);
+
+	for i := 0 to Effects.Count-1 do
+	begin
+		Button := Effects[i].Button;
+		Button.Left := X;
+		Button.Width := W;
+		if (i mod 2) = 1 then Inc(X, W);
+	end;
+
+	Inc(X, 8);
+	pnlEffectKnobs.SetBounds(X, 3, pnlEffects.ClientWidth - X, pnlEffects.ClientHeight-4);
+
+	EndFormUpdate;
 end;
 
 function TDeckFrame.GetEffectKnob(Sender: TObject): ThKnob;
@@ -1905,6 +1980,29 @@ begin
 	SelectEffect((Sender as TControl).Tag);
 end;
 
+procedure TDeckFrame.miApplyPresetClick(Sender: TObject);
+var
+	MI: TMenuItem;
+	Fx: TBaseEffect;
+	Knob: ThKnob;
+	i: Integer;
+begin
+	if not (Sender is TMenuItem) then Exit;
+	MI := (Sender as TMenuItem);
+
+	Fx := Effects[SelectedEffect].Effect;
+	if Fx = nil then Exit;
+
+	Fx.ApplyPreset(Fx.Presets[MI.Tag]);
+
+	for i := 0 to Min(Fx.Params.Count-1, High(GUIEffectParams)) do
+	begin
+		Knob := GUIEffectParams[i].Knob;
+		Knob.FloatPosition := Fx.Params[i].Value;
+		SliderFxParam0MouseLeave(Knob);
+	end;
+end;
+
 procedure TDeckFrame.bEffect0MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
 	X, Y: Integer);
 var
@@ -1923,6 +2021,11 @@ begin
 		Effects[X].Button.StateNormal.Border.LightWidth := IfThen(B, 2, 0);
 		Fx.Enabled := B;
 	end;
+end;
+
+procedure TDeckFrame.pnlEffectsResize(Sender: TObject);
+begin
+	ResizeEffectButtons;
 end;
 
 
