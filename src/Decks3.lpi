@@ -171,6 +171,10 @@
         <IgnoredMessages idx6060="True"/>
       </CompilerMessages>
       <CustomOptions Value="-Si
+-OoFASTMATH
+-OoPEEPHOLE
+-OoUSELOADMODIFYSTORE
+-OoAUTOINLINE
 -dRELEASE"/>
       <OtherDefines Count="1">
         <Define0 Value="RELEASE"/>
