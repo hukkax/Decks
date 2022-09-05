@@ -1709,8 +1709,6 @@ begin
 
 		MODE_LOAD_FINISH:
 		begin
-			Enabled := True;
-
 			RedrawGraph;
 			SetCue(TPoint.Zero);
 			DrawWaveform;
@@ -1727,8 +1725,9 @@ begin
 		MODE_LOAD_GRAPH:
 		begin
 			Deck.Graph.Generate;
-			SetSlider(SliderAmp, 100);
 			Deck.Graph.BitmapSize := Point(pb.ClientWidth, pb.ClientHeight);
+			Enabled := True;
+			SetSlider(SliderAmp, 100);
 		end;
 
 		MODE_LOAD_SUCCESS:
