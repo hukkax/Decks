@@ -1034,7 +1034,7 @@ begin
 
 		'+':
 		begin
-			Z := Deck.Graph.AddZone(Deck.Graph.GraphToBar(GraphCue.x));
+			Z := Deck.Graph.AddZone(Deck.Graph.GraphToBar(GraphCue.X));
 			if Z <> nil then
 			begin
 				CurrentZone := Deck.Graph.Zones.IndexOf(Z);
@@ -1478,15 +1478,16 @@ end;
 
 procedure TDeckFrame.DrawWaveform;
 var
-	X, L, W: Cardinal;
+	X, W: Cardinal;
 	Sam, FAdd, Y: Integer;
-	Sam2: QWord;
+	L, Sam2: QWord;
 	Sample: PByte;
 begin
 	if not Enabled then Exit;
 
-	L := Deck.Graph.GetBarLength(True , Deck.Graph.GraphToBar(GraphCue.X) )
-		* 2 div Trunc(Power(2, SampleZoom));
+	Y := Deck.Graph.GraphToBar(GraphCue.X);
+	L := Deck.Graph.GetBarLength(True, Y);
+	L := L * 2 div Trunc(Power(2, SampleZoom));
 	if L < 10 then Exit;
 
 	W := pbWave.ClientWidth;
