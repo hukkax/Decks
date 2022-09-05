@@ -1541,6 +1541,13 @@ object DeckFrame: TDeckFrame
     Images = MainForm.ImageListIcons
     Left = 96
     Top = 72
+    object miSetMasterTempo: TMenuItem
+      Caption = 'Set Master Tempo'
+      OnClick = miSetMasterTempoClick
+    end
+    object MenuItem2: TMenuItem
+      Caption = '-'
+    end
     object miAudioDevices: TMenuItem
       Caption = 'Audio device'
     end

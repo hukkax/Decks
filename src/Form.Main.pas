@@ -151,6 +151,7 @@ type
 
 		procedure UpdateMixerVisibility;
 		procedure ApplyMixer(ApplyEQ: Boolean = True);
+		procedure SetMasterTempo(BPM: Single);
 
 		procedure SetActiveList(RightList: Boolean);
 		procedure ListBrowse(Dir: Integer);
@@ -1063,9 +1064,16 @@ begin
 	Deck := FindDeck(Index);
 	if Deck = nil then
 		Deck := CreateDeck;
-	Deck.Load(SelectedFile);
-	if (HadNone) and (Config.Deck.FirstSetsMasterBPM) then
-		sBPM.Position := Trunc(Deck.OrigBPM * 1000);
+	if Deck.Load(SelectedFile) then
+	begin
+		if (HadNone) and (Config.Deck.FirstSetsMasterBPM) then
+			SetMasterTempo(Deck.OrigBPM);
+	end;
+end;
+
+procedure TMainForm.SetMasterTempo(BPM: Single);
+begin
+	sBPM.Position := Trunc(BPM * 1000);
 end;
 
 procedure TMainForm.PopupFilePopup(Sender: TObject);

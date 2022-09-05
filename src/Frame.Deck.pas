@@ -96,6 +96,8 @@ type
 		bEffect5: TDecksButton;
 		pnlEffectKnobs: TPanel;
 		PopupEffectPresets: TPopupMenu;
+		miSetMasterTempo: TMenuItem;
+		MenuItem2: TMenuItem;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -164,6 +166,7 @@ type
 		procedure SliderFxParam0MouseEnter(Sender: TObject);
 		procedure SliderFxParam0MouseLeave(Sender: TObject);
 		procedure pnlEffectsResize(Sender: TObject);
+		procedure miSetMasterTempoClick(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -2098,6 +2101,11 @@ end;
 procedure TDeckFrame.pnlEffectsResize(Sender: TObject);
 begin
 	ResizeEffectButtons;
+end;
+
+procedure TDeckFrame.miSetMasterTempoClick(Sender: TObject);
+begin
+	MainForm.SetMasterTempo(Deck.OrigBPM);
 end;
 
 
