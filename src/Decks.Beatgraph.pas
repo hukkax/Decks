@@ -30,7 +30,8 @@ type
 
 	TGraphIterationEvent = procedure of Object;
 
-	TZoneChangeEvent = procedure(Zone: Integer; MixTime: Boolean) of Object;
+	TZoneChangeEvent   = procedure(Zone: Integer; MixTime: Boolean) of Object;
+	TLoadProgressEvent = procedure(Percentage: Integer) of Object;
 
 	TZoneChangeEventInfo = class
 		Zone:  Integer;
@@ -70,6 +71,7 @@ type
 	const
 		SampleSizeMultiplier = 2;
 	private
+		Generating:			Boolean;
 		graph_Hz,
 		HzDivisor:			Word;
 		Song:				TSong;
@@ -80,6 +82,7 @@ type
 		Width, Height:		Word;
 		OnZoneChange:		TZoneChangeEvent;
 		OnGraphIteration:	TGraphIterationEvent;
+		OnLoadProgress:		TLoadProgressEvent;
 		BitmapSize:			TPoint;
 		Bitmap:				TBGRABitmap; //TBitmap32;
 		Scroll:				TPoint;
@@ -88,6 +91,7 @@ type
 		length_audio:		QWord;
 		amount_bars:		Cardinal;
 		StartPos:			QWord; // song pos
+		LoadChunkSize:		DWord;
 		NeedRecalc,
 		QueueDraw,
 		Drawing:			Boolean;
@@ -138,6 +142,7 @@ var
 implementation
 
 uses
+	Forms,
 	Dialogs,
 	Decks.Audio;
 
@@ -278,6 +283,8 @@ var
 	i, b, ZZ: Integer;
 	P, SP: QWord;
 begin
+	if Generating then Exit;
+
 	{$IFDEF DEBUGLOG}
 	Log('[ZonesChanged]');
 	{$ENDIF}
@@ -364,7 +371,7 @@ var
 	X, BI: Integer;
 	P: QWord;
 begin
-	if (Zones.Count <= 1) or (ZoneIndex >= Zones.Count) then Exit(False);
+	if (Generating) or (Zones.Count <= 1) or (ZoneIndex >= Zones.Count) then Exit(False);
 
 	ShowMessage(Format('Delete Zone %d (%f BPM)', [ZoneIndex, Zones[ZoneIndex].BPM]));
 
@@ -385,6 +392,8 @@ var
 	Z: TZone;
 	P: QWord;
 begin
+	if Generating then Exit;
+
 	{$IFDEF DEBUGLOG}
 	Log('', False);
 	Log(Format('[AddZone] Barpos=%d  BPM=%f', [Barpos, BPM]));
@@ -502,6 +511,9 @@ end;
 
 function TBeatGraph.GetFreq(ForGraph: Boolean): Word;
 begin
+	if Generating then
+		Result := 0
+	else
 	if ForGraph then
 		Result := graph_hz
 	else
@@ -510,21 +522,31 @@ end;
 
 function TBeatGraph.BarToGraph(B: Word): Word;
 begin
-	Result := B * Zoom;
+	if Generating then
+		Result := 0
+	else
+		Result := B * Zoom;
 end;
 
 function TBeatGraph.GraphToBar(X: Word): Word;
 begin
-	Result := Min(X div Zoom, High(Bars));
+	if Generating then
+		Result := 0
+	else
+		Result := Min(X div Zoom, High(Bars));
 end;
 
 function TBeatGraph.SongToGraphBytes(Pos: QWord): QWord;
 begin
-	Result := Pos div BytesPerSample div HzDivisor;
+	if Generating then
+		Result := 0
+	else
+		Result := Pos div BytesPerSample div HzDivisor;
 end;
 
 function TBeatGraph.GraphToSongBytes(Pos: QWord; ForGraph: Boolean = False): QWord;
 begin
+	if Generating then Exit(0);
 	if ForGraph then
 		Result := Pos
 	else
@@ -537,6 +559,7 @@ var
 	i: Integer;
 begin
 	Result := 0;
+	if Generating then Exit;
 	if (Zones.Count > 1) and (P >= Zones[0].Pos) then
 	begin
 		for i := Zones.Count-1 downto 0 do
@@ -547,7 +570,10 @@ end;
 
 function TBeatGraph.GetZoneAt(P: QWord): TZone;
 begin
-	Result := Zones[GetZoneIndexAt(P)];
+	if Generating then
+		Result := nil
+	else
+		Result := Zones[GetZoneIndexAt(P)];
 end;
 
 // result in song bytes
@@ -555,8 +581,7 @@ function TBeatGraph.GraphToPos(P: TPoint; ForGraph: Boolean = False): QWord;
 var
 	Z: TZone;
 begin
-	if Zoom < 1 then Exit(0);
-
+	if (Generating) or (Zoom < 1) then Exit(0);
 	Result := Bars[GraphToBar(P.X)].Pos;
 
 	if P.Y > 0 then
@@ -573,11 +598,14 @@ function TBeatGraph.PosToBar(P: QWord; ForGraph: Boolean = False): Integer;
 var
 	Bar: Integer;
 begin
-	if not ForGraph then
-		P := SongToGraphBytes(P + StartPos);
-	for Bar := amount_bars-1 downto 0 do
-		if (P >= Bars[Bar].Pos) then // and (P <= Bars[Bar+1].Pos) then
-			Exit(Bar);
+	if not Generating then
+	begin
+		if not ForGraph then
+			P := SongToGraphBytes(P + StartPos);
+		for Bar := amount_bars-1 downto 0 do
+			if (P >= Bars[Bar].Pos) then // and (P <= Bars[Bar+1].Pos) then
+				Exit(Bar);
+	end;
 	Result := -1;
 end;
 
@@ -589,7 +617,7 @@ var
 	BL: Single;
 begin
 	Result := 0;
-	if P > 0 then
+	if (not Generating) and (P > 0) then
 	begin
 		GP := P;
 		BL := GetBarLengthAt(GP);
@@ -607,6 +635,7 @@ function TBeatGraph.GetBarLengthAt(var P: QWord): Single;
 var
 	Zone: TZone;
 begin
+	if Generating then Exit(0);
 	P := SongToGraphBytes(P);
 	Zone := GetZoneAt(P);
 	if Zone <> nil then
@@ -621,7 +650,7 @@ var
 	Zone: TZone;
 begin
 	Result := TPoint.Zero;
-	if P = 0 then Exit;
+	if (Generating) or (P = 0) then Exit;
 
 	if not ForGraph then
 		P := SongToGraphBytes(P + StartPos);
@@ -638,11 +667,13 @@ end;
 // result in samples, not bytes! TODO zones
 function TBeatGraph.GetBeatLength(ForGraph: Boolean = False): Integer;
 begin
+	if Generating then Exit(0);
 	Result := Trunc(GetFreq(ForGraph) * ((60000 / Song.OrigBPM) / 1000));
 end;
 
 function TBeatGraph.GetBarLength(ForGraph: Boolean = False; X: Integer = -1): Integer;
 begin
+	if Generating then Exit(0);
 	if (X >= 0) and (X < High(Bars)) then
 		Result := GraphToSongBytes(Bars[X+1].Pos - Bars[X].Pos, ForGraph)
 	else
@@ -651,6 +682,7 @@ end;
 
 procedure TBeatGraph.Clear;
 begin
+	if Generating then Exit;
 	Zones.Clear;
 	StartPos := 0;
 	{$IFDEF DEBUGLOG} slLog.Clear; {$ENDIF}
@@ -669,6 +701,7 @@ begin
 	QueueDraw := False;
 	StartPos := 0;
 	Zoom := 1;
+	LoadChunkSize := 1024 * 128;
 
 	InitLog;
 
@@ -723,10 +756,13 @@ end;
 procedure TBeatGraph.Generate;
 var
 	GraphStream: HSTREAM;
-	i, s, m: Integer;
-	p, len: QWord;
+	i, s, m, Percentage, OldPercentage: Integer;
+	p, maxlen, len: QWord;
 	sam: PByte;
 begin
+	if Generating then Exit;
+	Generating := True;
+
 	case Song.ChannelInfo.freq of
 		11025: HzDivisor := 1;
 		22050: HzDivisor := 4;
@@ -744,24 +780,36 @@ begin
 	BASS_Mixer_StreamAddChannel(GraphStream, Song.OrigStream,
 		BASS_MIXER_DOWNMIX or BASS_MIXER_NORAMPIN);
 
-	len := TranslateStreamLength(Song.OrigStream, GraphStream);
+	maxlen := TranslateStreamLength(Song.OrigStream, GraphStream) + LoadChunkSize;
+	SetLength(AudioData, maxlen);
 
-	SetLength(AudioData, len);
-	p := BASS_ChannelGetData(GraphStream, @AudioData[0], len);
-
-	SetLength(AudioData, p);
-	length_audio := p;
-	sam := @AudioData[0];
+	p := 0;
 	m := 0; // highest sample value
+	OldPercentage := 0;
+	sam := @AudioData[0];
+	repeat
+		len := BASS_ChannelGetData(GraphStream, sam, LoadChunkSize);
+		Inc(p, len);
+		for i := 1 to len do
+		begin
+			s := Min(255, Abs(sam^ - 128) * 2);
+			sam^ := s;
+			if s > m then m := s;
+			Inc(sam);
+		end;
 
-	for i := 0 to High(AudioData) do
-	begin
-		s := Min(255, Abs(sam^ - 128) * 2);
-		sam^ := s;
-		if s > m then m := s;
-		Inc(sam);
-	end;
+		Percentage := Round(p / maxlen * 100);
+		if Percentage <> OldPercentage then
+		begin
+			OldPercentage := Percentage;
+			if Assigned(OnLoadProgress) then
+				OnLoadProgress(Percentage);
+		end;
 
+	until len < LoadChunkSize;
+
+	//SetLength(AudioData, p);
+	length_audio := p;
 	CalcBrightness := 256 / m;
 	Brightness := CalcBrightness;
 
@@ -773,10 +821,13 @@ begin
 	EndSync := BASS_ChannelSetSync(Song.OrigStream,
 		BASS_SYNC_END or BASS_SYNC_MIXTIME, 0,
 		@Audio_Callback_ZoneSync_MixTime, @EndSyncEvent);
+
+	Generating := False;
 end;
 
 procedure TBeatGraph.Draw(AWidth: Word = 0; AHeight: Word = 0);
 begin
+	if Generating then Exit;
 	if not Drawing then
 	begin
 		if (AWidth + AHeight > 0) then
@@ -864,6 +915,7 @@ var
 	end;
 
 begin
+	if Generating then Exit;
 	QueueDraw := False;
 
 	if (Song = nil) or (not Song.Loaded) or (Song.OrigBPM <= 1) then Exit;

@@ -186,8 +186,9 @@ type
 		procedure SelectEffect(EffectNum: Integer);
 		procedure AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton);
 		procedure InitGUIEffectParam(Index: Byte; AKnob: ThKnob);
-		function GetEffectKnob(Sender: TObject): ThKnob;
+		function  GetEffectKnob(Sender: TObject): ThKnob;
 		procedure ResizeEffectButtons;
+		procedure OnLoadProgress(Percentage: Integer);
 	public
 		GraphHover,
 		GraphCue:   TPoint;
@@ -401,6 +402,7 @@ begin
 
 	Deck.Graph.OnGraphIteration := OnGraphIteration;
 	Deck.Graph.OnZoneChange := OnZoneChanged;
+	Deck.Graph.OnLoadProgress := OnLoadProgress;
 	Deck.OnModeChange := OnDeckEvent;
 	Deck.Index := DeckList.Add(Deck) + 1;
 
@@ -522,6 +524,8 @@ end;
 
 procedure TDeckFrame.TimerTimer(Sender: TObject);
 begin
+	if not Enabled then Exit;
+
 	if Deck.Graph.QueueDraw then
 		Deck.Graph.Draw(pb.ClientWidth * Deck.Graph.WantedZoom, pb.ClientHeight);
 
@@ -620,7 +624,7 @@ begin
 		SampleZoom := 2
 	else
 	if Dir > 0 then
-		SampleZoom := Min(4, SampleZoom+1)
+		SampleZoom := Min(3, SampleZoom+1)
 	else
 	if Dir < 0 then
 		SampleZoom := Max(1, SampleZoom-1);
@@ -679,6 +683,8 @@ end;
 
 procedure TDeckFrame.bPlayClick(Sender: TObject);
 begin
+	if not Enabled then Exit;
+
 	if Deck.Cueing then
 	begin
 		Deck.Cueing := False;
@@ -701,6 +707,8 @@ end;
 procedure TDeckFrame.bPlayMouseDown(Sender: TObject;
 	Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+	if not Enabled then Exit;
+
 	case Button of
 		mbRight:
 			Cue(True);
@@ -715,6 +723,8 @@ end;
 procedure TDeckFrame.bPlayMouseUp(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
+	if not Enabled then Exit;
+
 	case Button of
 		mbRight:  Cue(False);
 	end;
@@ -727,6 +737,8 @@ var
 	PT, CT: TPoint;
 	OtherDeck: TDeck;
 begin
+	if not Enabled then Exit;
+
 	OtherDeck := Deck.GetOtherOrCurrentDeck;
 	if OtherDeck = nil then Exit;
 
@@ -761,6 +773,8 @@ end;
 
 procedure TDeckFrame.Cue(DoCue: Boolean);
 begin
+	if not Enabled then Exit;
+
 	if DoCue then
 	begin
 		if (not Deck.Cueing) and (Deck.Paused) then
@@ -785,12 +799,14 @@ end;
 
 procedure TDeckFrame.FormResize(Sender: TObject);
 begin
+	if not Enabled then Exit;
 	RedrawGraph;
 	DrawWaveform;
 end;
 
 procedure TDeckFrame.lTimeClick(Sender: TObject);
 begin
+	if not Enabled then Exit;
 	ShowRemainingTime := not ShowRemainingTime;
 	lTime.Tag := 0;
 	ShowPosition;
@@ -923,6 +939,7 @@ begin
 
 	SelectEffect(Effects.Count-1);
 	ShowPanel_Effects;
+	Enabled := False;
 end;
 
 destructor TDeckFrame.Destroy;
@@ -938,6 +955,7 @@ end;
 function TDeckFrame.ProcessKeyUp(var Key: Word; Shift: TShiftState): Boolean;
 begin
 	Result := True;
+	if not Enabled then Exit;
 
 	case Key of
 
@@ -958,6 +976,7 @@ end;
 function TDeckFrame.ProcessKeyDown(var Key: Word; Shift: TShiftState): Boolean;
 begin
 	Result := True;
+	if not Enabled then Exit;
 
 	case Key of
 
@@ -998,6 +1017,7 @@ var
 	Z: TZone;
 begin
 	Result := True;
+	if not Enabled then Exit;
 	case Key of
 
 		'+':
@@ -1025,6 +1045,7 @@ end;
 // input in graph sample coords
 procedure TDeckFrame.SetCue(P: QWord);
 begin
+	if not Enabled then Exit;
 	CuePos := P;
 	GraphCue := Deck.Graph.PosToGraph(P, True);
 	DrawWaveform;
@@ -1034,6 +1055,7 @@ end;
 // input in graph pixel coords
 procedure TDeckFrame.SetCue(P: TPoint);
 begin
+	if not Enabled then Exit;
 	GraphCue := P;
 	CuePos := Deck.Graph.GraphToPos(P, True);
 	DrawWaveform;
@@ -1044,6 +1066,7 @@ procedure TDeckFrame.AfterPosJump(Data: PtrInt);
 var
 	Zone: Integer;
 begin
+	if not Enabled then Exit;
 	if not Deck.Paused then
 		UpdatePlayButton(MODE_PLAY_START);
 	Zone := Deck.Graph.GetZoneIndexAt(CuePos);
@@ -1059,6 +1082,7 @@ procedure TDeckFrame.JumpToPos(Pos: QWord; Reset: Boolean = False);
 var
 	Flags: DWord = BASS_POS_BYTE;
 begin
+	if not Enabled then Exit;
 	if Reset then
 		Flags := Flags or BASS_POS_MIXER_RESET;
 	BASS_Mixer_ChannelSetPosition(Deck.OrigStream, Pos, Flags);
@@ -1069,6 +1093,7 @@ procedure TDeckFrame.JumpToCue(FromCallback: Boolean = False);
 var
 	Pos: QWord;
 begin
+	if not Enabled then Exit;
 	Pos := Deck.Graph.GraphToSongBytes(CuePos);
 	if not FromCallback then
 		JumpToPos(Pos, True)
@@ -1081,18 +1106,21 @@ end;
 
 procedure TDeckFrame.JumpToZone(Zone: Word);
 begin
+	if not Enabled then Exit;
 	Deck.UnloopZone;
 	JumpToPos(Deck.Graph.GraphToSongBytes(Deck.Graph.Zones[Zone].Pos));
 end;
 
 procedure TDeckFrame.JumpToBar(Bar: Word);
 begin
-	JumpToPos(Deck.Graph.GraphToSongBytes(Deck.Graph.Bars[Bar].Pos));
+	if Enabled then
+		JumpToPos(Deck.Graph.GraphToSongBytes(Deck.Graph.Bars[Bar].Pos));
 end;
 
 procedure TDeckFrame.pbMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
+	if Enabled then
 	case Button of
 
 		mbLeft:
@@ -1116,12 +1144,14 @@ end;
 
 procedure TDeckFrame.pbMouseLeave(Sender: TObject);
 begin
+	if not Enabled then Exit;
 	GraphHover := Point(-1, -1);
 	DrawGraph;
 end;
 
 procedure TDeckFrame.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
+	if not Enabled then Exit;
 	X := Min(Max(X, 0), pb.ClientWidth-1);
 	Y := Min(Max(Y, 0), pb.ClientHeight-1);
 	GraphHover := Point(X + Deck.Graph.Scroll.X, Y);
@@ -1146,6 +1176,7 @@ var
 	Z: TZone;
 begin
 	Handled := True;
+	if not Enabled then Exit;
 
 	// shift+wheel to add/modify zone at cursor pos
 	if Shift = [ssShift] then
@@ -1212,6 +1243,7 @@ end;
 procedure TDeckFrame.pbRulerMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
+	if not Enabled then Exit;
 	X := Min(Max(X, 0), pbRuler.ClientWidth-1) + Deck.Graph.Scroll.X;
 	if Button = mbRight then X := X - (X mod (4*Deck.Graph.Zoom));
 	GraphCue := Point(X, 0);
@@ -1226,6 +1258,7 @@ end;
 procedure TDeckFrame.pbWaveMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
+	if Enabled then
 	case Button of
 		mbLeft:
 		begin
@@ -1254,7 +1287,7 @@ end;
 
 procedure TDeckFrame.pbWaveMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
-	if not DragWave.Dragging then Exit;
+	if (not Enabled) or (not DragWave.Dragging) then Exit;
 
 	SetCue(Max(0, CuePos - ((DragWave.Offset - X) * WaveformStep)));
 	DragWave.Offset := X;
@@ -1264,6 +1297,7 @@ procedure TDeckFrame.pbWaveMouseWheel(Sender: TObject; Shift: TShiftState;
 	WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 begin
 	Handled := True;
+	if not Enabled then Exit;
 
 	if WheelDelta > 0 then
 		ZoomSample(+1)
@@ -1287,7 +1321,7 @@ procedure TDeckFrame.pbZonesMouseDown(Sender: TObject; Button: TMouseButton;
 var
 	P: TPoint;
 begin
-	if not Deck.Loaded then Exit;
+	if not Enabled then Exit;
 
 	SetMaster(Tag);
 	Y := Deck.Graph.GraphToBar(X + Deck.Graph.Scroll.X);
@@ -1339,6 +1373,8 @@ var
 	R: TRect;
 	Zone: TZone;
 begin
+	if not Enabled then Exit;
+
 	if Recalc then
 	begin
 		H := pbZones.ClientHeight;
@@ -1396,6 +1432,8 @@ const
 var
 	C, A, X, Z, H, Gap: Integer;
 begin
+	if not Enabled then Exit;
+
 	if Recalc then
 	begin
 		H := pbRuler.ClientHeight;
@@ -1428,14 +1466,17 @@ procedure TDeckFrame.DrawWaveform;
 var
 	X, L, W: Cardinal;
 	Sam, FAdd, Y: Integer;
+	Sam2: QWord;
 	Sample: PByte;
 begin
-	L := Deck.Graph.GetBarLength(True (*, Deck.Graph.GraphToBar(GraphCue.X)*) )
+	if not Enabled then Exit;
+
+	L := Deck.Graph.GetBarLength(True , Deck.Graph.GraphToBar(GraphCue.X) )
 		* 2 div Trunc(Power(2, SampleZoom));
 	if L < 10 then Exit;
 
 	W := pbWave.ClientWidth;
-	FAdd := Trunc(L / W);
+	FAdd := Round(L / W);
 	WaveformStep := FAdd;
 
 	CuePos := Min(CuePos, Deck.Graph.length_audio - L);
@@ -1444,15 +1485,19 @@ begin
 
 	pbWave.Bitmap.Fill(BGRABlack);
 
+	if FAdd > 0 then
 	for X := 0 to W-1 do
 	begin
-		Sam := 0;
+		Sam2 := 0;
+//		Sam := 0;
 		for Y := 1 to FAdd do
 		begin
-			if Sample^ > Sam then Sam := Sample^;
+//			if Sample^ > Sam then Sam := Sample^;
+			Sam2 += Sample^;
 			Inc(Sample);
 		end;
-		Sam := Min(255, Trunc(Sam * Deck.Graph.Brightness));
+		Sam := Min(255, Trunc(Sam2 / FAdd * Deck.Graph.Brightness));
+//		Sam := Min(255, Trunc(Sam * Deck.Graph.Brightness));
 		Y := Sam div 8;
 		pbWave.Bitmap.VertLine(X, 31-Y, 31+Y, Grays[Sam]);
 	end;
@@ -1471,6 +1516,8 @@ var
 	P, PE: TPoint;
 	C: TBGRAPixel;
 begin
+	if not Enabled then Exit;
+
 	ScrollX := Deck.Graph.Scroll.X;
 	W := pb.ClientWidth-1;
 	H := pb.ClientHeight-1;
@@ -1558,6 +1605,8 @@ procedure TDeckFrame.RedrawGraph;
 var
 	BPM: Single;
 begin
+	if not Enabled then Exit;
+
 	BPM := SliderTempo.Position + (SliderTempoFrac.Position / 1000);
 
 	if CurrentZone = 0 then
@@ -1616,6 +1665,24 @@ begin
 	MainForm.UpdateController(Deck, Kind);
 end;
 
+procedure TDeckFrame.OnLoadProgress(Percentage: Integer);
+var
+	X, W, H: Integer;
+begin
+	with pbVU do
+	begin
+		W := ClientWidth; H := ClientHeight;
+		Bitmap.FillRect(Bounds(0, 0, W, H), BGRABlack, dmSet);
+		if Percentage > 0 then
+		begin
+			X := Trunc(W / 100 * Percentage);
+			Bitmap.FillRect(Bounds(0, 0, X, H), Grays[Trunc(255 / 100 * Percentage)], dmSet);
+		end;
+		Repaint;
+	end;
+	Application.ProcessMessages;
+end;
+
 procedure TDeckFrame.OnDeckEvent(Kind: Integer);
 var
 	S: String;
@@ -1630,20 +1697,23 @@ begin
 			Deck.Graph.Scroll.X := 0;
 			Deck.Graph.Zoom := 1;
 			Timer.Enabled := False;
-			lTime.Caption := 'Loading';
-			Screen.Cursor := crHourGlass;
+			bMaster.Caption := 'Loading';
+			//Screen.Cursor := crHourGlass;
 			Invalidate;
 			Application.ProcessMessages;
+			Enabled := False;
 		end;
 
 		MODE_LOAD_FINISH:
 		begin
+			Enabled := True;
+
 			RedrawGraph;
 			SetCue(TPoint.Zero);
 			DrawWaveform;
 			SliderGraphX.Position := 0;
 
-			Screen.Cursor := crDefault;
+			//Screen.Cursor := crDefault;
 			lTime.Tag := -1;
 			Invalidate;
 			Timer.Enabled := True;
@@ -1655,7 +1725,7 @@ begin
 		begin
 			Deck.Graph.Generate;
 			SetSlider(SliderAmp, 100);
-	Deck.Graph.BitmapSize := Point(pb.ClientWidth, pb.ClientHeight);
+			Deck.Graph.BitmapSize := Point(pb.ClientWidth, pb.ClientHeight);
 		end;
 
 		MODE_LOAD_SUCCESS:
@@ -1724,6 +1794,7 @@ var
 	Step: Single;
 begin
 	Handled := True;
+	if not Enabled then Exit;
 
 	if Shift = [ssShift] then
 	begin
@@ -1769,6 +1840,7 @@ procedure TDeckFrame.SetZoneKind(Zone: Word; Kind: TZoneKind);
 var
 	Z: TZone;
 begin
+	if not Enabled then Exit;
 	if Zone >= Deck.Graph.Zones.Count then Exit;
 
 	Z := Deck.Graph.Zones[Zone];
