@@ -60,6 +60,11 @@ type
 
 implementation
 
+{$IFDEF DEBUG}
+uses
+	Dialogs;
+{$ENDIF}
+
 // ================================================================================================
 // TTagScannerJob
 // ================================================================================================
@@ -177,7 +182,11 @@ var
 	TagClass: TTagReaderClass;
 begin
 	if not FileExists(Filename) then Exit(nil);
-	TagClass := IdentifyKind(Filename);
+	try
+		TagClass := IdentifyKind(Filename);
+	except
+		Exit(nil);
+	end;
 	Result := TagClass.Create;
 	try
 		Result.LoadFromFile(Filename);
@@ -193,8 +202,12 @@ begin
 	try
 		if Assigned(TagReader) then
 		begin
+			Result.Index := 0;
 			Result := TagReader.GetCommonTags;
 			Result.Index := TagReader.MediaProperty.Bitrate;
+			if (TagReader is TMP3Reader) then
+				if TMP3Reader(TagReader).isVBR then
+					Result.Index := -Result.Index;
 		end
 		else
 			Result := Default(TCommonTags);
@@ -215,6 +228,8 @@ begin
 end;
 
 function TagsToStringList(const Tags: TCommonTags): TStringList;
+var
+	S: String;
 begin
 	Result := TStringList.Create;
 
@@ -224,12 +239,14 @@ begin
 	else
 		Result.Add('');
 
-	if Tags.Index > 0 then // bitrate
+	if Tags.Index <> 0 then // bitrate
 	begin
-		if Tags.Index < 100 then
-			Result.Add(' ' + Tags.Index.ToString)
-		else
-			Result.Add(Tags.Index.ToString);
+		S := Abs(Tags.Index).ToString;
+		if Abs(Tags.Index) < 100 then
+			S := ' ' + S;
+		if Tags.Index < 0 then
+			S := S + ' *';
+		Result.Add(S);
 	end
 	else
 		Result.Add('');

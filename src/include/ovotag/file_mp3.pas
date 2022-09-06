@@ -78,6 +78,8 @@ type
     function GetDuration: int64; override;
     Function DumpInfo: TMediaProperty; override;
   public
+	function isVBR: boolean;
+	function GetProperBitrate: DWord;
     function isUpdateable: boolean; override;
     function LoadFromFile(AFileName: Tfilename): boolean; override;
     function SaveToFile(AFileName: Tfilename): boolean; override;
@@ -377,7 +379,6 @@ begin
   end;
 end;
 
-
 function TMP3Reader.GetTags: TTags;
 begin
   Result := fTags;
@@ -391,17 +392,15 @@ begin
   if FFrame.Found then
   begin
     if (FVBR.Found) and (FVBR.Frames > 0) then
-      Result := trunc(FVBR.Frames * GetCoefficient(FFrame) *  8 / GetSampleRate(FFrame) * 1000)
+      Result := trunc(FVBR.Frames * GetCoefficient(FFrame) * 8 / GetSampleRate(FFrame) * 1000)
     else
     begin
       MPEGSize := FMPEGEnd - FMPEGStart;
-      Result := trunc((MPEGSize - FFrame.Position) /
-        GetBitRate(FFrame) * 8);
+      Result := trunc((MPEGSize - FFrame.Position) / GetBitRate(FFrame) * 8);
     end;
   end
   else
     Result := 0;
-
 end;
 
 function TMP3Reader.DumpInfo: TMediaProperty;
@@ -451,7 +450,7 @@ begin
     fStream.Free;
   end;
 
-
+  GetProperBitrate;
 end;
 
 function TMP3Reader.SaveToFile(AFileName: Tfilename): boolean;
@@ -476,6 +475,19 @@ begin
   DestStream.Free;
 
 end;
+
+function TMP3Reader.isVBR: boolean;
+begin
+	Result := (fVBR.Found) and (fVBR.Frames > 0);
+end;
+
+function TMP3Reader.GetProperBitrate: DWord;
+begin
+	if isVBR then
+		fMediaProperty.BitRate := Trunc(fVBR.Bytes * 8 / GetDuration);
+	Result := fMediaProperty.BitRate;
+end;
+
 
 initialization
   RegisterTagReader(Mp3FileMask, TMP3Reader);
