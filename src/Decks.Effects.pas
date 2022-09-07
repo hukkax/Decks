@@ -287,8 +287,7 @@ begin
 
 	DoSetEnabled(False);
 	FStream := Value;
-	if FEnabled then
-		DoSetEnabled(True);
+	DoSetEnabled(FEnabled);
 end;
 
 procedure TBaseEffect.ApplyPreset(Preset: TEffectPreset);
@@ -442,7 +441,7 @@ begin
 	BFX.lFilter := BASS_BFX_BQF_LOWPASS; //BASS_BFX_BQF_HIGHPASS
 	fCutoff := 0;
 
-	AddParam(fCutoff, 'Cutoff',	-22050, +22050, 1, 'LP <-> HP');
+	AddParam(fCutoff, 'Cutoff',	-1.0, +1.0, 200, 'LP <-> HP');
 	AddParam(BFX.fQ,  'Q',		 0.1,	1, 		MUL_DEFAULT, 'Q');
 
 	AddPreset([0, 0.55], 'Default');
@@ -450,24 +449,27 @@ begin
 end;
 
 procedure TFxFilter.ParamChanged(Param: TEffectParam);
+const
+	LP_Hz = 8000;
+	HP_HZ = 22050 * 0.03;
 begin
-	BFX.lChannel := BASS_BFX_CHANALL;
-
-	if fCutoff < -0.99 then
+	if Abs(fCutoff) > 0.01 then
 	begin
-		BFX.lFilter := BASS_BFX_BQF_LOWPASS;
-		BFX.fCenter := 22050 + fCutoff;
+		if fCutoff < 0.01 then
+		begin
+			BFX.lFilter := BASS_BFX_BQF_LOWPASS;
+			BFX.fCenter := LP_Hz - (LP_Hz * Abs(fCutoff + 0.02));
+		end
+		else
+		begin
+			BFX.lFilter := BASS_BFX_BQF_HIGHPASS;
+			BFX.fCenter := HP_HZ * fCutoff;
+		end;
+		DoSetEnabled(Enabled);
+		inherited ParamChanged(Param);
 	end
 	else
-	if fCutoff > +0.99 then
-	begin
-		BFX.lFilter := BASS_BFX_BQF_HIGHPASS;
-		BFX.fCenter := fCutoff / 10;
-	end
-	else
-		BFX.lChannel := BASS_BFX_CHANNONE;
-
-	inherited ParamChanged(Param);
+		DoSetEnabled(False);
 end;
 
 
