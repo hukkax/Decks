@@ -102,7 +102,7 @@ type
 		            AMin, AMax: Single; AMultiplier: Integer; const ACaption: String): TEffectParam;
 		procedure   AddPreset(const Values: array of Single; const AName: String);
 		procedure   ApplyPreset(Preset: TEffectPreset);
-		procedure   ParamChanged(Param: TEffectParam);
+		procedure   ParamChanged(Param: TEffectParam); virtual;
 
 		property    Enabled: Boolean read FEnabled write SetEnabled;
 		property	Stream:  HSTREAM read FStream  write SetStream;
@@ -139,6 +139,13 @@ type
 	TFxCompressor = class(TBaseEffect)
 		BFX: BASS_BFX_COMPRESSOR2;
 		constructor Create;
+	end;
+
+	TFxFilter = class(TBaseEffect)
+		BFX: BASS_BFX_BQF;
+		fCutoff: Single;
+		constructor Create;
+		procedure   ParamChanged(Param: TEffectParam); override;
 	end;
 
 
@@ -410,7 +417,6 @@ end;
 constructor TFxCompressor.Create;
 begin
 	inherited Create(BASS_FX_BFX_COMPRESSOR2, @BFX, 'Compressor');
-	BFX.lChannel := BASS_BFX_CHANALL;
 
 	AddParam(BFX.fGain,			'Gain',			+0,		+60,	MUL_DEFAULT,
 		'Output gain of signal after compression');
@@ -424,8 +430,44 @@ begin
 		'Speed at which compression is stopped after input drops below Threshold');
 
 	AddPreset([5, -15, 3, 20, 500],	'Default');
-
 	ApplyPreset(Presets.First);
+end;
+
+constructor TFxFilter.Create;
+begin
+	inherited Create(BASS_FX_BFX_BQF, @BFX, 'Filter');
+
+	BFX.lChannel := BASS_BFX_CHANALL;
+	BFX.fBandwidth := 0;
+	BFX.lFilter := BASS_BFX_BQF_LOWPASS; //BASS_BFX_BQF_HIGHPASS
+	fCutoff := 0;
+
+	AddParam(fCutoff, 'Cutoff',	-22050, +22050, 1, 'LP <-> HP');
+	AddParam(BFX.fQ,  'Q',		 0.1,	1, 		MUL_DEFAULT, 'Q');
+
+	AddPreset([0, 0.55], 'Default');
+	ApplyPreset(Presets.First);
+end;
+
+procedure TFxFilter.ParamChanged(Param: TEffectParam);
+begin
+	BFX.lChannel := BASS_BFX_CHANALL;
+
+	if fCutoff < -0.99 then
+	begin
+		BFX.lFilter := BASS_BFX_BQF_LOWPASS;
+		BFX.fCenter := 22050 + fCutoff;
+	end
+	else
+	if fCutoff > +0.99 then
+	begin
+		BFX.lFilter := BASS_BFX_BQF_HIGHPASS;
+		BFX.fCenter := fCutoff / 10;
+	end
+	else
+		BFX.lChannel := BASS_BFX_CHANNONE;
+
+	inherited ParamChanged(Param);
 end;
 
 

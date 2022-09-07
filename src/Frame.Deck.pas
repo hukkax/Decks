@@ -943,7 +943,8 @@ begin
 	Effects := TEffectsList.Create(True);
 	SelectedEffect := 255;
 
-	AddGUIEffect(TFxEcho.Create,       bEffect0);
+//	AddGUIEffect(TFxEcho.Create,       bEffect0);
+	AddGUIEffect(TFxFilter.Create,     bEffect0);
 	AddGUIEffect(TFxReverb.Create,     bEffect1);
 	AddGUIEffect(TFxPhaser.Create,     bEffect2);
 	AddGUIEffect(TFxChorus.Create,     bEffect3);
