@@ -21,6 +21,7 @@ object MainForm: TMainForm
   OnResize = FormResize
   ParentDoubleBuffered = False
   Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
   object PanelTop: TPanel
     Left = 0
     Height = 48
@@ -85,10 +86,10 @@ object MainForm: TMainForm
       Rounding.RoundY = 1
     end
     object sBPM: ThGaugeBar
-      Left = 272
+      Left = 384
       Height = 25
       Top = 12
-      Width = 644
+      Width = 532
       Anchors = [akTop, akLeft, akRight]
       Color = 2171427
       BorderStyle = bsNone
@@ -268,7 +269,7 @@ object MainForm: TMainForm
       Hint = 'Toggle directory listing'
       Top = 12
       Width = 48
-      StateNormal.Background.Color = 9017760
+      StateNormal.Background.Color = 6794157
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
       StateNormal.Background.Gradient1.ColorCorrection = False
@@ -313,6 +314,114 @@ object MainForm: TMainForm
       RoundingDropDown.RoundY = 1
       ShowHint = True
       TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bToggleGraphLines: TDecksButton
+      Left = 264
+      Height = 25
+      Hint = '≣'
+      Top = 12
+      Width = 48
+      StateNormal.Background.Color = 10773183
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 14605788
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = 17
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 3
+      Caption = '⌸'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      OnMouseDown = bToggleGraphLinesMouseDown
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      ShowHint = True
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bToggleWaveDual: TDecksButton
+      Left = 312
+      Height = 25
+      Hint = '⚌⏦'
+      Top = 12
+      Width = 48
+      StateNormal.Background.Color = 10773183
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 14605788
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = 17
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 3
+      Caption = '≈'
+      Color = clWhite
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      Enabled = False
+      GlobalOpacity = 255
+      OnMouseDown = bToggleGraphLinesMouseDown
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      ShowHint = True
+      TextApplyGlobalOpacity = False
+      Visible = False
       ClickOffset = True
     end
   end
@@ -695,7 +804,7 @@ object MainForm: TMainForm
       Stretch = True
     end
   end
-  object DecksButton3: TDecksButton
+  object bMainMenu: TDecksButton
     Left = 12
     Height = 25
     Top = 12

@@ -17,6 +17,8 @@ uses
 	LMessages, LResources,
 	BCBaseCtrls, BGRABitmap, BGRABitmapTypes;
 
+{$WARN 5024 off : Parameter "$1" not used}
+
 type
 	TKnobLineSubProperty = class(TPersistent)
 	private
@@ -758,13 +760,13 @@ end;
 {Calculate fPosition based on fMin, fMax, Angle parameter and fAngleInterval}
 function ThKnob.CalcPosition(TheAngle: Integer): Integer;
 var
-	e: Extended;
+	e: Single;
 	n: Integer;
 begin
 	if fVerticalMove then
 	begin
 		e := (OldP - fMin) / (fMax - fMin) * fSensitivity;
-		TheAngle := MouseOrigY - TheAngle + Round(e);
+		TheAngle := MouseOrigY - TheAngle + Integer(Round(e));
 		if not SpringLoaded then
 		begin
 			n := fSensitivity div 2;

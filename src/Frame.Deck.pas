@@ -2,13 +2,12 @@ unit Frame.Deck;
 
 {$mode Delphi}
 {$INLINE ON}
-{$WARN 5024 off : Parameter "$1" not used}
 
 interface
 
 uses
 	Classes, SysUtils, Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
-	ExtCtrls, EditBtn, Buttons, LCLType, LCLIntf, LMessages, Menus, ComCtrls,
+	ExtCtrls, {EditBtn, }Buttons, LCLType, LCLIntf, LMessages, Menus, ComCtrls,
 	BGRAVirtualScreen, BGRABitmap, BGRABitmapTypes,
 	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, Decks.Effects,
 	BASS, BASSmix,
@@ -18,6 +17,9 @@ const
 	BPMStep = 0.01;
 
 	WM_ZONE = LM_USER + 2010;
+
+{$WARN 5024 off : Parameter "$1" not used}
+{$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 
 type
 	TDragInfo = record
@@ -234,6 +236,7 @@ type
 		procedure JumpToZone(Zone: Word);
 		procedure JumpToBar(Bar: Word);
 
+		function  DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; const Palette: TBGRAPalette): QWord;
 		procedure DrawWaveform;
 		procedure DrawZones(Recalc: Boolean = True);
 		procedure DrawRuler(Recalc: Boolean = True);
@@ -255,6 +258,9 @@ uses
 	MouseWheelAccelerator,
 	Form.Main,
 	Decks.Config, Decks.Song;
+
+{$WARN 5024 off : Parameter "$1" not used}
+{$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 
 procedure Audio_Callback_Play(handle: HSYNC; channel, data: DWord; user: Pointer);
 	{$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
@@ -442,11 +448,11 @@ begin
 	// fix choppiness of slider movement
 	if Assigned(Sender) then (Sender as TControl).Repaint;
 
-	Deck.SetBPM(MasterBPM);
 	SliderTempo.OnChange := nil;
 	Deck.Graph.ZonesChanged;
 	RedrawGraph;
 	DrawWaveform;
+	Deck.SetBPM(MasterBPM);
 	SliderTempo.OnChange := SliderTempoChange;
 end;
 
@@ -457,7 +463,7 @@ end;
 
 procedure TDeckFrame.ShowPosition;
 var
-	time_e, time_r, tm, ts, X, Y, W, H: Integer;
+	time_e, time_r, tm, ts, X, W, H: Integer;
 	se, sr: String;
 	Vol: DWord = 0;
 begin
@@ -1302,7 +1308,7 @@ procedure TDeckFrame.pbWaveMouseMove(Sender: TObject; Shift: TShiftState; X, Y: 
 begin
 	if (not Enabled) or (not DragWave.Dragging) then Exit;
 
-	SetCue(Max(0, CuePos - ((DragWave.Offset - X) * WaveformStep)));
+	SetCue(Max(0, CuePos {%H-}- ((DragWave.Offset - X) * WaveformStep)));
 	DragWave.Offset := X;
 end;
 
@@ -1476,17 +1482,14 @@ begin
 	pbRuler.Repaint;
 end;
 
-procedure TDeckFrame.DrawWaveform;
+function TDeckFrame.DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; const Palette: TBGRAPalette): QWord;
 var
 	X, W: Cardinal;
 	Sam, FAdd, Y: Integer;
 	L, Sam2: QWord;
 	Sample: PByte;
 begin
-	if not Enabled then Exit;
-
-	Y := Deck.Graph.GraphToBar(GraphCue.X);
-	L := Deck.Graph.GetBarLength(True, Y);
+	L := Deck.Graph.GetBarLength(True, Bar);
 	L := L * 2 div Trunc(Power(2, SampleZoom));
 	if L < 10 then Exit;
 
@@ -1494,27 +1497,45 @@ begin
 	FAdd := Round(L / W);
 	WaveformStep := FAdd;
 
-	CuePos := Min(CuePos, Deck.Graph.length_audio - L);
+	Pos := Min(Pos, Deck.Graph.length_audio - L);
+	Result := Pos;
 
-	Sample := @Deck.Graph.AudioData[CuePos];
-
-	pbWave.Bitmap.Fill(BGRABlack);
-
+	Sample := @Deck.Graph.AudioData[Pos];
 	if FAdd > 0 then
 	for X := 0 to W-1 do
 	begin
 		Sam2 := 0;
-//		Sam := 0;
+		//Sam := 0;
 		for Y := 1 to FAdd do
 		begin
-//			if Sample^ > Sam then Sam := Sample^;
+			//if Sample^ > Sam then Sam := Sample^;
 			Sam2 += Sample^;
 			Inc(Sample);
 		end;
-		Sam := Min(255, Trunc(Sam2 / FAdd * Deck.Graph.Brightness));
-//		Sam := Min(255, Trunc(Sam * Deck.Graph.Brightness));
+		Sam := Min(255, Trunc(Sam2 / FAdd * Brightness));
+		//Sam := Min(255, Trunc(Sam * Brightness));
 		Y := Sam div 8;
-		pbWave.Bitmap.VertLine(X, 31-Y, 31+Y, Grays[Sam]);
+		pbWave.Bitmap.VertLine(X, 31-Y, 31+Y, Palette[Sam]);
+	end;
+end;
+
+procedure TDeckFrame.DrawWaveform;
+var
+	X: Cardinal;
+begin
+	if not Enabled then Exit;
+
+	pbWave.Bitmap.Fill(BGRABlack);
+
+	X := Deck.Graph.GraphToBar(GraphCue.X);
+	CuePos := DoDrawWaveform(CuePos, X, Deck.Graph.Brightness, Grays);
+
+	if Config.Deck.Waveform.ShowDual then
+	begin
+		X := Deck.Graph.GetZoneIndexAt(CuePos);
+		X := Deck.Graph.Zones[X].barindex + Deck.Graph.Zones[X].amount_bars - 1;
+		DoDrawWaveform(Deck.Graph.GraphToPos(Point(Deck.Graph.BarToGraph(X), GraphCue.Y), True),
+			X, Deck.Graph.Brightness, Grays2);
 	end;
 
 	pbWave.Repaint;
@@ -1591,6 +1612,15 @@ begin
 		else
 			R.BottomRight := Point(P.X+Z, H);
 		pb.Bitmap.FillRect(R, BGRA(255, 255, 255, 130), dmLinearBlend);
+	end;
+
+	if Config.Deck.BeatGraph.ShowHorizontalLines then
+	begin
+		for X := 0 to 3 do
+		begin
+			Y := X * (pb.Bitmap.Height div 4);
+			pb.Bitmap.HorizLine(0, Y, pb.Bitmap.Width, BGRA(30,250,30,255));
+		end;
 	end;
 
 	// mouseover coords indicator
@@ -1768,15 +1798,16 @@ begin
 				SetSlider(SliderTempo, Trunc(Deck.Info.BPM));
 				SetSlider(SliderTempoFrac, Trunc(Frac(Deck.Info.BPM) * 1000));
 			end;
-
 			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
-
 			Deck.Graph.ZonesLoaded;
 			SetCue(TPoint.Zero);
 			SliderTempoChange(nil);
 			JumpToCue;
 			SliderTempoChange(nil); // fixme: need to call this twice
 			ZoneChanged(0, False, False);
+
+			MainForm.UpdateFileInfo(Deck);
+			Deck.SaveInfoFile;
 		end;
 
 		MODE_LOAD_FAILURE:

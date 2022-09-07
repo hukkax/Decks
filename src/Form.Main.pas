@@ -2,20 +2,21 @@ unit Form.Main;
 
 {$mode Delphi}
 {$INLINE ON}
-{$WARN 5024 off : Parameter "$1" not used}
 
 interface
 
 uses
 	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-	Types, ShellCtrls, ComCtrls, Menus, FGL, LMessages, LCLIntf, LCLType,
+	Types, ShellCtrls, ComCtrls, Menus, FGL, {LMessages,} LCLIntf, LCLType,
 	BGRABitmap, BGRABitmapTypes, BCLabel, BGRAVirtualScreen,
 	hListView, hShellTree, DecksButton, hSlider, hKnob,
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
 	Frame.Deck;
 
+{$WARN 5024 off : Parameter "$1" not used}
+
 const
-	SupportedFormats = '.mp3 .ogg .wav .mod .sid .nsf';
+	SupportedFormats = '.mp3 .ogg .wav .it .s3m .xm .mod .sid .nsf';
 
 	COLOR_FILE_DEFAULT = $AAAAAA;
 	COLOR_FILE_HASBPM  = $DDEEFF;
@@ -79,7 +80,7 @@ type
 		MenuItem1: TMenuItem;
 		MenuItem2: TMenuItem;
 		miAbout: TMenuItem;
-		DecksButton3: TDecksButton;
+		bMainMenu: TDecksButton;
 		DecksButton6: TDecksButton;
 		EmbeddedImage: TImage;
 		bToggleEffects: TDecksButton;
@@ -87,6 +88,8 @@ type
 		miEnableEffects: TMenuItem;
 		bToggleLeftPane: TDecksButton;
 		PopupListHeader: TPopupMenu;
+		bToggleGraphLines: TDecksButton;
+		bToggleWaveDual: TDecksButton;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -134,6 +137,8 @@ type
 			X, Y: Integer);
 		procedure EmbeddedImageMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
 			X, Y: Integer);
+		procedure bToggleGraphLinesMouseDown(Sender: TObject; Button: TMouseButton;
+			Shift: TShiftState; X, Y: Integer);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -157,7 +162,8 @@ type
 		procedure ListBrowse(Dir: Integer);
 		procedure ListFilesInDir(const Dir: String);
 		procedure UpdateFileInfos;
-		procedure UpdateFileInfo(Filename: String);
+		procedure UpdateFileInfo(Filename: String); overload;
+		procedure UpdateFileInfo(Deck: TDeck); overload;
 		procedure MarkSongAsPlayed(Filename: String);
 
 //		procedure MIDIEvent(var Msg: TLMessage); message WM_MIDI;
@@ -215,7 +221,7 @@ implementation
 {$R *.lfm}
 
 uses
-	Math, FileUtil, StrUtils,
+	Math, FileUtil, LazFileUtils, StrUtils,
 	MouseWheelAccelerator, BCTypes, TextInputDialog,
 	AudioTag, basetag, file_Wave, file_mp3, file_ogg,
 	Decks.TagScanner,
@@ -223,6 +229,8 @@ uses
 
 var
 	TagScanner: TTagScannerJob;
+
+{$WARN 5024 off : Parameter "$1" not used}
 
 // ================================================================================================
 // Utility
@@ -605,36 +613,6 @@ begin
 	CanClose := True;
 end;
 
-procedure TMainForm.SaveTrackList;
-var
-	i: Integer;
-	S: String;
-	Item: TPlayedFileInfo;
-	First: TDateTime = 0;
-	Sl: TStringList;
-begin
-	Sl := TStringList.Create;
-	try
-		for i := 0 to PlayedFilenames.Count-1 do
-		begin
-			Item := TPlayedFileInfo(PlayedFilenames.Objects[i]);
-			if Item = nil then Continue;
-			if First = 0 then
-				First := Item.Timestamp;
-			if (Item.Artist.IsEmpty) or (Item.Title.IsEmpty) then
-				S := Item.Filename
-			else
-				S := Format('%s - %s', [Item.Artist, Item.Title]);
-			Sl.Add(Format('%s %s', [FormatDateTime('hh:nn:ss', Item.Timestamp-First), S]));
-		end;
-		if Sl.Count > 0 then
-			Sl.SaveToFile(IncludeTrailingPathDelimiter(Config.AppPath) + Format(
-				'tracklist-%s.txt', [FormatDateTime('YYYY-MM-DD_hh-nn', First)]));
-	finally
-		Sl.Free;
-	end;
-end;
-
 procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 var
 	i: Integer;
@@ -718,6 +696,16 @@ begin
 		end;
 end;
 
+procedure TMainForm.StartUpdate;
+begin
+	BeginFormUpdate;
+end;
+
+procedure TMainForm.EndUpdate;
+begin
+	EndFormUpdate;
+end;
+
 procedure TMainForm.SetActiveList(RightList: Boolean);
 const
 	ColActive = clBlack;
@@ -733,6 +721,36 @@ begin
 	begin
 		FileList.Color := ColInactive;
 		ListDirs.BackgroundColor := ColActive;
+	end;
+end;
+
+procedure TMainForm.SaveTrackList;
+var
+	i: Integer;
+	S: String;
+	Item: TPlayedFileInfo;
+	First: TDateTime = 0;
+	Sl: TStringList;
+begin
+	Sl := TStringList.Create;
+	try
+		for i := 0 to PlayedFilenames.Count-1 do
+		begin
+			Item := TPlayedFileInfo(PlayedFilenames.Objects[i]);
+			if Item = nil then Continue;
+			if First = 0 then
+				First := Item.Timestamp;
+			if (Item.Artist.IsEmpty) or (Item.Title.IsEmpty) then
+				S := Item.Filename
+			else
+				S := Format('%s - %s', [Item.Artist, Item.Title]);
+			Sl.Add(Format('%s %s', [FormatDateTime('hh:nn:ss', Item.Timestamp-First), S]));
+		end;
+		if Sl.Count > 0 then
+			Sl.SaveToFile(IncludeTrailingPathDelimiter(Config.AppPath) + Format(
+				'tracklist-%s.txt', [FormatDateTime('YYYY-MM-DD_hh-nn', First)]));
+	finally
+		Sl.Free;
 	end;
 end;
 
@@ -970,9 +988,65 @@ begin
 			Tags.Free;
 		end;
 
+	if Info.Bitrate > 0 then
+		Item.SubItems[COLUMN_BITRATE-1]  := Info.Bitrate.ToString;
+	if Info.Length >= 1 then
+		Item.SubItems[COLUMN_DURATION-1] :=
+			FormatDateTime('nn:ss', Info.Length / SecsPerDay).Replace('.',':');
+
 		FileList.Invalidate;
 		Application.ProcessMessages;
 	end;
+end;
+
+procedure TMainForm.UpdateFileInfo(Deck: TDeck);
+var
+	Item: ThListItem;
+begin
+	if Deck = nil then Exit;
+
+	Item := FindFileListEntry(ExtractFileName(Deck.Filename));
+	if Item = nil then Exit;
+
+	if Deck.Bitrate > 0 then
+		Item.SubItems[COLUMN_BITRATE-1]  := Deck.Bitrate.ToString;
+	if Deck.Duration >= 1 then
+		Item.SubItems[COLUMN_DURATION-1] :=
+			FormatDateTime('nn:ss', Deck.Duration / SecsPerDay).Replace('.',':');
+
+	FileList.Invalidate;
+	Application.ProcessMessages;
+end;
+
+procedure TMainForm.UpdateFileInfo(Filename: String);
+var
+	Item: ThListItem;
+	Info: TSongInfo;
+	S: String;
+begin
+	Filename := ExtractFileName(Filename);
+	Item := FindFileListEntry(Filename);
+	if Item = nil then Exit;
+
+	Info := GetSongInfo(Filename);
+	if Info.BPM > 1 then
+	begin
+		S := Format('%.2f', [Info.BPM]);
+		if Item.Color = clNone then
+			Item.Color := COLOR_FILE_HASBPM;
+	end
+	else
+		S := '';
+
+	Item.SubItems[COLUMN_BPM-1] := S;
+	if Info.Bitrate > 0 then
+		Item.SubItems[COLUMN_BITRATE-1]  := Info.Bitrate.ToString;
+	if Info.Length >= 1 then
+		Item.SubItems[COLUMN_DURATION-1] :=
+			FormatDateTime('nn:ss', Info.Length / SecsPerDay).Replace('.',':');
+
+	FileList.Invalidate;
+	Application.ProcessMessages;
 end;
 
 procedure TMainForm.UpdateFileInfos;
@@ -1152,10 +1226,10 @@ end;
 
 procedure TMainForm.UpdateMixerVisibility;
 begin
-	BeginFormUpdate;
+	StartUpdate;
 	MixerPanel.Visible := Config.Mixer.Enabled;
 	MixerPanel.Enabled := MixerPanel.Visible;
-	EndFormUpdate;
+	EndUpdate;
 end;
 
 procedure TMainForm.ApplyMixer(ApplyEQ: Boolean = True);
@@ -1382,31 +1456,6 @@ begin
 	ListDirs.ScrollY := Trunc(sDirs.Position);
 end;
 
-procedure TMainForm.UpdateFileInfo(Filename: String);
-var
-	Item: ThListItem;
-	Info: TSongInfo;
-	S: String;
-begin
-	Filename := ExtractFileName(Filename);
-	Item := FindFileListEntry(Filename);
-	if Item = nil then Exit;
-
-	Info := GetSongInfo(Filename);
-	if Info.BPM > 1 then
-	begin
-		S := Format('%.2f', [Info.BPM]);
-		if Item.Color = clNone then
-			Item.Color := COLOR_FILE_HASBPM;
-	end
-	else
-		S := '';
-	Item.SubItems[0] := S;
-
-	FileList.Invalidate;
-	Application.ProcessMessages;
-end;
-
 procedure TMainForm.miFileRenameClick(Sender: TObject);
 var
 	Path, Fn, Ext, NewName: String;
@@ -1498,6 +1547,11 @@ begin
 	FileList.ScrollBy(0, WheelDelta);
 end;
 
+procedure TMainForm.LeftPanelResize(Sender: TObject);
+begin
+	AlignEmbeddedImage;
+end;
+
 procedure TMainForm.SetButtonDown(Button: TDecksButton; MenuItem: TMenuItem; Down: Boolean);
 begin
 	if Button = nil then Exit;
@@ -1514,6 +1568,8 @@ begin
 	SetButtonDown(bToggleEffects, miEnableEffects, Config.Effects.Enabled);
 	SetButtonDown(bToggleMixer, miEnableMixer, Config.Mixer.Enabled);
 	SetButtonDown(bToggleLeftPane, {miEnableLeftPane}nil, Config.Window.DirList.Enabled);
+	SetButtonDown(bToggleGraphLines, nil, Config.Deck.BeatGraph.ShowHorizontalLines);
+	SetButtonDown(bToggleWaveDual, nil, Config.Deck.Waveform.ShowDual);
 	LeftPanel.Visible := Config.Window.DirList.Enabled;
 end;
 
@@ -1549,16 +1605,6 @@ begin
 	EndUpdate;
 end;
 
-procedure TMainForm.StartUpdate;
-begin
-	BeginFormUpdate;
-end;
-
-procedure TMainForm.EndUpdate;
-begin
-	EndFormUpdate;
-end;
-
 procedure TMainForm.bToggleMixerMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
@@ -1568,9 +1614,20 @@ begin
 	UpdateMixerVisibility;
 end;
 
-procedure TMainForm.LeftPanelResize(Sender: TObject);
+procedure TMainForm.bToggleGraphLinesMouseDown(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: Integer);
+var
+	Deck: TDeck;
 begin
-	AlignEmbeddedImage;
+	if Button <> mbLeft then Exit;
+	if Sender = bToggleGraphLines then
+		Config.Deck.BeatGraph.ShowHorizontalLines := not Config.Deck.BeatGraph.ShowHorizontalLines
+	else
+	if Sender = bToggleWaveDual then
+		Config.Deck.Waveform.ShowDual := not Config.Deck.Waveform.ShowDual;
+	UpdateToggleButtons;
+	for Deck in DeckList do
+		TDeckFrame(Deck.Form).FormResize(Self);
 end;
 
 procedure TMainForm.EmbeddedImageMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1593,5 +1650,6 @@ procedure TMainForm.EmbeddedImageMouseUp(Sender: TObject; Button: TMouseButton; 
 begin
 	FileList.Invalidate;
 end;
+
 
 end.

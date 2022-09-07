@@ -82,7 +82,7 @@ begin
     tkTrack: Result  := tags.TrackString;
     tkNone: Result   := '';
   else
-    Result :=''
+    Result :=''{%H-};
   end;
 end;
 

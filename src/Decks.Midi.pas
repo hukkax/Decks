@@ -2,7 +2,7 @@ unit Decks.MIDI;
 
 {$MODE DELPHI}
 {.$DEFINE USEMIDI}
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses
@@ -444,8 +444,10 @@ begin
 end;
 
 procedure TMIDI.SetLed(Kind: TDecksActionKind; RightDeck: Boolean; LedState: Boolean = True);
+{$IFDEF USEMIDI}
 var
 	L: Integer;
+{$ENDIF}
 begin
 	{$IFDEF USEMIDI}
 	if Outdevice >= 0 then

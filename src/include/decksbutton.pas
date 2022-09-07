@@ -31,7 +31,7 @@ unit DecksButton;
 interface
 
 uses
-	Classes, SysUtils, Graphics, Controls, StdCtrls, ExtCtrls, Menus, ImgList,
+	Classes, SysUtils, Graphics, Controls, ExtCtrls, Menus, ImgList,
 	LCLType, LResources,
 	BGRABitmap, BGRABitmapTypes, BCTypes, BCBasectrls, BCButton;
 

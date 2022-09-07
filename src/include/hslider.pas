@@ -33,7 +33,6 @@ unit hSlider;
  * Marc Lafon
  *
  * ***** END LICENSE BLOCK ***** *)
-
 interface
 
 {$MODE DELPHI}
@@ -47,6 +46,9 @@ uses
 	Graphics, Controls, Forms, Dialogs, ExtCtrls,
 	{$ENDIF}
 	SysUtils, Classes;
+
+{$WARN 5024 off : Parameter "$1" not used}
+{$WARN 6060 off : Case statement does not handle all possible cases}
 
 type
 	TRBIncrement = 1..32768;
@@ -73,7 +75,6 @@ type
 		FOnChange: TNotifyEvent;
 		FOnUserChange: TNotifyEvent;
 		procedure SetButtonSize(Value: Integer);
-		procedure SetBorderStyle(Value: TBorderStyle); {$IFDEF FPC} override; {$ENDIF}
 		procedure SetHandleColor(Value: TColor);
 		procedure SetHighLightColor(Value: TColor);
 		procedure SetShadowColor(Value: TColor);
@@ -128,6 +129,7 @@ type
 		procedure StopDragTracking;
 		procedure StopHotTracking;
 		procedure TimerHandler(Sender: TObject); virtual;
+		procedure SetBorderStyle(Value: TBorderStyle); {$IFDEF FPC} override; {$ENDIF}
 	public
 		constructor Create(AOwner: TComponent); override;
 		property ArrowColor: TColor read FArrowColor write SetArrowColor default clBtnText;
@@ -550,7 +552,7 @@ begin
 	begin
 		DrawRectEx(Canvas, R, Edges, ShadowColor);
 		Canvas.Brush.Color := Color; //ButtonColor;
-		FillRect(Canvas.Handle, R, Canvas.Brush.Handle);
+		FillRect(Canvas.Handle, R, Canvas.Brush.Reference.Handle);
 //		GR32.InflateRect(R, -1, -1);
 //		GR32.OffsetRect(R, 1, 1);
 //		DrawArrow(Canvas, R, Direction, HighLightColor);
@@ -567,7 +569,7 @@ begin
 
 		if Pushed then
 		begin
-			FillRect(Canvas.Handle, R, Canvas.Brush.Handle);
+			FillRect(Canvas.Handle, R, Canvas.Brush.Reference.Handle);
 			R.Offset(1, 1);
 			R.Inflate(-1, -1);
 		end
@@ -575,7 +577,7 @@ begin
 		begin
 			if not FFlat then
 				Frame3D(Canvas, R, HighLightColor, ShadowColor, True);
-			FillRect(Canvas.Handle, R, Canvas.Brush.Handle);
+			FillRect(Canvas.Handle, R, Canvas.Brush.Reference.Handle);
 		end;
 		DrawArrow(Canvas, R, Direction, FArrowColor);
 	end;
@@ -591,7 +593,7 @@ begin
 		C := HandleColor;
 
 	Canvas.Brush.Color := BorderColor;
-	FrameRect(Canvas.Handle, R, Canvas.Brush.Handle);
+	FrameRect(Canvas.Handle, R, Canvas.Brush.Reference.Handle);
 
 	R.Inflate(-1, -1);
 	if not FFlat then
@@ -1101,7 +1103,7 @@ procedure ThArrowBar.WMNCPaint(var Message: TWMNCPaint);
     if ADC = 0 then DC := GetWindowDC(Handle)
     else DC := ADC;
     try
-      GetWindowRect(Handle, R);
+      GetWindowRect(Handle, R{%H-});
       OffsetRect(R, -R.Left, -R.Top);
       DrawEdge(DC, R, BDR_SUNKENOUTER, BF_RECT);
     finally

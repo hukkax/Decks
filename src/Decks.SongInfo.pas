@@ -20,6 +20,7 @@ type
 		BPM:         Single;
 		Amp:         Single;
 		Length:      Single;   // song length in seconds
+		Bitrate:     Word;     // song bitrate in kbps
 		//StartPos:    QWord;    // graph start offset in songdata bytes
 	end;
 
@@ -120,6 +121,8 @@ var
 	end;
 
 begin
+	Result := Default(TSongInfo);
+
 	Ini := TIniFile.Create(Filename);
 	try
 		Sect := 'song';
@@ -138,6 +141,15 @@ begin
 		begin
 			SplitInt(P, iL, iR);
 			Result.Amp := iL + (iR / 1000);
+		end;
+
+		Result.Bitrate := Ini.ReadInteger(Sect, 'bitrate', 0);
+
+		P := GetValue('duration');
+		if P <> '' then
+		begin
+			SplitInt(P, iL, iR);
+			Result.Length := iL + (iR / 1000);
 		end;
 
 		if Assigned(KeywordHandler) then
@@ -219,11 +231,10 @@ var
 	end;
 
 begin
+	Result := Default(TSongInfo);
 	Result.Initialized := False;
 	Result.OldVersion := False;
-	Result.BPM := 0.0;
 	Result.Amp := 1.0;
-	//Result.StartPos := 0;
 
 	Fn := GetBPMFile(Filename);
 	if not FileExists(Fn) then Exit;

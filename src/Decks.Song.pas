@@ -48,6 +48,8 @@ type
 		BPM,
 		OrigBPM:	Single;
 		ByteLength: QWord;
+		Duration:	Single;
+		Bitrate:	Word;
 
 		BeatFadeCounter,
 		BeatPreviousQuadrant: Byte;
@@ -125,6 +127,7 @@ function TSong.Load(const AFilename: String): Boolean;
 var
 	UF: UnicodeString;
 	F: Cardinal;
+	TmpBitrate: Single;
 begin
 	Stop;
 	FreeStream(OrigStream);
@@ -140,11 +143,15 @@ begin
 
 	BASS_ChannelGetInfo(OrigStream, ChannelInfo);
 	ByteLength := BASS_ChannelGetLength(OrigStream, BASS_POS_BYTE);
+	Duration := BASS_ChannelBytes2Seconds(OrigStream, ByteLength);
+	BASS_ChannelGetAttribute(OrigStream, BASS_ATTRIB_BITRATE, TmpBitrate);
+	Bitrate := Trunc(TmpBitrate);
 
 	// resample and downmix to 44100 Hz 16-bit Stereo
 	FreeStream(Stream);
 	Stream := BASS_Mixer_StreamCreate(44100, 2, 0);//BASS_STREAM_DECODE);
 	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_BUFFER, 0); // disable playback buffering
+
 
 	// generate the graph externally here before plugging the
 	// stream into the final output mixer

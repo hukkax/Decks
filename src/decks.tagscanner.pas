@@ -244,8 +244,7 @@ begin
 		S := Abs(Tags.Index).ToString;
 		if Abs(Tags.Index) < 100 then
 			S := ' ' + S;
-		if Tags.Index < 0 then
-			S := S + ' *';
+		//if Tags.Index < 0 then S := S + '*'; // VBR
 		Result.Add(S);
 	end
 	else

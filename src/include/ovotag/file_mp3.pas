@@ -85,6 +85,9 @@ type
     function SaveToFile(AFileName: Tfilename): boolean; override;
   end;
 
+var
+  FoundVBRKind: String;
+
 implementation
 
 { TMP3Reader }
@@ -203,10 +206,7 @@ begin
   HeaderData[2] := Data[Index + 1];
   HeaderData[3] := Data[Index + 2];
   HeaderData[4] := Data[Index + 3];
-  if IsFrameHeader(HeaderData) then
-    Result := True
-  else
-    Result := False;
+  Result := IsFrameHeader(HeaderData);
 end;
 
 { --------------------------------------------------------------------------- }
@@ -230,10 +230,9 @@ end;
 
 function GetBitRate(const Frame: FrameData): Dword;
 begin
-  { Get bit rate }
-  Result := MPEG_BIT_RATE[Frame.VersionID, Frame.LayerID, Frame.BitRateID];
+	{ Get bit rate }
+	Result := MPEG_BIT_RATE[Frame.VersionID, Frame.LayerID, Frame.BitRateID];
 end;
-
 
 function GetSampleRate(const Frame: FrameData): Dword;
 begin
@@ -279,6 +278,7 @@ end;
 
 function GetXingInfo(const Index: word; Data: array of byte): VBRData;
 begin
+  FoundVBRKind := VBR_ID_XING;
   { Extract Xing VBR info at given position }
   FillChar(Result, SizeOf(Result), 0);
   Result.Found := True;
@@ -300,6 +300,7 @@ end;
 
 function GetFhGInfo(const Index: word; Data: array of byte): VBRData;
 begin
+  FoundVBRKind := VBR_ID_FHG;
   { Extract FhG VBR info at given position }
   FillChar(Result, SizeOf(Result), 0);
   Result.Found := True;
@@ -315,14 +316,16 @@ end;
 { --------------------------------------------------------------------------- }
 
 function FindVBR(const Index: word; Data: array of byte): VBRData;
+var
+	sID: String;
 begin
   { Check for VBR header at given position }
   FillChar(Result, SizeOf(Result), 0);
-  if Chr(Data[Index]) + Chr(Data[Index + 1]) + Chr(Data[Index + 2]) +
-  Chr(Data[Index + 3]) = VBR_ID_XING then
-    Result := GetXingInfo(Index, Data);
-  if Chr(Data[Index]) + Chr(Data[Index + 1]) + Chr(Data[Index + 2]) +
-  Chr(Data[Index + 3]) = VBR_ID_FHG then
+  sID := Chr(Data[Index]) + Chr(Data[Index+1]) + Chr(Data[Index+2]) + Chr(Data[Index+3]);
+  if sID = VBR_ID_XING then
+    Result := GetXingInfo(Index, Data)
+  else
+  if sID = VBR_ID_FHG then
     Result := GetFhGInfo(Index, Data);
 end;
 
@@ -420,8 +423,8 @@ var
   fStream: TFileStreamUTF8;
   Data: array [1..SizeOfData] of byte;
   Transferred: DWord;
-
 begin
+  FoundVBRKind := '';
   Result := inherited LoadFromFile(AFileName);
   fStream := TFileStreamUTF8.Create(fileName, fmOpenRead or fmShareDenyNone);
   try
@@ -442,15 +445,14 @@ begin
       FFrame.Position := fStream.Position + FFrame.Position;
       FMPEGStart := FFrame.Position;
       FMPEGEnd := fStream.Size;
-      fMediaProperty.BitRate:= getbitrate(fframe);
-      fMediaProperty.Sampling:= GetSampleRate(fframe);
-      fMediaProperty.ChannelMode:=MPEG_CM_MODE[FFrame.ModeID];
+      fMediaProperty.BitRate := GetBitRate(FFrame);
+      fMediaProperty.Sampling := GetSampleRate(FFrame);
+      fMediaProperty.ChannelMode := MPEG_CM_MODE[FFrame.ModeID];
+      GetProperBitrate;
     end;
   finally
     fStream.Free;
   end;
-
-  GetProperBitrate;
 end;
 
 function TMP3Reader.SaveToFile(AFileName: Tfilename): boolean;
@@ -473,7 +475,6 @@ begin
 
   SourceStream.Free;
   DestStream.Free;
-
 end;
 
 function TMP3Reader.isVBR: boolean;

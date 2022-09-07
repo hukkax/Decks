@@ -9,6 +9,8 @@ uses
 	LMessages, LResources, FGL,
 	hSlider;
 
+{$WARN 5024 off : Parameter "$1" not used}
+
 const
 	ColumnSortText: array[Boolean] of String = ('▲', '▼');
 
@@ -114,9 +116,9 @@ type
 	procedure ShowColumnPopup(P: TPoint);
 	procedure ToggleColumnVisibilityFromMenu(Sender: TObject);
   protected
-	procedure SetEnabled(Value: Boolean);
+	procedure SetEnabled(Value: Boolean); override;
 	procedure SetItemHeight(H: Integer);
-	procedure SetColor(C: TColor); //override;
+	procedure SetColor(C: TColor); override;
 	procedure SetFont(F: TFont);
 	procedure SetScrollPos(Y: Integer);
 	procedure SetFirstVisibleIndex(I: Integer);
@@ -358,6 +360,7 @@ var
 	i: Integer;
 	j: Integer = 0;
 begin
+	Result := '';
 	if Item = nil then Exit;
 	if Column < 0 then
 		Column := FClickedColumn;

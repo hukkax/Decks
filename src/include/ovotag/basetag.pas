@@ -230,7 +230,7 @@ begin
     idTrack       : Result := Tags.TrackString;
     idYear        : Result := Tags.Year;
   else
-    Result := '';
+    Result := ''{%H-};
   end;
 end;
 

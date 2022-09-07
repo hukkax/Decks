@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <PathDelim Value="\"/>
     <Name Value="decksgui"/>
     <Type Value="RunAndDesignTime"/>
@@ -10,6 +10,11 @@
       <SearchPaths>
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
+      <Other>
+        <CompilerMessages>
+          <IgnoredMessages idx6060="True"/>
+        </CompilerMessages>
+      </Other>
     </CompilerOptions>
     <Files Count="5">
       <Item1>
@@ -38,6 +43,7 @@
         <UnitName Value="hKnob"/>
       </Item5>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="bgracontrols"/>

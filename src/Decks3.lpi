@@ -168,7 +168,7 @@
     <Other>
       <WriteFPCLogo Value="False"/>
       <CompilerMessages>
-        <IgnoredMessages idx6060="True"/>
+        <IgnoredMessages idx6060="True" idx3124="True" idx3123="True"/>
       </CompilerMessages>
       <CustomOptions Value="-Si
 -OoFASTMATH

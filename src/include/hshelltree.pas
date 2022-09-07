@@ -135,7 +135,7 @@ begin
   TextRect := Rect(Node.DisplayTextLeft, Node.Top, Node.DisplayTextRight, Node.Top + Node.Height);
   OffsetRect(TextRect, 0, -ScrolledTop);
   if not PtInRect(TextRect, Point(X, Y))
-  or (IntersectRect(IntRect, TextRect, ClientRect) and EqualRect(IntRect, TextRect)) then
+  or (IntersectRect(IntRect{%H-}, TextRect, ClientRect) and EqualRect(IntRect, TextRect)) then
   begin
     FHintWnd.Hide;
     Exit;
@@ -395,7 +395,7 @@ var
           Polygon(Points, 3, False);
           if ExpandSignType = tvestArrowFill then
           begin
-            Brush.Color := PrevColor;
+            Brush.Color := PrevColor{%H-};
           end;
         end;
       end;
@@ -566,7 +566,7 @@ var
       DrawText(Canvas.Handle, PChar(AText), -1, NodeRect, DT_CENTER or DT_VCENTER or DT_SINGLELINE or DT_NOPREFIX);
 
     if IsHot then
-		Canvas.Brush.Color := PrevFontColor;
+		Canvas.Brush.Color := PrevFontColor{%H-};
   end;
 
 
@@ -635,7 +635,7 @@ begin
       if (Node.StateIndex >= 0) and (Node.StateIndex < StateImages.Count) then
       begin
         if PaintImages then
-          StateImageRes.Draw(Canvas, x + 1, NodeRect.Top +(NodeRect.Bottom - NodeRect.Top - StateImageRes.Height) div 2,
+          StateImageRes.Draw(Canvas, x + 1, NodeRect.Top +(NodeRect.Bottom - NodeRect.Top - {%H-}StateImageRes.Height) div 2,
             Node.StateIndex, True);
         Inc(x, StateImageRes.Width + DefItemSpace);
       end;
@@ -662,7 +662,7 @@ begin
       	  if (Node.OverlayIndex >= 0) then begin
             OverlayIndex:=Node.OverlayIndex;
             if Images.HasOverlays then begin
-              ImageRes.DrawOverlay(Canvas, x + 1, NodeRect.Top + (NodeRect.Bottom - NodeRect.Top - ImageRes.Height) div 2,
+              ImageRes.DrawOverlay(Canvas, x + 1, NodeRect.Top + (NodeRect.Bottom - NodeRect.Top - {%H-}ImageRes.Height) div 2,
                  ImgIndex, OverlayIndex, Node.NodeEffect);
             end else begin
               // draw the Overlay using the image from the list

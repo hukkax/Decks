@@ -5,8 +5,7 @@ unit Decks.Audio;
 interface
 
 uses
-	Classes, SysUtils, FGL, //Generics.Collections,
-	BASS, BASSMIX;
+	Classes, SysUtils, FGL, BASS;
 
 const
 	OUTPUTS: array[0..3] of Integer = (
@@ -89,14 +88,14 @@ var
 	V: DWord;
 	Dev: TAudioDevice;
 	Info: BASS_DEVICEINFO;
-	Fn: UnicodeString;
+	//Fn: UnicodeString;
 begin
 	Devices := TFPGObjectList<TAudioDevice>.Create(True);
 
 	i := 1; // first real audio output device (0 = no sound)
 	DefaultDeviceIndex := i;
 
-	while BASS_GetDeviceInfo(i, Info) do
+	while BASS_GetDeviceInfo(i, Info{%H-}) do
 	begin
 		if (Info.flags and BASS_DEVICE_ENABLED) <> 0 then
 		begin
@@ -143,7 +142,7 @@ begin
 		BASS_DEVICE_LATENCY or BASS_DEVICE_SPEAKERS,
 		{$IFNDEF MSWINDOWS}@{$ENDIF}WinHandle, nil) then Exit;
 
-	if not BASS_GetInfo(Info) then Exit;
+	if not BASS_GetInfo(Info{%H-}) then Exit;
 
 	with DeviceInfo do
 	begin

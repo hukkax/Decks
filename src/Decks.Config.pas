@@ -44,7 +44,7 @@ type
 
 		Audio: record
 			Buffer: Integer;
-			UpdatePeriod: Integer;
+			UpdatePeriod: Cardinal;
 			Device: array[1..4] of Byte;
 		end;
 
@@ -70,6 +70,12 @@ type
 				Normal,
 				JogWheel,
 				Max: Integer;
+			end;
+			BeatGraph: record
+				ShowHorizontalLines: Boolean;
+			end;
+			Waveform: record
+				ShowDual: Boolean;
 			end;
 			FirstSetsMasterBPM: Boolean;
 		end;
@@ -185,6 +191,10 @@ begin
 	Deck.Bend.Normal   := Ini.ReadInteger(Sect, 'bend.normal',   800);
 	Deck.Bend.JogWheel := Ini.ReadInteger(Sect, 'bend.jogwheel', 100);
 	Deck.Bend.Max      := Ini.ReadInteger(Sect, 'bend.max',      4000);
+
+	Deck.BeatGraph.ShowHorizontalLines := Ini.ReadBool(Sect, 'graph.horizontallines', False);
+	Deck.Waveform.ShowDual := Ini.ReadBool(Sect, 'wave.showdual', False);
+
 	Deck.FirstSetsMasterBPM := Ini.ReadBool(Sect, 'setmasterbpm', True);
 
 	Ini.Free;
@@ -223,6 +233,9 @@ begin
 	Ini.WriteBool(Sect, 'enabled', Effects.Enabled);
 
 	Sect := 'deck';
+
+	Ini.WriteBool(Sect, 'graph.horizontallines', Deck.BeatGraph.ShowHorizontalLines);
+	Ini.WriteBool(Sect, 'wave.showdual', Deck.Waveform.ShowDual);
 	Ini.WriteBool(Sect, 'setmasterbpm', Deck.FirstSetsMasterBPM);
 
 	Ini.Free;

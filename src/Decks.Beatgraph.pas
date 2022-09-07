@@ -2,7 +2,7 @@ unit Decks.Beatgraph;
 
 {$mode Delphi}
 {$INLINE ON}
-
+{$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 interface
 
 uses
@@ -11,6 +11,8 @@ uses
 	BASS, BASSMIX,
 	Decks.Song;
 
+{$WARN 5024 off : Parameter "$1" not used}
+
 const
 	ZONECHANGE_STOPPED = -2;
 	ZONECHANGE_GETPOS  = -1;
@@ -18,6 +20,8 @@ const
 	Iterations = 3;
 
 type
+	TBGRAPalette = array[0..255] of TBGRAPixel;
+
 	TBeatGraph = class; // forward
 
 	TZoneKind = (
@@ -135,16 +139,17 @@ const
 	ZoneKindNames: array [TZoneKind] of String = ( '', 'loop', 'jump', 'skip', 'end' );
 
 var
-	Grays: array[0..255] of TBGRAPixel;
+	Grays, Grays2: TBGRAPalette;
 	AlphaBlack: array[1..10] of TBGRAPixel;
 
 
 implementation
 
 uses
-	Forms,
-	Dialogs,
+	Forms, Dialogs,
 	Decks.Audio;
+
+{$WARN 5024 off : Parameter "$1" not used}
 
 {$IFDEF DEBUGLOG}
 var
@@ -256,7 +261,7 @@ begin
 	if amount_bars = 0 then
 	begin
 		length := Graph.length_audio - Pos;
-		amount_bars := Trunc(length / length_bar);
+		amount_bars := Round(length / length_bar);
 	end;
 
 	SetLength(barpos, amount_bars+1);
@@ -339,7 +344,7 @@ begin
 	Log(Format('Song amount_bars: %d', [amount_bars]), True);
 	{$ENDIF}
 
-	SetLength(Bars, amount_bars+1);
+	SetLength(Bars, amount_bars);
 
 	b := 0; ZZ := 0;
 	for Z in Zones do
@@ -717,7 +722,12 @@ begin
 	begin
 		st := (Bitmap.Width-0) / 256;
 		for i := 0 to 255 do
+		begin
 			Grays[i] := Bitmap.GetPixel(i*st, 0);
+			Grays2[i] := Grays[i];
+			Grays2[i].red := Grays2[i].red div 2;
+			Grays2[i].blue := Grays2[i].blue div 2;
+		end;
 	end
 	else
 	begin
@@ -908,7 +918,7 @@ var
 		end;
 		px := Min(W, 10);
 		if AlphaBlack[px].alpha > 0 then
-			Bitmap.VertLine(X+W-1, 0, H, AlphaBlack[px]);
+			Bitmap.VertLine(X+W{%H-}-1, 0, H, AlphaBlack[px]);
 	end;
 
 begin
@@ -925,7 +935,7 @@ begin
 
 		Zoom := 1;
 		if amount_bars < 1 then Exit;
-		while (amount_bars * Zoom) < BitmapSize.X do
+		while (amount_bars * Zoom) {%H-}< BitmapSize.X do
 			Inc(Zoom);
 		Inc(Zoom, WantedZoom-1);
 

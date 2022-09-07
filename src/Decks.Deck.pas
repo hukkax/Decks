@@ -111,6 +111,8 @@ uses
 	Form.Main,
 	Decks.Config;
 
+{$WARN 5024 off : Parameter "$1" not used}
+
 procedure TDeck.ToggleEQKill(BandNum: TEQBand);
 begin
 	with Equalizer do
@@ -264,6 +266,13 @@ begin
 	Graph.Zones.Clear;
 	Info := GetSongInfo(ExtractFileName(Filename), InfoHandler);
 	Result := Info.Initialized;
+	if Result then
+	begin
+		if Info.Bitrate > 0 then
+			Bitrate := Info.Bitrate;
+		if Info.Length >= 1 then
+			Duration := Info.Length;
+	end;
 end;
 
 //
@@ -350,8 +359,10 @@ begin
 			Ini.WriteString(Sect, 'path', ExtractFilePath(Filename));
 			Ini.WriteString(Sect, 'file', ExtractFileName(Filename));
 
-			Ini.WriteString(Sect, 'bpm', FloatToString(OrigBPM));
-			Ini.WriteString(Sect, 'amp', FloatToString(Info.Amp));
+			Ini.WriteString(Sect, 'bpm',      FloatToString(OrigBPM));
+			Ini.WriteString(Sect, 'amp',      FloatToString(Info.Amp));
+			Ini.WriteInteger(Sect, 'bitrate', Bitrate);
+			Ini.WriteString(Sect, 'duration', FloatToString(Duration));
 			Ini.WriteInteger(Sect, 'zones', Graph.Zones.Count);
 
 		Ini.WriteInt64('cue', '0', Graph.StartPos div Graph.SampleSizeMultiplier);
@@ -494,7 +505,6 @@ end;
 
 procedure TDeck.SetLoop(LoopType, LoopLength: Integer);
 var
-	Z: TZone;
 	Bar: Word;
 	StartPos, EndPos: QWord;
 	LoopInfo: PLoopInfo;
