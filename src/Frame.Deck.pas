@@ -398,8 +398,11 @@ begin
 	else
 	if not MixTime then
 	begin
-		SetSlider(SliderTempo, Trunc(Z.BPM));
-		SetSlider(SliderTempoFrac, Trunc(Frac(Z.BPM) * 1000));
+		if CurrentZone = Zone then
+		begin
+			SetSlider(SliderTempo, Trunc(Z.BPM));
+			SetSlider(SliderTempoFrac, Trunc(Frac(Z.BPM) * 1000));
+		end;
 		Deck.SetBPM(MasterBPM);
 		DrawZones(True);
 	end;
