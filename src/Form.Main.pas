@@ -90,6 +90,7 @@ type
 		PopupListHeader: TPopupMenu;
 		bToggleGraphLines: TDecksButton;
 		bToggleWaveDual: TDecksButton;
+		lCPU: TBCLabel;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -223,7 +224,7 @@ implementation
 uses
 	Math, FileUtil, LazFileUtils, StrUtils,
 	MouseWheelAccelerator, BCTypes, TextInputDialog,
-	AudioTag, basetag, file_Wave, file_mp3, file_ogg,
+	BASS, AudioTag, basetag, file_Wave, file_mp3, file_ogg,
 	Decks.TagScanner,
 	Decks.Song, Decks.SongInfo, Decks.Beatgraph;
 
@@ -1433,6 +1434,13 @@ var
 	Deck: TDeck;
 	Col: TBGRAPixel;
 begin
+	Timer.Tag := Timer.Tag + 1;
+	if Timer.Tag >= 20 then
+	begin
+		Timer.Tag := 0;
+		lCPU.Caption := Format('%.1f', [BASS_GetCPU]) + '%';
+	end;
+
 	if not Config.Mixer.Enabled then Exit;
 
 	W := pbBeats.ClientWidth div 2;
