@@ -194,6 +194,7 @@ type
 		function  GetEffectKnob(Sender: TObject): ThKnob;
 		procedure ResizeEffectButtons;
 		procedure OnLoadProgress(Percentage: Integer);
+		procedure ApplyEffects;
 	public
 		GraphHover,
 		GraphCue:   TPoint;
@@ -1770,6 +1771,7 @@ begin
 			Timer.Enabled := True;
 
 			MainForm.ApplyMixer;
+			ApplyEffects;
 		end;
 
 		MODE_LOAD_GRAPH:
@@ -1841,6 +1843,16 @@ begin
 			MainForm.UpdateController(Deck, Kind);
 
 	end;
+end;
+
+procedure TDeckFrame.ApplyEffects;
+var
+	Fx: TGUIEffect;
+begin
+	if (Effects <> nil) and (Deck.OrigStream <> 0) then
+		for Fx in Effects do
+			if Fx.Effect <> nil then
+				Fx.Effect.Stream := Deck.OrigStream;
 end;
 
 procedure TDeckFrame.pbZonesMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
