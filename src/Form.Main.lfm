@@ -21,7 +21,6 @@ object MainForm: TMainForm
   OnResize = FormResize
   ParentDoubleBuffered = False
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
   object PanelTop: TPanel
     Left = 0
     Height = 48
@@ -521,7 +520,7 @@ object MainForm: TMainForm
       ColorSelectedText = clWhite
       ColorGrid = 4473924
       ColorHover = 3355443
-      SortColumn = -1
+      SortColumn = 0
       HeaderHeight = 22
       HeaderColor = 3553082
       HeaderTextColor = 10001052

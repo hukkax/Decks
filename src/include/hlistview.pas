@@ -316,7 +316,8 @@ begin
 	FColorHover := clWhite;
 	FColorGrid := clSilver;
 
-	FSortColumn := -1;
+	FSortColumn := -1; // no sorting by default
+	FSortReverse := False;
 	FHeaderHeight := 22;
 	FHeaderColor := clBtnFace;
 	FHeaderTextColor := clBtnText;

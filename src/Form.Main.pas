@@ -1005,7 +1005,6 @@ begin
 
 		tsTagScanFinished:
 			FileList.SortItems;
-
 	end;
 end;
 
