@@ -143,7 +143,10 @@ type
 
 	TFXPitchShift = class(TBaseEffect)
 		BFX: BASS_BFX_PITCHSHIFT;
+		{fFFTsize: Single;
+		flOsamp:  Single;}
 		constructor Create;
+		//procedure   ParamChanged(Param: TEffectParam); override;
 	end;
 
 	TFxFilter = class(TBaseEffect)
@@ -443,11 +446,20 @@ begin
 
 	BFX.lChannel := BASS_BFX_CHANALL;
 	BFX.fPitchShift := 0;
-	BFX.lFFTsize := 4096;
-	BFX.lOsamp := 32;
+	BFX.lFFTsize := 1024;
+	BFX.lOsamp := 8;
 
-	AddParam(BFX.fSemitones, 'Semitones',	-12.0, +12.0, 1, 'Semitones');
+	AddParam(BFX.fSemitones, 'Amount',	-12.0, +12.0, 1, 'Semitones');
+	{AddParam(fFFTsize, 'FFT',	+1, +3,  1, 'FFT Size');
+	AddParam(flOsamp,  'Over',	+1, +13, 1, 'Oversampling');}
 end;
+
+{procedure TFXPitchShift.ParamChanged(Param: TEffectParam);
+begin
+	BFX.lFFTsize := Trunc(Power(2, fFFTsize)) * 1024 div 2;
+	BFX.lOsamp   := Trunc(Power(2, flOsamp));
+	inherited ParamChanged(Param);
+end;}
 
 constructor TFxFilter.Create;
 begin
