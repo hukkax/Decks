@@ -154,6 +154,7 @@ type
 	function  AddColumn(const ACaption: String; AWidth: Integer; AVisible: Boolean = True): ThListColumn;
 	function  ColumnAt(X: Integer): Integer;
 	function  GetSubItemFor(const Item: ThListItem; var Column: Integer): String;
+	procedure SortItems;
 
 	function  GetVisibleRows: Integer;
 	procedure ScrollToView(const Item: ThListItem);
@@ -454,16 +455,22 @@ begin
 end;
 
 procedure ThListView.SetSortColumn(I: Integer);
-var
-	Sl: TStringList;
-	Item: ThListItem;
 begin
 	if I <> FSortColumn then
 		FSortReverse := False
 	else
 		FSortReverse := not FSortReverse;
 	FSortColumn := I;
+	SortItems;
+end;
 
+procedure ThListView.SortItems;
+var
+	I: Integer;
+	Sl: TStringList;
+	Item: ThListItem;
+begin
+	I := FSortColumn;
 	Sl := TStringList.Create;
 	try
 		(*for Item in Items do
