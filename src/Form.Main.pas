@@ -11,6 +11,7 @@ uses
 	BGRABitmap, BGRABitmapTypes, BCLabel, BGRAVirtualScreen,
 	hListView, hShellTree, DecksButton, hSlider, hKnob,
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
+	Decks.SongInfo, Decks.TagScanner,
 	Frame.Deck;
 
 {$WARN 5024 off : Parameter "$1" not used}
@@ -182,9 +183,7 @@ type
 		function  FindDeckForm(Index: Integer): TDeckFrame;
 		procedure LoadDeck(Index: Integer = 0);
 
-		procedure OnFileItemAdded(Sender: TObject);
-		procedure OnFileTagsRead(Sender: TObject);
-		procedure OnFileListingDone(Sender: TObject);
+		procedure OnFileScanEvent(EventKind: TTagScannerEventKind; const Filename: String; Tags: PSongTags);
 	end;
 
 	TMixerDeck = record
@@ -226,8 +225,7 @@ uses
 	Math, FileUtil, LazFileUtils, StrUtils,
 	MouseWheelAccelerator, BCTypes, TextInputDialog,
 	BASS, AudioTag, basetag, file_Wave, file_mp3, file_ogg,
-	Decks.TagScanner,
-	Decks.Song, Decks.SongInfo, Decks.Beatgraph;
+	Decks.Song, Decks.Beatgraph;
 
 var
 	TagScanner: TTagScannerJob;
@@ -944,72 +942,71 @@ begin
 	end;
 end;
 
-procedure TMainForm.OnFileItemAdded(Sender: TObject);
-var
-	Filename: String;
-	Item: ThListItem;
-begin
-	Filename := TagScanner.CurrentFilename;
-	Item := FileList.AddItem(ExtractFileName(Filename));
-	if PlayedFilenames.IndexOf(Filename) >= 0 then
-		Item.Color := COLOR_FILE_PLAYED;
-	FileList.Invalidate;
-	Application.ProcessMessages;
-end;
-
-procedure TMainForm.OnFileTagsRead(Sender: TObject);
+procedure TMainForm.OnFileScanEvent(EventKind: TTagScannerEventKind; const Filename: String; Tags: PSongTags);
 var
 	Item: ThListItem;
-	Info: TSongTags;
 	S: String;
 	I: Integer;
 begin
-	Item := FindFileListEntry(TagScanner.CurrentFilename);
-	if Item = nil then Exit;
+	case EventKind of
+		tsFileScanStarted: ;
 
-	Info := TagScanner.CurrentTags;
-	Item.SubItems.Clear;
+		tsFileAdded:
+		begin
+			Item := FileList.AddItem(ExtractFileName(Filename));
+			if PlayedFilenames.IndexOf(Filename) >= 0 then
+				Item.Color := COLOR_FILE_PLAYED;
+			FileList.Invalidate;
+		end;
 
-	if Info.Info.BPM > 1 then
-	begin
-		S := Format('%.2f', [Info.Info.BPM]);
-		if Info.Info.BPM < 100 then S := ' ' + S;
-		if Item.Color = clNone then
-			Item.Color := COLOR_FILE_HASBPM;
-	end
-	else
-		S := '';
+		tsFileScanFinished: // we can only sort by filename at this point
+			if FileList.SortColumn = 0 then FileList.SortItems;
 
-	Item.SubItems.BeginUpdate;
+		tsTagScanStarted: ;
 
-	for I := COLUMN_BPM to COLUMN_COMMENT do
-		Item.SubItems.Add('');
+		tsTagsRead:
+		begin
+			Item := FindFileListEntry(Filename);
+			if Item = nil then Exit;
 
-	Item.SubItems[COLUMN_BPM-1] := S;
-	Item.SubItems[COLUMN_DURATION-1] := Info.Duration;
-	if Info.Info.Bitrate > 0 then
-	begin
-		S := Info.Info.Bitrate.ToString;
-		if Info.Info.Bitrate < 100 then S := ' ' + S;
-		Item.SubItems[COLUMN_BITRATE-1] := S;
+			Item.SubItems.BeginUpdate;
+			Item.SubItems.Clear;
+			for I := COLUMN_BPM to COLUMN_COMMENT do
+				Item.SubItems.Add('');
+
+			if Tags.Info.BPM > 1 then
+			begin
+				S := Format('%.2f', [Tags.Info.BPM]);
+				if Tags.Info.BPM < 100 then S := ' ' + S;
+				if Item.Color = clNone then
+					Item.Color := COLOR_FILE_HASBPM;
+			end
+			else
+				S := '';
+			Item.SubItems[COLUMN_BPM-1] := S;
+			Item.SubItems[COLUMN_DURATION-1] := Tags.Duration;
+			if Tags.Info.Bitrate > 0 then
+			begin
+				S := Tags.Info.Bitrate.ToString;
+				if Tags.Info.Bitrate < 100 then S := ' ' + S;
+				Item.SubItems[COLUMN_BITRATE-1] := S;
+			end;
+			if Tags.Year > 0 then
+				Item.SubItems[COLUMN_YEAR-1]:= Tags.Year.ToString;
+			Item.SubItems[COLUMN_GENRE-1]   := Tags.Genre;
+			Item.SubItems[COLUMN_ARTIST-1]  := Tags.Artist;
+			Item.SubItems[COLUMN_TITLE-1]   := Tags.Title;
+			Item.SubItems[COLUMN_COMMENT-1] := Tags.Comment;
+			Item.Tag := IfThen(Tags.HasImage, 1, 0);
+
+			Item.SubItems.EndUpdate;
+			FileList.Invalidate;
+		end;
+
+		tsTagScanFinished:
+			FileList.SortItems;
+
 	end;
-	if Info.Year > 0 then
-		Item.SubItems[COLUMN_YEAR-1]    := Info.Year.ToString;
-	Item.SubItems[COLUMN_GENRE-1]   := Info.Genre;
-	Item.SubItems[COLUMN_ARTIST-1]  := Info.Artist;
-	Item.SubItems[COLUMN_TITLE-1]   := Info.Title;
-	Item.SubItems[COLUMN_COMMENT-1] := Info.Comment;
-	Item.Tag := IfThen(TagScanner.CurrentTags.HasImage, 1, 0);
-
-	Item.SubItems.EndUpdate;
-
-	FileList.Invalidate;
-	Application.ProcessMessages;
-end;
-
-procedure TMainForm.OnFileListingDone(Sender: TObject);
-begin
-	FileList.SortItems;
 end;
 
 procedure TMainForm.UpdateFileInfo(Deck: TDeck);
@@ -1102,9 +1099,7 @@ begin
 		TagScanner := TTagScannerJob.Create;
 		TagScanner.Directory   := CurrentDir;
 		TagScanner.Extensions  := SupportedFormats;
-		TagScanner.OnFileAdded := OnFileItemAdded;
-		TagScanner.OnTagsRead  := OnFileTagsRead;
-		TagScanner.OnDone      := OnFileListingDone;
+		TagScanner.OnEvent     := OnFileScanEvent;
 		TagScanner.Execute(True);
 	end;
 

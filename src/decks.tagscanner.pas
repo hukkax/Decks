@@ -10,6 +10,12 @@ uses
 	AudioTag, basetag, file_Wave, file_mp3, file_ogg;
 
 type
+	TTagScannerEventKind = (
+		tsFileScanStarted, tsFileAdded, tsFileScanFinished,
+		tsTagScanStarted,  tsTagsRead,  tsTagScanFinished );
+
+	TTagScannerEvent = procedure(EventKind: TTagScannerEventKind; const Filename: String; Tags: PSongTags) of Object;
+
 	TTagScannerJob = class(TObject)
 	private
 		FThread:       TThread;
@@ -21,28 +27,20 @@ type
 		FCurrentFilename,
 		FDirectory,
 		FExtensions: String;
-		FOnFileAdd,
-		FOnFileRead,
-		FOnDone:     TNotifyEvent;
+		FOnEvent: TTagScannerEvent;
 
 		procedure DoExecute;
 		procedure InternalFileProcessed(const Filename: String);
 		procedure InternalFileAdded(const Filename: String);
 		procedure FileProcessed;
 		procedure FileAdded;
-		function  GetCurrentFilename: String;
 	public
 		procedure Execute(UseThreads: Boolean = True);
 		procedure Terminate;
 
 		property Directory:  String read FDirectory  write FDirectory;
 		property Extensions: String read FExtensions write FExtensions;
-		property CurrentFilename: String   read GetCurrentFilename;
-		property CurrentTags: TSongTags    read FTagsList;
-
-		property OnFileAdded: TNotifyEvent read FOnFileAdd  write FOnFileAdd;
-		property OnTagsRead:  TNotifyEvent read FOnFileRead write FOnFileRead;
-		property OnDone:      TNotifyEvent read FOnDone     write FOnDone;
+		property OnEvent: TTagScannerEvent read FOnEvent write FOnEvent;
 
 		procedure ThreadDone(Sender : TObject);
 	end;
@@ -96,6 +94,7 @@ begin
 	// gather list of audio files we want to process
 	if FindFirst(FDirectory + '*.*', 0, Info) = 0 then
 	try
+		if Assigned(FOnEvent) then FOnEvent(tsFileScanStarted, FDirectory, nil);
 		repeat
 			E := LowerCase(ExtractFileExt(Info.Name));
 			If Pos(E, FExtensions) > 0 then
@@ -103,15 +102,18 @@ begin
 		until (FindNext(Info) <> 0) or Terminated;
 	finally
 		FindClose(Info);
+		if Assigned(FOnEvent) then FOnEvent(tsFileScanFinished, FDirectory, nil);
 	end;
 
 	// get tags for each file
+	if Assigned(FOnEvent) then FOnEvent(tsTagScanStarted, '', nil);
 	for S in FFileList do
 	begin
-		if Terminated then Exit;
+		if Terminated then Break;
 		FTagsList := ReadFileTags(S);
 		InternalFileProcessed(S);
 	end;
+	if Assigned(FOnEvent) then FOnEvent(tsTagScanFinished, '', nil);
 end;
 
 // signal a new file in file listing
@@ -132,13 +134,13 @@ end;
 
 procedure TTagScannerJob.FileAdded;
 begin
-	if Assigned(FOnFileAdd) then FOnFileAdd(Self);
+	if Assigned(FOnEvent) then FOnEvent(tsFileAdded, FCurrentFilename, nil);
 	Queued := False;
 end;
 
 procedure TTagScannerJob.FileProcessed;
 begin
-	if Assigned(FOnFileRead) then FOnFileRead(Self);
+	if Assigned(FOnEvent) then FOnEvent(tsTagsRead, ExtractFileName(FCurrentFilename), @FTagsList);
 	Queued := False;
 end;
 
@@ -150,18 +152,11 @@ begin
 
 	FThread := nil;
 	FFileList.Free;
-
-	if Assigned(FOnDone) then FOnDone(Self);
 end;
 
 procedure TTagScannerJob.Terminate;
 begin
 	Terminated := True;
-end;
-
-function TTagScannerJob.GetCurrentFilename: String;
-begin
-	Result := ExtractFileName(FCurrentFilename);
 end;
 
 // ================================================================================================
