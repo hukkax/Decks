@@ -450,6 +450,7 @@ object DeckFrame: TDeckFrame
       Color = clGray
       ParentColor = False
       TabOrder = 2
+      OnDblClick = pbRulerDblClick
       OnMouseDown = pbRulerMouseDown
     end
     object bDeckMenu: TDecksButton

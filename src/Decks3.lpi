@@ -175,7 +175,8 @@
 -OoPEEPHOLE
 -OoUSELOADMODIFYSTORE
 -OoAUTOINLINE
--dRELEASE"/>
+-dRELEASE
+-dUSEMIDI"/>
       <OtherDefines Count="1">
         <Define0 Value="RELEASE"/>
       </OtherDefines>

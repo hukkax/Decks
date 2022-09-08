@@ -393,7 +393,7 @@ begin
 	DECK_PLAY:			if Pressed then Form.bPlayClick(Self);
 	DECK_CUE:			if (Deck.Paused) or (Deck.Cueing) then Form.Cue(Pressed)
 							else if Pressed then Form.JumpToCue;
-	DECK_SYNC:			; // TODO
+	DECK_SYNC:			if Pressed then Form.SetSynced(not Deck.Synced);
 	DECK_REVERSE:		Deck.SetReverse(Pressed, True);
 	DECK_LOAD:			if Pressed then LoadDeck(DeckNum);
 	DECK_AMP:			Form.SliderAmp.Position := Trunc(((Value) / 128) * 200);
@@ -460,6 +460,11 @@ begin
 			MIDI.SetLed(MIXER_EQ_KILL, B, Event = MODE_EQ_KILL_ON);
 		end;
 
+		MODE_SYNC_ON, MODE_SYNC_OFF:
+		begin
+			MIDI.SetLed(DECK_SYNC, B, Deck.Synced);
+		end;
+
 	end;
 end;
 
@@ -501,6 +506,10 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 var
 	i: Integer;
+	{$IFDEF USEMIDI}
+	S: String;
+	mi: TMenuItem;
+	{$ENDIF}
 begin
 	DefaultFormatSettings.DecimalSeparator := '.';
 	Config.Load;
@@ -566,17 +575,19 @@ begin
 	//
 	{$IFDEF USEMIDI}
 	MIDI.Init;
-
-	for i := 0 to MIDI.InputDeviceList.Count-1 do
+	if Assigned(MIDI.InputDeviceList) then
 	begin
-		S := MIDI.InputDeviceList[i];
-		mi := TMenuItem.Create(miMIDIInput);
-		mi.Caption := S;
-		mi.GroupIndex := 1;
-		mi.RadioItem := True;
-		//mi.AutoCheck := True;
-		mi.Checked := (i = MIDI.InDevice);
-		miMIDIInput.Add(mi);
+		for i := 0 to MIDI.InputDeviceList.Count-1 do
+		begin
+			S := MIDI.InputDeviceList[i];
+			mi := TMenuItem.Create(miMIDIInput);
+			mi.Caption := S;
+			mi.GroupIndex := 1;
+			mi.RadioItem := True;
+			//mi.AutoCheck := True;
+			mi.Checked := (i = MIDI.InDevice);
+			miMIDIInput.Add(mi);
+		end;
 	end;
 	{$ENDIF}
 	miMIDIInput.Visible := miMIDIInput.Count > 0;
