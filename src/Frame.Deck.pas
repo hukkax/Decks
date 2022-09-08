@@ -2055,7 +2055,7 @@ begin
 	BeginFormUpdate;
 
 	X := 8;
-	W := Min(180, (pnlEffects.ClientWidth - 16 - 300) div 3);
+	W := Min(180, (pnlEffects.ClientWidth - 16 - 300) div 4);
 
 	for i := 0 to Effects.Count-1 do
 	begin
