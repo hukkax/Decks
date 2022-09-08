@@ -6,6 +6,7 @@ interface
 
 uses
 	SysUtils, Classes, //SyncObjs, LMessages,
+	Decks.SongInfo,
 	AudioTag, basetag, file_Wave, file_mp3, file_ogg;
 
 type
@@ -13,7 +14,7 @@ type
 	private
 		FThread:       TThread;
 		FFileList:     TStringList;
-		FTagsList:     TCommonTags;
+		FTagsList:     TSongTags;
 		Terminated,
 		Queued:        Boolean;
 
@@ -29,14 +30,15 @@ type
 		procedure InternalFileAdded(const Filename: String);
 		procedure FileProcessed;
 		procedure FileAdded;
+		function  GetCurrentFilename: String;
 	public
 		procedure Execute(UseThreads: Boolean = True);
 		procedure Terminate;
 
 		property Directory:  String read FDirectory  write FDirectory;
 		property Extensions: String read FExtensions write FExtensions;
-		property CurrentFilename: String   read FCurrentFilename;
-		property CurrentTags: TCommonTags  read FTagsList;
+		property CurrentFilename: String   read GetCurrentFilename;
+		property CurrentTags: TSongTags    read FTagsList;
 
 		property OnFileAdded: TNotifyEvent read FOnFileAdd  write FOnFileAdd;
 		property OnTagsRead:  TNotifyEvent read FOnFileRead write FOnFileRead;
@@ -54,8 +56,7 @@ type
 	end;
 
 	function ReadTags(const Filename: String): TTagReader;
-	function ReadFileTags(const Filename: String): TCommonTags;
-	function TagsToStringList(const Tags: TCommonTags): TStringList;
+	function ReadFileTags(const Filename: String): TSongTags;
 
 
 implementation
@@ -104,6 +105,7 @@ begin
 		FindClose(Info);
 	end;
 
+	// get tags for each file
 	for S in FFileList do
 	begin
 		if Terminated then Exit;
@@ -157,6 +159,11 @@ begin
 	Terminated := True;
 end;
 
+function TTagScannerJob.GetCurrentFilename: String;
+begin
+	Result := ExtractFileName(FCurrentFilename);
+end;
+
 // ================================================================================================
 // TTagScannerThread
 // ================================================================================================
@@ -177,45 +184,6 @@ end;
 // Tag reading
 // ================================================================================================
 
-function ReadTags(const Filename: String): TTagReader;
-var
-	TagClass: TTagReaderClass;
-begin
-	if not FileExists(Filename) then Exit(nil);
-	try
-		TagClass := IdentifyKind(Filename);
-	except
-		Exit(nil);
-	end;
-	Result := TagClass.Create;
-	try
-		Result.LoadFromFile(Filename);
-	except
-	end;
-end;
-
-function ReadFileTags(const Filename: String): TCommonTags;
-var
-	TagReader: TTagReader;
-begin
-	TagReader := ReadTags(Filename);
-	try
-		if Assigned(TagReader) then
-		begin
-			Result.Index := 0;
-			Result := TagReader.GetCommonTags;
-			Result.Index := TagReader.MediaProperty.Bitrate;
-			if (TagReader is TMP3Reader) then
-				if TMP3Reader(TagReader).isVBR then
-					Result.Index := -Result.Index;
-		end
-		else
-			Result := Default(TCommonTags);
-	finally
-		TagReader.Free;
-	end;
-end;
-
 function Fix(const S: String): String;
 var
 	X: Integer;
@@ -227,39 +195,64 @@ begin
 		Result := Copy(S, 1, X-1);
 end;
 
-function TagsToStringList(const Tags: TCommonTags): TStringList;
+function ReadTags(const Filename: String): TTagReader;
 var
-	S: String;
+	TagClass: TTagReaderClass;
 begin
-	Result := TStringList.Create;
+	Result := nil;
+	if not FileExists(Filename) then Exit;
+	try
+		TagClass := IdentifyKind(Filename);
+		Result := TagClass.Create;
+		Result.LoadFromFile(Filename);
+	except
+	end;
+end;
 
-	if Tags.Duration > 0 then
-		Result.Add(
-			FormatDateTime('nn:ss', Tags.Duration / MSecsPerDay).Replace('.',':'))
-	else
-		Result.Add('');
+function ReadFileTags(const Filename: String): TSongTags;
+var
+	TagReader: TTagReader;
+	Tags: TCommonTags;
+	Info: TSongInfo;
+	S: String;
+	I: Integer;
+begin
+	Result := Default(TSongTags);
 
-	if Tags.Index <> 0 then // bitrate
+	TagReader := ReadTags(Filename);
+	try
+		if Assigned(TagReader) then
+			Tags := TagReader.GetCommonTags
+		else
+			Tags := Default(TCommonTags);
+
+		Result.Artist  := Fix(Tags.Artist);
+		Result.Title   := Fix(Tags.Title);
+		Result.Comment := Fix(Tags.Comment);
+		Result.Genre   := Tags.Genre;
+		if Length(Tags.Year) >= 4 then
+		begin
+			S := Copy(Tags.Year, 1, 4);
+			if TryStrToInt(S, I) then
+				Result.Year := Abs(I);
+		end;
+		Result.Info.Bitrate := TagReader.MediaProperty.Bitrate;
+		Result.Info.Length := Tags.Duration / 1000; // ms->s
+		Result.HasImage := Tags.HasImage;
+	finally
+		TagReader.Free;
+	end;
+
+	Info := GetSongInfo(ExtractFileName(Filename), nil);
+	if Info.Initialized then
 	begin
-		S := Abs(Tags.Index).ToString;
-		if Abs(Tags.Index) < 100 then
-			S := ' ' + S;
-		//if Tags.Index < 0 then S := S + '*'; // VBR
-		Result.Add(S);
-	end
-	else
-		Result.Add('');
-
-	if Length(Tags.Year) < 4 then
-		Result.Add('')
-	else
-		Result.Add(Copy(Tags.Year, 1, 4));
-
-	Result.Add(Tags.Genre);
-
-	Result.Add(Fix(Tags.Artist));
-	Result.Add(Fix(Tags.Title));
-	Result.Add(Fix(Tags.Comment));
+		if Info.Length >= 1.0 then
+			Result.Info.Length  := Info.Length;
+		if Info.Bitrate > 0 then
+			Result.Info.Bitrate := Info.Bitrate;
+		Result.Info.Amp := Info.Amp;
+		Result.Info.BPM := Info.BPM;
+	end;
 end;
 
 

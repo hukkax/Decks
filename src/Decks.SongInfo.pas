@@ -24,6 +24,20 @@ type
 		//StartPos:    QWord;    // graph start offset in songdata bytes
 	end;
 
+	TSongTags = record
+	private
+		function GetDuration: String;
+	public
+		Artist,
+		Title,
+		Genre,
+		Comment:  String;
+		Year:     Word;
+		HasImage: Boolean;
+		Info:     TSongInfo;
+		property Duration: String read GetDuration;
+	end;
+
 	// todo move elsewhere
 	function  Split(const S: String; out L, R: String): Boolean;
 	function  SplitInt(const S: String; out L, R: Int64): Boolean;
@@ -308,6 +322,16 @@ begin
 		end;
 	except
 	end;
+end;
+
+{ TSongTags }
+
+function TSongTags.GetDuration: String;
+begin
+	if Info.Length > 0 then
+		Result := FormatDateTime('nn:ss', Info.Length / SecsPerDay).Replace('.',':')
+	else
+		Result := '';
 end;
 
 end.
