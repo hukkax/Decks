@@ -84,6 +84,7 @@ type
 		FAngleInterval: Single;		{ The angle each step represents }
 		FAngle: Integer;			{ The current angle of the indicator }
 		FMouseAngle: Integer;		{ The current mouse 'angle' over the knob }
+		FArc: Word;
 		FDragging: Boolean;			{ Knob position is being 'changed' }
 		FSensitivity: Integer;		{ Movement area when fVerticalMove }
 		FMultiplier: Integer;		{ Multiplier for integer/float conversion }
@@ -127,6 +128,7 @@ type
 		procedure CM_TextChanged(var Msg: TLMessage);        message CM_TextChanged;
 		function GetFloatPosition: Single;
 		procedure SetFloatPosition(Value: Single);
+		procedure SetArc(Value: Word);
 	protected
 		function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
 
@@ -151,6 +153,7 @@ type
 		property Max: Integer read FMax write SetMax default 100;
 		property SmallChange: Integer read FSmallChange write FSmallChange default 1;
 		property Caption;
+		property Arc: Word read FArc write SetArc;
 		property Indicator: TKnobLineProperty read FIndicator write FIndicator;
 		property KnobColor: TColor read FKnobColor write SetKnobColor default clBlack;
 		property BorderColor: TColor read FBorderColor write SetBorderColor default clNone;
@@ -311,6 +314,7 @@ begin
 	FMax := 100;
 	FPosition := 50;
 	FSnap := 9;
+	FArc := 60;
 	FSpringLoaded := False;
 	FVerticalMove := True;
 	FCursorHide := False;
@@ -424,11 +428,20 @@ end;
 procedure ThKnob.SetSteps;
 begin
 	FSteps := FMax - FMin;
-	if FSteps = 0 then FAngleInterval:= 0 else
+	if FSteps = 0 then FAngleInterval := 0 else
 	begin
-		FAngleInterval := 300 / FSteps;
+		FAngleInterval := (180 + (FArc*2)) / FSteps;
 		FSteps := Abs(FSteps);
 	end;
+end;
+
+procedure ThKnob.SetArc(Value: Word);
+begin
+	if Value > 88 then Value := 88;
+	if FArc = Value then Exit;
+	FArc := Value;
+	SetSteps;
+	Invalidate;
 end;
 
 {Calculate characteristics of knob when Position, Max or Min are changed}
@@ -704,7 +717,7 @@ begin
 			if X = ii then
 			begin
 				if Y > ii
-					then fMouseAngle := 240
+					then fMouseAngle := 180+FArc
 					else fMouseAngle := 90; // rotation behaviour
 			end
 			else
@@ -713,10 +726,10 @@ begin
 				if X < Width div 2 then
 					fMouseAngle := (fMouseAngle + 540) mod 360;
 			end;
-			if (fMouseAngle > 240) and (fMouseAngle <= 270) then
-				fMouseAngle := 240;
-			if (fMouseAngle < -60) then
-				fMouseAngle := -60;
+			if (fMouseAngle > (180+FArc)) and (fMouseAngle <= (180+30+FArc)) then
+				fMouseAngle := 180+FArc;
+			if (fMouseAngle < -FArc) then
+				fMouseAngle := -FArc;
 			NewPosition := CalcPosition(fMouseAngle);
 		end; // not fVerticalMove
 		if fPosition <> NewPosition then
@@ -754,7 +767,7 @@ end;
 {Calculate fAngle based on fMin, fPosition and fAngleInterval}
 procedure ThKnob.CalcAngle;
 begin
-	fAngle := 240 - Round((fPosition - fMin) * fAngleInterval);
+	fAngle := (180+FArc) - Round((fPosition - fMin) * fAngleInterval);
 end;
 
 {Calculate fPosition based on fMin, fMax, Angle parameter and fAngleInterval}
@@ -791,7 +804,7 @@ begin
 		if fAngleInterval = 0 then
 			Result := fMin
 		else
-			Result := fMin + Round((240 - TheAngle) / fAngleInterval);
+			Result := fMin + Round(((180+FArc) - TheAngle) / fAngleInterval);
 	end;
 end;
 
@@ -827,7 +840,7 @@ begin
 	end
 	else
 		Buffer.Arc(Radius, Radius, Radius-FBorderWidth, Radius-FBorderWidth,
-			DegToRad(0-60), DegToRad(180+60),
+			DegToRad(0-FArc), DegToRad(180+FArc),
 			ColorToBGRA(FBorderColor),
 			FBorderWidth, False,
 			FillColor);
