@@ -171,6 +171,7 @@ type
 		procedure SliderFxParam0MouseLeave(Sender: TObject);
 		procedure pnlEffectsResize(Sender: TObject);
 		procedure miSetMasterTempoClick(Sender: TObject);
+		procedure pbRulerDblClick(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -227,6 +228,7 @@ type
 		function  ProcessKeyPress(var Key: Char): Boolean;
 
 		procedure SetZoneKind(Zone: Word; Kind: TZoneKind);
+		procedure SetSynced(B: Boolean);
 
 		procedure ShowPosition;
 		procedure SyncToOtherDeck(Immediate: Boolean);
@@ -690,15 +692,22 @@ begin
 	end;
 end;
 
+procedure TDeckFrame.SetSynced(B: Boolean);
+begin
+	Deck.Synced := B;
+	bSync.StateNormal.Border.LightWidth := IfThen(B, 1, 0);
+	if B then
+		MainForm.UpdateController(Deck, MODE_SYNC_ON)
+	else
+		MainForm.UpdateController(Deck, MODE_SYNC_OFF);
+end;
+
 procedure TDeckFrame.bSyncMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
 	case Button of
 		mbLeft:
-		begin
-			Deck.Synced := not Deck.Synced;
-			bSync.StateNormal.Border.LightWidth := IfThen(Deck.Synced, 1, 0);
-		end;
+			SetSynced(not Deck.Synced);
 
 		mbRight:
 			SyncToOtherDeck(True);
@@ -1076,6 +1085,7 @@ begin
 	GraphCue := Deck.Graph.PosToGraph(P, True);
 	DrawWaveform;
 	DrawGraph;
+	DrawRuler;
 end;
 
 // input in graph pixel coords
@@ -1086,6 +1096,7 @@ begin
 	CuePos := Deck.Graph.GraphToPos(P, True);
 	DrawWaveform;
 	DrawGraph;
+	DrawRuler;
 end;
 
 procedure TDeckFrame.AfterPosJump(Data: PtrInt);
@@ -1277,6 +1288,11 @@ begin
 	SetCue(GraphCue);
 end;
 
+procedure TDeckFrame.pbRulerDblClick(Sender: TObject);
+begin
+	if Enabled then JumpToCue;
+end;
+
 procedure TDeckFrame.pbRulerRedraw(Sender: TObject; Bitmap: TBGRABitmap);
 begin
 	DrawRuler;
@@ -1459,6 +1475,8 @@ const
 	Col: array[0..3] of TColor = (clWhite, clSilver, clGray, clSilver);
 var
 	C, A, X, Z, H, Gap: Integer;
+	XX, CX: Cardinal;
+	Cl: TBGRAPixel;
 begin
 	if not Enabled then Exit;
 
@@ -1474,12 +1492,18 @@ begin
 			X := 0;
 			C := 0;
 			Gap := IfThen(Z > 2, 1, 0);
-
+			XX := 0;
+			CX := GraphCue.X div Z;
 			repeat
 				for A := 0 to 3 do
 				begin
-					Ruler.FillRect(X, 1, X+Z-Gap, H-1, ColorToBGRA(Col[C mod 4]));
+					if XX = CX then
+						Cl := BGRA(30, 255, 20)
+					else
+						Cl := ColorToBGRA(Col[C mod 4]);
+					Ruler.FillRect(X, 1, X+Z-Gap, H-1, Cl);
 					Inc(X, Z);
+					Inc(XX);
 				end;
 				Inc(C); // color index
 			until X >= Ruler.Width;
@@ -1487,7 +1511,7 @@ begin
 	end;
 
 	pbRuler.Bitmap.PutImage(-Deck.Graph.Scroll.X, 0, Ruler, dmSet);
-	pbRuler.Repaint;
+	pbRuler.Invalidate;
 end;
 
 function TDeckFrame.DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; const Palette: TBGRAPalette): QWord;
@@ -1842,7 +1866,8 @@ begin
 
 		//MODE_TEMPOCHANGE: ShowPosition;
 
-		MODE_EQ_KILL_ON, MODE_EQ_KILL_OFF:
+		MODE_EQ_KILL_ON, MODE_EQ_KILL_OFF,
+		MODE_SYNC_ON, MODE_SYNC_OFF:
 			MainForm.UpdateController(Deck, Kind);
 
 	end;
