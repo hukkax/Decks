@@ -947,9 +947,9 @@ object DeckFrame: TDeckFrame
       DropDownArrow = True
       DropDownMenu = PopupEffectPresets
     end
-    object bEffect5: TDecksButton
-      Tag = 5
-      Left = 156
+    object bEffect7: TDecksButton
+      Tag = 7
+      Left = 242
       Height = 28
       Top = 30
       Width = 86
@@ -1528,6 +1528,112 @@ object DeckFrame: TDeckFrame
         Position = 100
         PageSize = 0
       end
+    end
+    object bEffect5: TDecksButton
+      Tag = 5
+      Left = 156
+      Height = 28
+      Top = 30
+      Width = 86
+      StateNormal.Background.Color = clTeal
+      StateNormal.Background.Gradient1.StartColor = 2171427
+      StateNormal.Background.Gradient1.EndColor = 2171427
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = 2171427
+      StateNormal.Background.Gradient2.EndColor = 2171427
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 13691376
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 2
+      Caption = 'FxName'
+      Color = clWhite
+      DropDownWidth = 19
+      DropDownArrowSize = 9
+      GlobalOpacity = 255
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      Rounding.RoundOptions = [rrTopLeftSquare, rrBottomRightSquare, rrBottomLeftSquare]
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+      DropDownArrow = True
+      DropDownMenu = PopupEffectPresets
+    end
+    object bEffect6: TDecksButton
+      Tag = 6
+      Left = 242
+      Height = 28
+      Top = 4
+      Width = 86
+      StateNormal.Background.Color = clTeal
+      StateNormal.Background.Gradient1.StartColor = 2171427
+      StateNormal.Background.Gradient1.EndColor = 2171427
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = 2171427
+      StateNormal.Background.Gradient2.EndColor = 2171427
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 13691376
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      StateNormal.FontEx.PaddingBottom = 2
+      Caption = 'FxName'
+      Color = clWhite
+      DropDownWidth = 19
+      DropDownArrowSize = 9
+      GlobalOpacity = 255
+      ParentColor = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      Rounding.RoundOptions = [rrTopLeftSquare, rrBottomRightSquare, rrBottomLeftSquare]
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+      DropDownArrow = True
+      DropDownMenu = PopupEffectPresets
     end
   end
   object Timer: TTimer

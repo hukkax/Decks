@@ -95,11 +95,13 @@ type
 		SliderFxParam3: ThKnob;
 		SliderFxParam4: ThKnob;
 		SliderFxParam5: ThKnob;
-		bEffect5: TDecksButton;
+		bEffect7: TDecksButton;
 		pnlEffectKnobs: TPanel;
 		PopupEffectPresets: TPopupMenu;
 		miSetMasterTempo: TMenuItem;
 		MenuItem2: TMenuItem;
+		bEffect5: TDecksButton;
+		bEffect6: TDecksButton;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -944,14 +946,15 @@ begin
 	Effects := TEffectsList.Create(True);
 	SelectedEffect := 255;
 
-//	AddGUIEffect(TFxEcho.Create,       bEffect0);
-	AddGUIEffect(TFxFilter.Create,     bEffect0);
+	AddGUIEffect(TFxEcho.Create,       bEffect0);
 	AddGUIEffect(TFxReverb.Create,     bEffect1);
 	AddGUIEffect(TFxPhaser.Create,     bEffect2);
 	AddGUIEffect(TFxChorus.Create,     bEffect3);
 //	AddGUIEffect(TFxDistortion.Create, bEffect4);
 	AddGUIEffect(TFxCompressor.Create, bEffect4);
-	AddGUIEffect(nil, bEffect5);
+	AddGUIEffect(TFxFilter.Create,     bEffect5);
+	AddGUIEffect(TFXPitchShift.Create, bEffect6);
+	AddGUIEffect(nil, bEffect7);
 
 	InitGUIEffectParam(0, SliderFxParam0);
 	InitGUIEffectParam(1, SliderFxParam1);

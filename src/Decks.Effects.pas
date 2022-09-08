@@ -141,6 +141,11 @@ type
 		constructor Create;
 	end;
 
+	TFXPitchShift = class(TBaseEffect)
+		BFX: BASS_BFX_PITCHSHIFT;
+		constructor Create;
+	end;
+
 	TFxFilter = class(TBaseEffect)
 		BFX: BASS_BFX_BQF;
 		fCutoff: Single;
@@ -430,6 +435,18 @@ begin
 
 	AddPreset([5, -15, 3, 20, 500],	'Default');
 	ApplyPreset(Presets.First);
+end;
+
+constructor TFXPitchShift.Create;
+begin
+	inherited Create(BASS_FX_BFX_PITCHSHIFT, @BFX, 'PitchShift');
+
+	BFX.lChannel := BASS_BFX_CHANALL;
+	BFX.fPitchShift := 0;
+	BFX.lFFTsize := 4096;
+	BFX.lOsamp := 32;
+
+	AddParam(BFX.fSemitones, 'Semitones',	-12.0, +12.0, 1, 'Semitones');
 end;
 
 constructor TFxFilter.Create;
