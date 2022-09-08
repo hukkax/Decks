@@ -10,6 +10,11 @@ uses
 	AudioTag, basetag, file_Wave, file_mp3, file_ogg;
 
 type
+	TTagScannerEventKind = ( tsStarted, tsItemProcessed, tsFinished );
+
+	TTagScannerFileEvent = procedure(EventKind: TTagScannerEventKind; const Filename: String) of Object;
+	TTagScannerTagsEvent = procedure(EventKind: TTagScannerEventKind; Tags: PSongTags) of Object;
+
 	TTagScannerJob = class(TObject)
 	private
 		FThread:       TThread;
@@ -21,9 +26,8 @@ type
 		FCurrentFilename,
 		FDirectory,
 		FExtensions: String;
-		FOnFileAdd,
-		FOnFileRead,
-		FOnDone:     TNotifyEvent;
+		FOnFileAdd:  TTagScannerFileEvent;
+		FOnFileRead: TTagScannerTagsEvent;
 
 		procedure DoExecute;
 		procedure InternalFileProcessed(const Filename: String);
@@ -40,9 +44,8 @@ type
 		property CurrentFilename: String   read GetCurrentFilename;
 		property CurrentTags: TSongTags    read FTagsList;
 
-		property OnFileAdded: TNotifyEvent read FOnFileAdd  write FOnFileAdd;
-		property OnTagsRead:  TNotifyEvent read FOnFileRead write FOnFileRead;
-		property OnDone:      TNotifyEvent read FOnDone     write FOnDone;
+		property OnFileAdded: TTagScannerFileEvent read FOnFileAdd  write FOnFileAdd;
+		property OnTagsRead:  TTagScannerTagsEvent read FOnFileRead write FOnFileRead;
 
 		procedure ThreadDone(Sender : TObject);
 	end;
@@ -96,6 +99,7 @@ begin
 	// gather list of audio files we want to process
 	if FindFirst(FDirectory + '*.*', 0, Info) = 0 then
 	try
+		if Assigned(FOnFileAdd) then FOnFileAdd(tsStarted, FDirectory);
 		repeat
 			E := LowerCase(ExtractFileExt(Info.Name));
 			If Pos(E, FExtensions) > 0 then
@@ -103,15 +107,18 @@ begin
 		until (FindNext(Info) <> 0) or Terminated;
 	finally
 		FindClose(Info);
+		if Assigned(FOnFileAdd) then FOnFileAdd(tsFinished, FDirectory);
 	end;
 
 	// get tags for each file
+	if Assigned(FOnFileRead) then FOnFileRead(tsStarted, nil);
 	for S in FFileList do
 	begin
 		if Terminated then Exit;
 		FTagsList := ReadFileTags(S);
 		InternalFileProcessed(S);
 	end;
+	if Assigned(FOnFileRead) then FOnFileRead(tsFinished, nil);
 end;
 
 // signal a new file in file listing
@@ -132,13 +139,13 @@ end;
 
 procedure TTagScannerJob.FileAdded;
 begin
-	if Assigned(FOnFileAdd) then FOnFileAdd(Self);
+	if Assigned(FOnFileAdd) then FOnFileAdd(tsItemProcessed, FCurrentFilename);
 	Queued := False;
 end;
 
 procedure TTagScannerJob.FileProcessed;
 begin
-	if Assigned(FOnFileRead) then FOnFileRead(Self);
+	if Assigned(FOnFileRead) then FOnFileRead(tsItemProcessed, @FTagsList);
 	Queued := False;
 end;
 
@@ -150,8 +157,6 @@ begin
 
 	FThread := nil;
 	FFileList.Free;
-
-	if Assigned(FOnDone) then FOnDone(Self);
 end;
 
 procedure TTagScannerJob.Terminate;

@@ -37,6 +37,7 @@ type
 		Info:     TSongInfo;
 		property Duration: String read GetDuration;
 	end;
+	PSongTags = ^TSongTags;
 
 	// todo move elsewhere
 	function  Split(const S: String; out L, R: String): Boolean;
