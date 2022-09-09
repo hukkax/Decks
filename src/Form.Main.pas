@@ -354,6 +354,7 @@ procedure TMainForm.Execute(Action: TDecksAction; Pressed: Boolean = True; Value
 const
 	EQBandFrom: array[MIXER_EQ_LOW..MIXER_EQ_HIGH] of TEQBand =
 		(EQ_BAND_LOW, EQ_BAND_MID, EQ_BAND_HIGH);
+	KnobSnap = 6;
 var
 	Deck: TDeck;
 	Form: TDeckFrame;
@@ -404,9 +405,19 @@ begin
 	MIXER_CROSSFADER:	sFader.Position := Round((Value / 127) * 1000);
 	MIXER_EQ_KILL:		if Pressed then Deck.ToggleEQKill(EQ_BAND_LOW);
 	MIXER_EQ_LOW..
-	MIXER_EQ_HIGH:		if DeckNum > 0 then EQControls[DeckNum,
-							EQBandFrom[Action.Kind]].Position :=
-							Trunc(((Value - 64) / 128) * 3000);
+	MIXER_EQ_HIGH:		if DeckNum > 0 then
+						begin
+							Value := Value - 64;
+							if InRange(Value, -KnobSnap, +KnobSnap) then
+								Value := 0;
+							//else if Value < 0 then Inc(Value, KnobSnap)
+							//else if Value > 0 then Dec(Value, KnobSnap);
+							EQControls[DeckNum, EQBandFrom[Action.Kind]].Position :=
+								Trunc((Value / 128) * 3000);
+						end;
+	DECK_FX_FILTER:		if DeckNum > 0 then
+							Form.SliderFxParam0.FloatPosition :=
+								((Value - 64) / 127) * 2;
 
 	UI_LIST:			if Pressed then SetActiveList(Value > 0);
 	UI_SELECT:			if Pressed then ListBrowse(Value);
@@ -960,13 +971,15 @@ var
 	I: Integer;
 begin
 	case EventKind of
-		tsFileScanStarted: ;
+		tsFileScanStarted: FileList.ItemIndex := -1;
 
 		tsFileAdded:
 		begin
 			Item := FileList.AddItem(ExtractFileName(Filename));
 			if PlayedFilenames.IndexOf(Filename) >= 0 then
 				Item.Color := COLOR_FILE_PLAYED;
+			if FileList.ItemIndex < 0 then
+				FileList.ItemIndex := 0;
 			FileList.Invalidate;
 		end;
 
