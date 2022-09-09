@@ -406,12 +406,18 @@ end;
 
 function ThKnob.GetFloatPosition: Single;
 begin
-	Result := FPosition / FMultiplier;
+	if not IsZero(FMultiplier) then
+		Result := FPosition / FMultiplier
+	else
+		Result := FPosition;
 end;
 
 procedure ThKnob.SetFloatPosition(Value: Single);
 begin
-	Position := Trunc(Value * FMultiplier);
+	if not IsZero(FMultiplier) then
+		Position := Trunc(Value * FMultiplier)
+	else
+		Position := Trunc(Value);
 end;
 
 procedure ThKnob.SetMin(const NewMinValue: Integer);
@@ -488,7 +494,7 @@ procedure ThKnob.ShowPosition(const ThePosition: Integer);
 begin
 	if FPositionLabel <> nil then
 	begin
-		if (FMultiplier <> 0) then
+		if not IsZero(FMultiplier) then
 		begin
 			if (Pos('%f', Caption) > 0) then
 				FPositionLabel.Caption := Format(Caption, [GetFloatPosition])
