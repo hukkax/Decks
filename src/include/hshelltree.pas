@@ -39,6 +39,7 @@ type
 	property OnScroll: TListScrollEvent read FOnScroll write FOnScroll;
     property ScrolledLeft;
     property ScrolledTop;
+	property DoubleBuffered;
   end;
 
   procedure Register;

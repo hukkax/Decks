@@ -210,7 +210,7 @@ type
 	property OnMouseWheel;
 	property OnMouseEnter;
 	property OnMouseLeave;
-
+	property DoubleBuffered;
 	property TabOrder;
 	property TabStop;
   end;
@@ -941,7 +941,6 @@ begin
 	Canvas.Font.Assign(FFont);
 	Canvas.Brush.Style := bsSolid;
 	Canvas.Brush.Color := C;
-
 
 	CR := Rect(0, 0, ClientWidth, ClientHeight-FHeaderHeight);
 
