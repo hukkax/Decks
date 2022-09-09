@@ -94,7 +94,8 @@ type
 	public
 		FxHandle:   HFX;
 
-		Name:       String;
+		Name,
+		ShortName:  String;
 		Params:     TEffectParams;
 		Presets:    TEffectPresets;
 
@@ -107,7 +108,7 @@ type
 		property    Enabled: Boolean read FEnabled write SetEnabled;
 		property	Stream:  HSTREAM read FStream  write SetStream;
 
-		constructor Create(AFxType: DWord; BFXObject: Pointer; const AName: String);
+		constructor Create(AFxType: DWord; BFXObject: Pointer; const AName, AShortName: String);
 		destructor  Destroy; override;
 	end;
 
@@ -206,11 +207,15 @@ end;
 // TBaseEffect
 // ================================================================================================
 
-constructor TBaseEffect.Create(AFxType: DWord; BFXObject: Pointer; const AName: String);
+constructor TBaseEffect.Create(AFxType: DWord; BFXObject: Pointer; const AName, AShortName: String);
 begin
 	inherited Create;
 
 	Name := AName;
+	if AShortName.IsEmpty then
+		ShortName := AName
+	else
+		ShortName := AShortName;
 	FStream := 0;
 	FxType := AFxType;
 	BFXPointer := BFXObject;
@@ -317,7 +322,7 @@ end;
 
 constructor TFxEcho.Create;
 begin
-	inherited Create(BASS_FX_BFX_ECHO4, @BFX, 'Echo');
+	inherited Create(BASS_FX_BFX_ECHO4, @BFX, 'Echo', '');
 	BFX.lChannel := BASS_BFX_CHANALL;
 
 	AddParam(BFX.fDryMix,	STR_MIX_DRY,	+0.0,	+1.0,	MUL_DEFAULT,	STR_MIX_DRY_DESC);
@@ -336,7 +341,7 @@ end;
 
 constructor TFxReverb.Create;
 begin
-	inherited Create(BASS_FX_BFX_FREEVERB, @BFX, 'Reverb');
+	inherited Create(BASS_FX_BFX_FREEVERB, @BFX, 'Reverb', 'Revb');
 	BFX.lChannel := BASS_BFX_CHANALL;
 
 	AddParam(BFX.fDryMix,	STR_MIX_DRY,	+0.0,	+1.0,	MUL_DEFAULT,	STR_MIX_DRY_DESC);
@@ -353,7 +358,7 @@ end;
 
 constructor TFxPhaser.Create;
 begin
-	inherited Create(BASS_FX_BFX_PHASER, @BFX, 'Phaser');
+	inherited Create(BASS_FX_BFX_PHASER, @BFX, 'Phaser', 'Phsr');
 	BFX.lChannel := BASS_BFX_CHANALL;
 
 	AddParam(BFX.fDryMix,	STR_MIX_DRY,	+0.0,	+2.0,	MUL_DEFAULT,	STR_MIX_DRY_DESC);
@@ -378,7 +383,7 @@ end;
 
 constructor TFxChorus.Create;
 begin
-	inherited Create(BASS_FX_BFX_CHORUS, @BFX, 'Chorus');
+	inherited Create(BASS_FX_BFX_CHORUS, @BFX, 'Chorus', 'Chrs');
 	BFX.lChannel := BASS_BFX_CHANALL;
 
 	AddParam(BFX.fDryMix,	STR_MIX_DRY,	-2.0,	+2.0,	MUL_DEFAULT,	STR_MIX_DRY_DESC);
@@ -403,7 +408,7 @@ end;
 
 constructor TFxDistortion.Create;
 begin
-	inherited Create(BASS_FX_BFX_DISTORTION, @BFX, 'Distortion');
+	inherited Create(BASS_FX_BFX_DISTORTION, @BFX, 'Distortion', 'Dist');
 	BFX.lChannel := BASS_BFX_CHANALL;
 
 	AddParam(BFX.fDryMix,	STR_MIX_DRY,	-5.0,	+5.0,	MUL_DEFAULT,	STR_MIX_DRY_DESC);
@@ -423,7 +428,7 @@ end;
 
 constructor TFxCompressor.Create;
 begin
-	inherited Create(BASS_FX_BFX_COMPRESSOR2, @BFX, 'Compressor');
+	inherited Create(BASS_FX_BFX_COMPRESSOR2, @BFX, 'Compressor', 'Comp');
 
 	AddParam(BFX.fGain,			'Gain',			+0,		+60,	MUL_DEFAULT,
 		'Output gain of signal after compression');
@@ -442,7 +447,7 @@ end;
 
 constructor TFXPitchShift.Create;
 begin
-	inherited Create(BASS_FX_BFX_PITCHSHIFT, @BFX, 'PitchShift');
+	inherited Create(BASS_FX_BFX_PITCHSHIFT, @BFX, 'PitchShift', 'Pitch');
 
 	BFX.lChannel := BASS_BFX_CHANALL;
 	BFX.fPitchShift := 0;
@@ -463,7 +468,7 @@ end;}
 
 constructor TFxFilter.Create;
 begin
-	inherited Create(BASS_FX_BFX_BQF, @BFX, 'Filter');
+	inherited Create(BASS_FX_BFX_BQF, @BFX, 'Filter', 'Flt');
 
 	BFX.lChannel := BASS_BFX_CHANALL;
 	BFX.fBandwidth := 0;

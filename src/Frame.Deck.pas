@@ -30,6 +30,7 @@ type
 	TGUIEffect = class
 		Effect: TBaseEffect;
 		Button: TDecksButton;
+		LabelWidth: Word;
 
 		destructor Destroy; override;
 	end;
@@ -192,7 +193,7 @@ type
 		procedure ZoomGraph(Dir: Integer);
 		procedure UpdatePlayButton(Kind: Integer);
 		procedure SelectEffect(EffectNum: Integer);
-		procedure AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton);
+		procedure AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton; LblWidth: Word = 0);
 		procedure InitGUIEffectParam(Index: Byte; AKnob: ThKnob);
 		function  GetEffectKnob(Sender: TObject): ThKnob;
 		procedure ResizeEffectButtons;
@@ -778,7 +779,12 @@ begin
 	OtherDeck := Deck.GetOtherOrCurrentDeck;
 	if OtherDeck = nil then Exit;
 
-	if (Immediate) or (OtherDeck.Paused) then
+	if OtherDeck.Paused then
+	begin
+		Deck.Pause;
+	end
+	else
+	if Immediate then
 	begin
 		CT := Deck.Graph.PosToGraph(Deck.GetPlayPosition(True), False);
 		BASS_SetDevice(CurrentDevice);
@@ -904,13 +910,16 @@ begin
 	end;
 end;
 
-procedure TDeckFrame.AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton);
+procedure TDeckFrame.AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton; LblWidth: Word = 0);
 var
 	Fx: TGUIEffect;
 begin
 	Fx := TGUIEffect.Create;
 	Fx.Effect := FxObject;
 	Fx.Button := BtnObject;
+	if LblWidth = 0 then LblWidth := 70;
+	Fx.LabelWidth := LblWidth;
+	BtnObject.Tag := Effects.Count;
 	BtnObject.OnClick := nil;
 	BtnObject.OnButtonClick := bEffect0Click;
 	BtnObject.OnMouseDown := bEffect0MouseDown;
@@ -958,6 +967,8 @@ begin
 	//ConvertButtons(Self);
 	LoadButtonImages(Self, Config.GetThemePath + 'images');
 
+	// Create effects and bind to UI
+	//
 	Effects := TEffectsList.Create(True);
 	SelectedEffect := 255;
 
@@ -965,18 +976,15 @@ begin
 	AddGUIEffect(TFxReverb.Create,     bEffect1);
 	AddGUIEffect(TFxPhaser.Create,     bEffect2);
 	AddGUIEffect(TFxChorus.Create,     bEffect3);
-//	AddGUIEffect(TFxDistortion.Create, bEffect4);
-	AddGUIEffect(TFxCompressor.Create, bEffect4);
+	AddGUIEffect(TFxCompressor.Create, bEffect4, 100);
 	AddGUIEffect(TFxFilter.Create,     bEffect5);
-	AddGUIEffect(TFXPitchShift.Create, bEffect6);
-	AddGUIEffect(nil, bEffect7);
-
-	InitGUIEffectParam(0, SliderFxParam0);
-	InitGUIEffectParam(1, SliderFxParam1);
-	InitGUIEffectParam(2, SliderFxParam2);
-	InitGUIEffectParam(3, SliderFxParam3);
-	InitGUIEffectParam(4, SliderFxParam4);
-	InitGUIEffectParam(5, SliderFxParam5);
+	AddGUIEffect(TFXPitchShift.Create, bEffect6, 90);
+	AddGUIEffect(nil, bEffect7); // loop controls
+	//
+	// Assign gui knobs to effect parameters
+	InitGUIEffectParam(0, SliderFxParam0); InitGUIEffectParam(1, SliderFxParam1);
+	InitGUIEffectParam(2, SliderFxParam2); InitGUIEffectParam(3, SliderFxParam3);
+	InitGUIEffectParam(4, SliderFxParam4); InitGUIEffectParam(5, SliderFxParam5);
 
 	SelectEffect(Effects.Count-1);
 	ShowPanel_Effects;
@@ -2013,6 +2021,7 @@ begin
 			begin
 				Button.DropDownMenu := PopupEffectPresets;
 				Button.Style := bbtDropDown;
+				Button.DropDownArrow := True;
 			end;
 		end
 		else
@@ -2020,6 +2029,7 @@ begin
 			Button.StateNormal.Background.Color := clTeal;
 			Button.DropDownMenu := nil;
 			Button.Style := bbtButton;
+			Button.DropDownArrow := False;
 		end;
 	end;
 
@@ -2080,7 +2090,8 @@ end;
 
 procedure TDeckFrame.ResizeEffectButtons;
 var
-	i, X, W: Integer;
+	i, X, W, LW, OldW: Integer;
+	Effect: TGUIEffect;
 	Button: TDecksButton;
 begin
 	BeginFormUpdate;
@@ -2090,9 +2101,24 @@ begin
 
 	for i := 0 to Effects.Count-1 do
 	begin
-		Button := Effects[i].Button;
+		Effect := Effects[i];
+		Button := Effect.Button;
+		if Button = nil then Continue;
+
+		OldW := Button.Width;
 		Button.Left := X;
 		Button.Width := W;
+
+		if Effect.Effect <> nil then // adjust captions to fit
+		begin
+			LW := Effect.LabelWidth;
+			if (W <= LW) and (OldW > LW) then // long->short caption
+				Button.Caption := Effect.Effect.ShortName
+			else
+			if (W > LW) and (OldW <= LW) then // short->long caption
+				Button.Caption := Effect.Effect.Name;
+		end;
+
 		if (i mod 2) = 1 then Inc(X, W);
 	end;
 
