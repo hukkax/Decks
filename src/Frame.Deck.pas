@@ -448,6 +448,9 @@ begin
 	Show;
 	ShowPosition;
 
+	SelectEffect(5); // select and enable the Filter effect by default (ugly)
+	bEffect0MouseDown(bEffect5, mbRight, [], 0, 0);
+
 	Timer.Enabled := True;
 end;
 
