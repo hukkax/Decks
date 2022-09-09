@@ -456,6 +456,10 @@ begin
 			end;
 		end;
 
+		MODE_PLAY_WAITSYNC:
+			MIDI.SetLed(DECK_CUE, B);
+
+
 		MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:
 		begin
 			if Deck.Cueing then

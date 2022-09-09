@@ -778,7 +778,7 @@ begin
 	OtherDeck := Deck.GetOtherOrCurrentDeck;
 	if OtherDeck = nil then Exit;
 
-	if Immediate then
+	if (Immediate) or (OtherDeck.Paused) then
 	begin
 		CT := Deck.Graph.PosToGraph(Deck.GetPlayPosition(True), False);
 		BASS_SetDevice(CurrentDevice);
@@ -799,8 +799,11 @@ begin
 		P := OtherDeck.Graph.Bars[B].Pos;
 		P := OtherDeck.Graph.GraphToSongBytes(P);
 		if Deck.Paused then JumpToCue;
+
 		bPlay.StateNormal.Border.LightColor := $0022AAFF;
 		bPlay.StateNormal.Border.LightWidth := 2;
+		MainForm.UpdateController(Deck, MODE_PLAY_WAITSYNC);
+
 		BASS_ChannelSetSync(OtherDeck.OrigStream,
 			BASS_SYNC_POS or BASS_SYNC_MIXTIME or BASS_SYNC_ONETIME, P,
 			@Audio_Callback_Play, Self);
