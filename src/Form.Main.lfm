@@ -9,7 +9,7 @@ object MainForm: TMainForm
   Color = 3553082
   Constraints.MinHeight = 600
   Constraints.MinWidth = 1000
-  DoubleBuffered = True
+  DoubleBuffered = False
   Font.Color = clSilver
   KeyPreview = True
   OnClose = FormClose
@@ -31,6 +31,7 @@ object MainForm: TMainForm
     ClientHeight = 48
     ClientWidth = 1000
     Color = 3553082
+    FullRepaint = False
     ParentColor = False
     TabOrder = 0
     object shpBorder: TShape
@@ -480,6 +481,7 @@ object MainForm: TMainForm
     ClientHeight = 615
     ClientWidth = 765
     Color = 2171427
+    FullRepaint = False
     ParentColor = False
     TabOrder = 2
     object SplitterH: TSplitter
@@ -503,6 +505,7 @@ object MainForm: TMainForm
       BevelOuter = bvNone
       Color = 3553082
       Constraints.MinHeight = 280
+      FullRepaint = False
       ParentColor = False
       ParentShowHint = False
       ShowHint = True
@@ -535,6 +538,7 @@ object MainForm: TMainForm
       OnExit = FileListEnter
       OnKeyDown = FileListKeyDown
       OnMouseWheel = FileListMouseWheel
+      DoubleBuffered = True
       TabOrder = 2
       TabStop = True
     end
@@ -566,6 +570,7 @@ object MainForm: TMainForm
       ClientHeight = 50
       ClientWidth = 765
       Font.Color = clSilver
+      FullRepaint = False
       ParentFont = False
       TabOrder = 3
       object sEQ1L: ThKnob
@@ -577,6 +582,7 @@ object MainForm: TMainForm
         Max = 1500
         SmallChange = 0
         Caption = 'sEQ1L'
+        Arc = 60
         Indicator.Normal.LineColor = 10922154
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -603,6 +609,7 @@ object MainForm: TMainForm
         Max = 1500
         SmallChange = 0
         Caption = 'sEQ1M'
+        Arc = 60
         Indicator.Normal.LineColor = 10922154
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -629,6 +636,7 @@ object MainForm: TMainForm
         Max = 1500
         SmallChange = 0
         Caption = 'sEQ1H'
+        Arc = 60
         Indicator.Normal.LineColor = 10922154
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -655,6 +663,7 @@ object MainForm: TMainForm
         Max = 1500
         SmallChange = 0
         Caption = 'sEQ2L'
+        Arc = 60
         Indicator.Normal.LineColor = 10922154
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -682,6 +691,7 @@ object MainForm: TMainForm
         Max = 1500
         SmallChange = 0
         Caption = 'sEQ2M'
+        Arc = 60
         Indicator.Normal.LineColor = 10922154
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -709,6 +719,7 @@ object MainForm: TMainForm
         Max = 1500
         SmallChange = 0
         Caption = 'sEQ2H'
+        Arc = 60
         Indicator.Normal.LineColor = 10922154
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -773,6 +784,7 @@ object MainForm: TMainForm
     ClientWidth = 230
     Color = 2171427
     Constraints.MinWidth = 220
+    FullRepaint = False
     ParentColor = False
     TabOrder = 3
     OnResize = LeftPanelResize
@@ -807,6 +819,7 @@ object MainForm: TMainForm
       ObjectTypes = [otFolders]
       ScrolledLeft = 0
       ScrolledTop = 0
+      DoubleBuffered = True
     end
     object sDirs: ThRangeBar
       Left = 210
@@ -844,56 +857,6 @@ object MainForm: TMainForm
     Left = 12
     Height = 25
     Top = 12
-    Width = 71
-    StateNormal.Background.Color = clPurple
-    StateNormal.Background.Gradient1.StartColor = 2171427
-    StateNormal.Background.Gradient1.EndColor = 2171427
-    StateNormal.Background.Gradient1.ColorCorrection = False
-    StateNormal.Background.Gradient1.GradientType = gtLinear
-    StateNormal.Background.Gradient1.Point1XPercent = 0
-    StateNormal.Background.Gradient1.Point1YPercent = 0
-    StateNormal.Background.Gradient1.Point2XPercent = 0
-    StateNormal.Background.Gradient1.Point2YPercent = 100
-    StateNormal.Background.Gradient2.StartColor = 2171427
-    StateNormal.Background.Gradient2.EndColor = 2171427
-    StateNormal.Background.Gradient2.ColorCorrection = False
-    StateNormal.Background.Gradient2.GradientType = gtLinear
-    StateNormal.Background.Gradient2.Point1XPercent = 0
-    StateNormal.Background.Gradient2.Point1YPercent = 0
-    StateNormal.Background.Gradient2.Point2XPercent = 0
-    StateNormal.Background.Gradient2.Point2YPercent = 100
-    StateNormal.Background.Gradient1EndPercent = 100
-    StateNormal.Background.Style = bbsColor
-    StateNormal.Border.Color = 2302497
-    StateNormal.Border.LightColor = 3529055
-    StateNormal.Border.Style = bboSolid
-    StateNormal.FontEx.Color = 13691376
-    StateNormal.FontEx.FontQuality = fqSystemClearType
-    StateNormal.FontEx.Shadow = True
-    StateNormal.FontEx.ShadowColorOpacity = 160
-    StateNormal.FontEx.ShadowRadius = 2
-    StateNormal.FontEx.ShadowOffsetX = 1
-    StateNormal.FontEx.ShadowOffsetY = 1
-    StateNormal.FontEx.Style = [fsBold]
-    StateNormal.FontEx.PaddingBottom = 2
-    Caption = '☰ Filter'
-    Color = clWhite
-    DropDownWidth = 16
-    DropDownArrowSize = 8
-    GlobalOpacity = 255
-    ParentColor = False
-    Rounding.RoundX = 0
-    Rounding.RoundY = 0
-    RoundingDropDown.RoundX = 1
-    RoundingDropDown.RoundY = 1
-    TextApplyGlobalOpacity = False
-    ClickOffset = True
-    DropDownPosition = bdpBottom
-  end
-  object DecksButton6: TDecksButton
-    Left = 40
-    Height = 25
-    Top = 40
     Width = 71
     StateNormal.Background.Color = clPurple
     StateNormal.Background.Gradient1.StartColor = 2171427

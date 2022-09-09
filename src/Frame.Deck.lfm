@@ -20,6 +20,9 @@ object DeckFrame: TDeckFrame
     BevelOuter = bvLowered
     ClientHeight = 80
     ClientWidth = 707
+    DoubleBuffered = False
+    FullRepaint = False
+    ParentDoubleBuffered = False
     TabOrder = 0
     object bPlay: TDecksButton
       Left = 8
@@ -681,6 +684,9 @@ object DeckFrame: TDeckFrame
     BevelOuter = bvLowered
     ClientHeight = 62
     ClientWidth = 707
+    DoubleBuffered = False
+    FullRepaint = False
+    ParentDoubleBuffered = False
     TabOrder = 2
     Visible = False
     OnResize = pnlEffectsResize
@@ -1382,6 +1388,7 @@ object DeckFrame: TDeckFrame
       BevelOuter = bvNone
       ClientHeight = 62
       ClientWidth = 300
+      FullRepaint = False
       TabOrder = 0
       object SliderFxParam0: ThKnob
         Left = 4

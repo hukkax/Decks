@@ -82,7 +82,6 @@ type
 		MenuItem2: TMenuItem;
 		miAbout: TMenuItem;
 		bMainMenu: TDecksButton;
-		DecksButton6: TDecksButton;
 		EmbeddedImage: TImage;
 		bToggleEffects: TDecksButton;
 		bToggleMixer: TDecksButton;
