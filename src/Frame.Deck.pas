@@ -199,6 +199,7 @@ type
 		procedure ResizeEffectButtons;
 		procedure OnLoadProgress(Percentage: Integer);
 		procedure ApplyEffects;
+		procedure ShowEffectValue(Knob: ThKnob);
 	public
 		GraphHover,
 		GraphCue:   TPoint;
@@ -894,7 +895,7 @@ begin
 	Lbl := TLabel.Create(AKnob.Parent);
 	Lbl.AutoSize := False;
 	Lbl.Transparent := True;
-	Lbl.SetBounds(AKnob.Left-15, 0, AKnob.Width+30-1, 20);
+	Lbl.SetBounds(AKnob.Left-15, 4, AKnob.Width+30-1, 20);
 	Lbl.Alignment := taCenter;
 	Lbl.Font.Color := clWhite;
 	Lbl.Parent := AKnob.Parent;
@@ -902,6 +903,7 @@ begin
 	with GUIEffectParams[Index] do
 	begin
 		Knob := AKnob;
+		Knob.Sensitivity := 200;
 		ValueLabel := Lbl;
 		NameLabel  := Lbl;
 		Knob.PositionLabel := Lbl;
@@ -1779,6 +1781,7 @@ end;
 procedure TDeckFrame.OnDeckEvent(Kind: Integer);
 var
 	S: String;
+	Fx: TGUIEffect;
 begin
 	case Kind of
 
@@ -1878,7 +1881,11 @@ begin
 		MODE_PLAY_START, MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:
 			UpdatePlayButton(Kind);
 
-		//MODE_TEMPOCHANGE: ShowPosition;
+		MODE_TEMPOCHANGE:
+			if Effects <> nil then
+				for Fx in Effects do
+					if (Fx <> nil) and (Fx.Effect <> nil) then
+						Fx.Effect.Apply;
 
 		MODE_EQ_KILL_ON, MODE_EQ_KILL_OFF,
 		MODE_SYNC_ON, MODE_SYNC_OFF:
@@ -1894,7 +1901,10 @@ begin
 	if (Effects <> nil) and (Deck.OrigStream <> 0) then
 		for Fx in Effects do
 			if Fx.Effect <> nil then
+			begin
 				Fx.Effect.Stream := Deck.OrigStream;
+				Fx.Effect.BPM := @Deck.BPM;
+			end;
 end;
 
 procedure TDeckFrame.pbZonesMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
@@ -2128,6 +2138,12 @@ begin
 	EndFormUpdate;
 end;
 
+procedure TDeckFrame.ShowEffectValue(Knob: ThKnob);
+begin
+	if Knob <> nil then
+		Knob.PositionLabel.Caption := Effects[SelectedEffect].Effect.Params[Knob.Tag].Text;
+end;
+
 function TDeckFrame.GetEffectKnob(Sender: TObject): ThKnob;
 begin
 	if not (Sender is ThKnob) then
@@ -2146,21 +2162,13 @@ begin
 	begin
 		Param := Effects[SelectedEffect].Effect.Params[Knob.Tag];
 		Param.Value := Knob.FloatPosition;
+		ShowEffectValue(Knob);
 	end;
 end;
 
 procedure TDeckFrame.SliderFxParam0MouseEnter(Sender: TObject);
-var
-	Knob: ThKnob;
 begin
-	Knob := GetEffectKnob(Sender);
-	if Knob <> nil then
-	begin
-		Knob.ShowPosition;
-		//GUIEffectParams[Knob.Tag].NameLabel.Caption :=
-		//Knob.PositionLabel.Caption := '%f';
-			//Format('%f', [Knob.FloatPosition]);
-	end;
+	ShowEffectValue(GetEffectKnob(Sender));
 end;
 
 procedure TDeckFrame.SliderFxParam0MouseLeave(Sender: TObject);
@@ -2169,11 +2177,7 @@ var
 begin
 	Knob := GetEffectKnob(Sender);
 	if Knob <> nil then
-	begin
-		//GUIEffectParams[Knob.Tag].NameLabel.Caption :=
-		Knob.PositionLabel.Caption :=
-			Effects[SelectedEffect].Effect.Params[Knob.Tag].Name;
-	end;
+		Knob.PositionLabel.Caption := Effects[SelectedEffect].Effect.Params[Knob.Tag].Name;
 end;
 
 procedure TDeckFrame.bEffect0Click(Sender: TObject);

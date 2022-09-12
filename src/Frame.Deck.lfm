@@ -20,7 +20,7 @@ object DeckFrame: TDeckFrame
     BevelOuter = bvLowered
     ClientHeight = 80
     ClientWidth = 707
-    DoubleBuffered = False
+    DoubleBuffered = True
     FullRepaint = False
     ParentDoubleBuffered = False
     TabOrder = 0
@@ -199,6 +199,7 @@ object DeckFrame: TDeckFrame
       Max = 200
       SmallChange = 0
       Caption = 'SliderAmp'
+      Arc = 60
       Indicator.Normal.LineColor = clSilver
       Indicator.Hovered.LineColor = clWhite
       Indicator.Disabled.LineColor = clGray
@@ -211,6 +212,7 @@ object DeckFrame: TDeckFrame
       BorderColor = clGray
       BorderWidth = 3
       Position = 100
+      FloatPosition = 100
       PageSize = 0
       OnChange = SliderTempoChange
     end
@@ -348,13 +350,13 @@ object DeckFrame: TDeckFrame
   end
   object pnlGraph: TPanel
     Left = 0
-    Height = 278
+    Height = 286
     Top = 0
     Width = 707
     Align = alClient
     BevelColor = 2171427
     BevelOuter = bvLowered
-    ClientHeight = 278
+    ClientHeight = 286
     ClientWidth = 707
     Color = 3553082
     DoubleBuffered = False
@@ -364,7 +366,7 @@ object DeckFrame: TDeckFrame
     TabOrder = 1
     object shpGraph: TShape
       Left = 8
-      Height = 236
+      Height = 244
       Top = 37
       Width = 631
       Anchors = [akTop, akLeft, akRight, akBottom]
@@ -413,7 +415,7 @@ object DeckFrame: TDeckFrame
     object pb: TBGRAVirtualScreen
       Cursor = crNone
       Left = 10
-      Height = 178
+      Height = 186
       Top = 51
       Width = 627
       Alignment = taCenter
@@ -430,7 +432,7 @@ object DeckFrame: TDeckFrame
     object pbZones: TBGRAVirtualScreen
       Left = 10
       Height = 21
-      Top = 230
+      Top = 238
       Width = 627
       OnRedraw = pbZonesRedraw
       Alignment = taLeftJustify
@@ -509,7 +511,7 @@ object DeckFrame: TDeckFrame
     end
     object SliderTempo: ThGaugeBar
       Left = 644
-      Height = 204
+      Height = 212
       Hint = 'BPM Coarse'
       Top = 39
       Width = 25
@@ -530,7 +532,7 @@ object DeckFrame: TDeckFrame
     object SliderGraphX: ThRangeBar
       Left = 8
       Height = 21
-      Top = 252
+      Top = 260
       Width = 631
       Anchors = [akLeft, akRight, akBottom]
       Color = 2171427
@@ -547,7 +549,7 @@ object DeckFrame: TDeckFrame
     end
     object SliderTempoFrac: ThGaugeBar
       Left = 674
-      Height = 204
+      Height = 212
       Hint = 'BPM Fractional'
       Top = 39
       Width = 25
@@ -571,7 +573,7 @@ object DeckFrame: TDeckFrame
       Left = 674
       Height = 26
       Hint = 'Save song setup'
-      Top = 247
+      Top = 255
       Width = 25
       Anchors = [akRight, akBottom]
       StateNormal.Background.Color = 6249562
@@ -624,7 +626,7 @@ object DeckFrame: TDeckFrame
       Left = 644
       Height = 26
       Hint = 'Left: Move cue to song start'#13#10'Right: Set song start position to cue'#13#10'Middle: Reset song start position'
-      Top = 247
+      Top = 255
       Width = 25
       Anchors = [akRight, akBottom]
       StateNormal.Background.Color = 6249562
@@ -676,15 +678,15 @@ object DeckFrame: TDeckFrame
   end
   object pnlEffects: TPanel
     Left = 0
-    Height = 62
-    Top = 278
+    Height = 54
+    Top = 286
     Width = 707
     Align = alBottom
     BevelColor = 2171427
     BevelOuter = bvLowered
-    ClientHeight = 62
+    ClientHeight = 54
     ClientWidth = 707
-    DoubleBuffered = False
+    DoubleBuffered = True
     FullRepaint = False
     ParentDoubleBuffered = False
     TabOrder = 2
@@ -692,7 +694,7 @@ object DeckFrame: TDeckFrame
     OnResize = pnlEffectsResize
     object bEffect0: TDecksButton
       Left = 8
-      Height = 28
+      Height = 24
       Top = 4
       Width = 74
       StateNormal.Background.Color = clTeal
@@ -747,8 +749,8 @@ object DeckFrame: TDeckFrame
     object bEffect1: TDecksButton
       Tag = 1
       Left = 8
-      Height = 28
-      Top = 30
+      Height = 24
+      Top = 26
       Width = 74
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
@@ -800,7 +802,7 @@ object DeckFrame: TDeckFrame
     object bEffect2: TDecksButton
       Tag = 2
       Left = 82
-      Height = 28
+      Height = 24
       Top = 4
       Width = 74
       StateNormal.Background.Color = clTeal
@@ -852,8 +854,8 @@ object DeckFrame: TDeckFrame
     object bEffect3: TDecksButton
       Tag = 3
       Left = 82
-      Height = 28
-      Top = 30
+      Height = 24
+      Top = 26
       Width = 74
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
@@ -904,7 +906,7 @@ object DeckFrame: TDeckFrame
     object bEffect4: TDecksButton
       Tag = 4
       Left = 156
-      Height = 28
+      Height = 24
       Top = 4
       Width = 86
       StateNormal.Background.Color = clTeal
@@ -957,8 +959,8 @@ object DeckFrame: TDeckFrame
     object bEffect7: TDecksButton
       Tag = 7
       Left = 242
-      Height = 28
-      Top = 30
+      Height = 24
+      Top = 26
       Width = 86
       HelpContext = 1
       StateNormal.Background.Color = clTeal
@@ -1380,25 +1382,26 @@ object DeckFrame: TDeckFrame
     object pnlEffectKnobs: TPanel
       Tag = 300
       Left = 410
-      Height = 62
+      Height = 54
       Top = 3
       Width = 300
       Anchors = [akTop, akRight, akBottom]
       BevelColor = 2171427
       BevelOuter = bvNone
-      ClientHeight = 62
+      ClientHeight = 54
       ClientWidth = 300
       FullRepaint = False
       TabOrder = 0
       object SliderFxParam0: ThKnob
-        Left = 4
-        Height = 40
+        Left = 0
+        Height = 41
         Hint = 'Amplification'
-        Top = 17
-        Width = 40
+        Top = 23
+        Width = 41
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam0'
+        Arc = 1
         Indicator.Normal.LineColor = clSilver
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -1411,6 +1414,7 @@ object DeckFrame: TDeckFrame
         BorderColor = clGray
         BorderWidth = 3
         Position = 100
+        FloatPosition = 100
         PageSize = 0
         OnChange = SliderFxParam0Change
         OnMouseEnter = SliderFxParam0MouseEnter
@@ -1418,14 +1422,15 @@ object DeckFrame: TDeckFrame
       end
       object SliderFxParam1: ThKnob
         Tag = 1
-        Left = 53
-        Height = 40
+        Left = 50
+        Height = 41
         Hint = 'Amplification'
-        Top = 17
-        Width = 40
+        Top = 23
+        Width = 41
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam1'
+        Arc = 1
         Indicator.Normal.LineColor = clSilver
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -1438,18 +1443,20 @@ object DeckFrame: TDeckFrame
         BorderColor = clGray
         BorderWidth = 3
         Position = 100
+        FloatPosition = 100
         PageSize = 0
       end
       object SliderFxParam2: ThKnob
         Tag = 2
-        Left = 101
-        Height = 40
+        Left = 99
+        Height = 41
         Hint = 'Amplification'
-        Top = 17
-        Width = 40
+        Top = 23
+        Width = 41
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam2'
+        Arc = 1
         Indicator.Normal.LineColor = clSilver
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -1462,18 +1469,20 @@ object DeckFrame: TDeckFrame
         BorderColor = clGray
         BorderWidth = 3
         Position = 100
+        FloatPosition = 100
         PageSize = 0
       end
       object SliderFxParam3: ThKnob
         Tag = 3
-        Left = 149
-        Height = 40
+        Left = 148
+        Height = 41
         Hint = 'Amplification'
-        Top = 17
-        Width = 40
+        Top = 23
+        Width = 41
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam3'
+        Arc = 1
         Indicator.Normal.LineColor = clSilver
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -1486,18 +1495,20 @@ object DeckFrame: TDeckFrame
         BorderColor = clGray
         BorderWidth = 3
         Position = 100
+        FloatPosition = 100
         PageSize = 0
       end
       object SliderFxParam4: ThKnob
         Tag = 4
         Left = 197
-        Height = 40
+        Height = 41
         Hint = 'Amplification'
-        Top = 17
-        Width = 40
+        Top = 23
+        Width = 41
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam4'
+        Arc = 1
         Indicator.Normal.LineColor = clSilver
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -1510,18 +1521,20 @@ object DeckFrame: TDeckFrame
         BorderColor = clGray
         BorderWidth = 3
         Position = 100
+        FloatPosition = 100
         PageSize = 0
       end
       object SliderFxParam5: ThKnob
         Tag = 5
-        Left = 245
-        Height = 40
+        Left = 246
+        Height = 41
         Hint = 'Amplification'
-        Top = 17
-        Width = 40
+        Top = 23
+        Width = 41
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam5'
+        Arc = 1
         Indicator.Normal.LineColor = clSilver
         Indicator.Hovered.LineColor = clWhite
         Indicator.Disabled.LineColor = clGray
@@ -1534,14 +1547,15 @@ object DeckFrame: TDeckFrame
         BorderColor = clGray
         BorderWidth = 3
         Position = 100
+        FloatPosition = 100
         PageSize = 0
       end
     end
     object bEffect5: TDecksButton
       Tag = 5
       Left = 156
-      Height = 28
-      Top = 30
+      Height = 24
+      Top = 26
       Width = 86
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
@@ -1593,7 +1607,7 @@ object DeckFrame: TDeckFrame
     object bEffect6: TDecksButton
       Tag = 6
       Left = 242
-      Height = 28
+      Height = 24
       Top = 4
       Width = 86
       StateNormal.Background.Color = clTeal

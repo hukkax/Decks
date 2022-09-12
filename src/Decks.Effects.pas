@@ -56,11 +56,13 @@ type
 
 		function    GetValue: Single;
 		procedure   SetValue(AValue: Single);
+		function    GetText: String;
 	public
 		Name,
 		Caption:    String;
 		Result:     Integer;
 		Multiplier: Integer;
+		ValueNames: array of String;
 
 		OnChange: TEffectParamChangeEvent;
 
@@ -69,6 +71,7 @@ type
 		property Value: Single read GetValue write SetValue;
 		property Min:   Single read FMin;
 		property Max:   Single read FMax;
+		property Text:  String read GetText;
 	end;
 
 	TEffectParams = TFPGObjectList<TEffectParam>;
@@ -96,6 +99,7 @@ type
 
 		Name,
 		ShortName:  String;
+		BPM:        PSingle;
 		Params:     TEffectParams;
 		Presets:    TEffectPresets;
 
@@ -103,6 +107,7 @@ type
 		            AMin, AMax: Single; AMultiplier: Integer; const ACaption: String): TEffectParam;
 		procedure   AddPreset(const Values: array of Single; const AName: String);
 		procedure   ApplyPreset(Preset: TEffectPreset);
+		procedure   Apply;
 		procedure   ParamChanged(Param: TEffectParam); virtual;
 
 		property    Enabled: Boolean read FEnabled write SetEnabled;
@@ -114,7 +119,9 @@ type
 
 	TFxEcho = class(TBaseEffect)
 		BFX: BASS_BFX_ECHO4;
+		fDelay: Single;
 		constructor Create;
+		procedure   ParamChanged(Param: TEffectParam); override;
 	end;
 
 	TFxReverb = class(TBaseEffect)
@@ -200,6 +207,17 @@ begin
 			OnChange(Self);
 		end;
 	end;
+end;
+
+function TEffectParam.GetText: String;
+var
+	V: Integer;
+begin
+	V := Trunc(Value);
+	if InRange(V, Low(ValueNames), High(ValueNames)) then
+		Result := ValueNames[V]
+	else
+		Result := Format('%.2f', [Value]);
 end;
 
 
@@ -303,6 +321,15 @@ begin
 	DoSetEnabled(FEnabled);
 end;
 
+procedure TBaseEffect.Apply;
+var
+	Param: TEffectParam;
+begin
+	if Params <> nil then
+		for Param in Params do
+			ParamChanged(Param);
+end;
+
 procedure TBaseEffect.ApplyPreset(Preset: TEffectPreset);
 var
 	i: Integer = 0;
@@ -329,14 +356,38 @@ begin
 	AddParam(BFX.fWetMix,	STR_MIX_WET,	+0.0,	+1.0,	MUL_DEFAULT,	STR_MIX_WET_DESC);
 
 	AddParam(BFX.fFeedback,	'Feedback', 	-1.0,	+1.0,	MUL_DEFAULT,	STR_MIX_FEEDBACK);
-	AddParam(BFX.fDelay,	'Delay',		+0.0,	+1.0,	MUL_DEFAULT,	'Delay in seconds');
+	AddParam(fDelay,		'Delay',		+0,	+6,	1,	'Delay in beats').ValueNames :=
+		['1/8', '1/4', '1/2', '3/4', '1/1', '2/1', '4/1'];
 
-	AddPreset([1.0,	1.0,  0.0, 0.2], 'Small Echo');
+{	AddPreset([1.0,	1.0,  0.0, 0.2], 'Small Echo');
 	AddPreset([1.0,	1.0,  0.7, 0.5], 'Many Echoes');
 	AddPreset([1.0,	1.0, -0.7, 0.8], 'Reverse Echoes');
-	AddPreset([0.5,	0.8,  0.5, 0.1], 'Robotic Voice');
-
+	AddPreset([0.5,	0.8,  0.5, 0.1], 'Robotic Voice');}
+	AddPreset([1, 1, 0, 2], 'Default');
 	ApplyPreset(Presets.First);
+end;
+
+procedure TFxEcho.ParamChanged(Param: TEffectParam);
+var
+	V: Float;
+begin
+	if (BPM = nil) or (BPM^ < 10) then
+		BFX.fDelay := fDelay
+	else
+	begin
+		V := 60.0 / BPM^;
+		case Trunc(fDelay) of
+			0: V := V / 8.00; // 1/8
+			1: V := V / 4.00; // 1/4
+			2: V := V / 2.00; // 1/2
+			3: V := V * 0.75; // 3/4
+			4: ; // 1/1
+			5: V := V * 2.00; // 2/1
+			6: V := V * 4.00; // 4/1
+		end;
+		BFX.fDelay := V;
+	end;
+	inherited ParamChanged(Param);
 end;
 
 constructor TFxReverb.Create;
