@@ -322,12 +322,9 @@ begin
 end;
 
 procedure TBaseEffect.Apply;
-var
-	Param: TEffectParam;
 begin
 	if Params <> nil then
-		for Param in Params do
-			ParamChanged(Param);
+		ParamChanged(Params.First);
 end;
 
 procedure TBaseEffect.ApplyPreset(Preset: TEffectPreset);
@@ -351,6 +348,7 @@ constructor TFxEcho.Create;
 begin
 	inherited Create(BASS_FX_BFX_ECHO4, @BFX, 'Echo', '');
 	BFX.lChannel := BASS_BFX_CHANALL;
+	BFX.fDelay := 1.0;
 
 	AddParam(BFX.fDryMix,	STR_MIX_DRY,	+0.0,	+1.0,	MUL_DEFAULT,	STR_MIX_DRY_DESC);
 	AddParam(BFX.fWetMix,	STR_MIX_WET,	+0.0,	+1.0,	MUL_DEFAULT,	STR_MIX_WET_DESC);
@@ -372,21 +370,19 @@ var
 	V: Float;
 begin
 	if (BPM = nil) or (BPM^ < 10) then
-		BFX.fDelay := fDelay
+		V := 60.0 / 125.0
 	else
-	begin
 		V := 60.0 / BPM^;
-		case Trunc(fDelay) of
-			0: V := V / 8.00; // 1/8
-			1: V := V / 4.00; // 1/4
-			2: V := V / 2.00; // 1/2
-			3: V := V * 0.75; // 3/4
-			4: ; // 1/1
-			5: V := V * 2.00; // 2/1
-			6: V := V * 4.00; // 4/1
-		end;
-		BFX.fDelay := V;
+	case Trunc(fDelay) of
+		0: V := V / 8.00; // 1/8
+		1: V := V / 4.00; // 1/4
+		2: V := V / 2.00; // 1/2
+		3: V := V * 0.75; // 3/4
+		4: ; // 1/1
+		5: V := V * 2.00; // 2/1
+		6: V := V * 4.00; // 4/1
 	end;
+	BFX.fDelay := V;
 	inherited ParamChanged(Param);
 end;
 

@@ -2000,7 +2000,7 @@ begin
 			if Fx.Effect <> nil then
 			begin
 				Fx.Effect.Stream := Deck.OrigStream;
-				Fx.Effect.BPM := @Deck.BPM;
+				Fx.Effect.BPM := @Deck.OrigBPM;
 			end;
 end;
 
