@@ -480,6 +480,7 @@ end;
 constructor TFxCompressor.Create;
 begin
 	inherited Create(BASS_FX_BFX_COMPRESSOR2, @BFX, 'Compressor', 'Comp');
+	BFX.lChannel := BASS_BFX_CHANALL;
 
 	AddParam(BFX.fGain,			'Gain',			+0,		+60,	MUL_DEFAULT,
 		'Output gain of signal after compression');
@@ -505,7 +506,7 @@ begin
 	BFX.lFFTsize := 1024;
 	BFX.lOsamp := 8;
 
-	AddParam(BFX.fSemitones, 'Amount',	-12.0, +12.0, 1, 'Semitones');
+	AddParam(BFX.fSemitones, 'Amount',	-12, +12, 1, 'Semitones');
 	{AddParam(fFFTsize, 'FFT',	+1, +3,  1, 'FFT Size');
 	AddParam(flOsamp,  'Over',	+1, +13, 1, 'Oversampling');}
 end;
