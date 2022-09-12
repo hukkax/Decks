@@ -5,7 +5,7 @@ object FormTextInput: TFormTextInput
   Width = 468
   BorderIcons = []
   BorderStyle = bsToolWindow
-  Caption = 'FormTextInput'
+  Caption = 'Input'
   ClientHeight = 97
   ClientWidth = 468
   Position = poOwnerFormCenter

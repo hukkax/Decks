@@ -1012,9 +1012,9 @@ object DeckFrame: TDeckFrame
     object bLoopBeat: TDecksButton
       Tag = 1
       Left = 571
-      Height = 26
+      Height = 24
       Hint = 'Loop 1 Beat'
-      Top = 32
+      Top = 28
       Width = 24
       Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
@@ -1065,9 +1065,9 @@ object DeckFrame: TDeckFrame
     object bLoopBeat2: TDecksButton
       Tag = 2
       Left = 595
-      Height = 26
+      Height = 24
       Hint = 'Loop 2 Beats'
-      Top = 32
+      Top = 28
       Width = 24
       Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
@@ -1118,9 +1118,9 @@ object DeckFrame: TDeckFrame
     object bLoopBar: TDecksButton
       Tag = 4
       Left = 627
-      Height = 26
+      Height = 24
       Hint = 'Loop 1 Bar'
-      Top = 32
+      Top = 28
       Width = 24
       Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
@@ -1171,9 +1171,9 @@ object DeckFrame: TDeckFrame
     object bLoopBar2: TDecksButton
       Tag = 8
       Left = 651
-      Height = 26
+      Height = 24
       Hint = 'Loop 2 Bars'
-      Top = 32
+      Top = 28
       Width = 24
       Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
@@ -1224,9 +1224,9 @@ object DeckFrame: TDeckFrame
     object bLoopBar4: TDecksButton
       Tag = 16
       Left = 675
-      Height = 26
+      Height = 24
       Hint = 'Loop 4 Bars'
-      Top = 32
+      Top = 28
       Width = 24
       Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
@@ -1276,9 +1276,9 @@ object DeckFrame: TDeckFrame
     end
     object bLoopZone: TDecksButton
       Left = 571
-      Height = 28
+      Height = 26
       Hint = 'Loop Current Zone'
-      Top = 4
+      Top = 3
       Width = 64
       Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
@@ -1329,9 +1329,9 @@ object DeckFrame: TDeckFrame
     object bLoopSong: TDecksButton
       Tag = -1
       Left = 635
-      Height = 28
+      Height = 26
       Hint = 'Loop Song'
-      Top = 4
+      Top = 3
       Width = 64
       Anchors = [akTop, akRight]
       StateNormal.Background.Color = 6249562
@@ -1381,23 +1381,23 @@ object DeckFrame: TDeckFrame
     end
     object pnlEffectKnobs: TPanel
       Tag = 300
-      Left = 410
-      Height = 54
-      Top = 3
+      Left = 407
+      Height = 52
+      Top = 0
       Width = 300
       Anchors = [akTop, akRight, akBottom]
       BevelColor = 2171427
       BevelOuter = bvNone
-      ClientHeight = 54
+      ClientHeight = 52
       ClientWidth = 300
       FullRepaint = False
       TabOrder = 0
       object SliderFxParam0: ThKnob
         Left = 0
-        Height = 41
+        Height = 46
         Hint = 'Amplification'
-        Top = 23
-        Width = 41
+        Top = 21
+        Width = 46
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam0'
@@ -1423,10 +1423,10 @@ object DeckFrame: TDeckFrame
       object SliderFxParam1: ThKnob
         Tag = 1
         Left = 50
-        Height = 41
+        Height = 46
         Hint = 'Amplification'
-        Top = 23
-        Width = 41
+        Top = 21
+        Width = 46
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam1'
@@ -1449,10 +1449,10 @@ object DeckFrame: TDeckFrame
       object SliderFxParam2: ThKnob
         Tag = 2
         Left = 99
-        Height = 41
+        Height = 46
         Hint = 'Amplification'
-        Top = 23
-        Width = 41
+        Top = 21
+        Width = 46
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam2'
@@ -1475,10 +1475,10 @@ object DeckFrame: TDeckFrame
       object SliderFxParam3: ThKnob
         Tag = 3
         Left = 148
-        Height = 41
+        Height = 46
         Hint = 'Amplification'
-        Top = 23
-        Width = 41
+        Top = 21
+        Width = 46
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam3'
@@ -1501,10 +1501,10 @@ object DeckFrame: TDeckFrame
       object SliderFxParam4: ThKnob
         Tag = 4
         Left = 197
-        Height = 41
+        Height = 46
         Hint = 'Amplification'
-        Top = 23
-        Width = 41
+        Top = 21
+        Width = 46
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam4'
@@ -1527,10 +1527,10 @@ object DeckFrame: TDeckFrame
       object SliderFxParam5: ThKnob
         Tag = 5
         Left = 246
-        Height = 41
+        Height = 46
         Hint = 'Amplification'
-        Top = 23
-        Width = 41
+        Top = 21
+        Width = 46
         Max = 200
         SmallChange = 0
         Caption = 'SliderFxParam5'

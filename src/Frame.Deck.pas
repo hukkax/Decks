@@ -895,7 +895,7 @@ begin
 	Lbl := TLabel.Create(AKnob.Parent);
 	Lbl.AutoSize := False;
 	Lbl.Transparent := True;
-	Lbl.SetBounds(AKnob.Left-15, 4, AKnob.Width+30-1, 20);
+	Lbl.SetBounds(AKnob.Left-15, 1, AKnob.Width+30-1, 20);
 	Lbl.Alignment := taCenter;
 	Lbl.Font.Color := clWhite;
 	Lbl.Parent := AKnob.Parent;
@@ -1539,7 +1539,7 @@ var
 begin
 	L := Deck.Graph.GetBarLength(True, Bar);
 	L := L * 2 div Trunc(Power(2, SampleZoom));
-	if L < 10 then Exit;
+	if L < 10 then Exit(0);
 
 	W := pbWave.ClientWidth;
 	FAdd := Round(L / W);
@@ -1894,19 +1894,6 @@ begin
 	end;
 end;
 
-procedure TDeckFrame.ApplyEffects;
-var
-	Fx: TGUIEffect;
-begin
-	if (Effects <> nil) and (Deck.OrigStream <> 0) then
-		for Fx in Effects do
-			if Fx.Effect <> nil then
-			begin
-				Fx.Effect.Stream := Deck.OrigStream;
-				Fx.Effect.BPM := @Deck.BPM;
-			end;
-end;
-
 procedure TDeckFrame.pbZonesMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
 	MousePos: TPoint; var Handled: Boolean);
 var
@@ -1985,6 +1972,16 @@ begin
 	SetZoneKind(CurrentZone, TZoneKind((Sender as TMenuItem).Tag));
 end;
 
+procedure TDeckFrame.BeginFormUpdate;
+begin
+	MainForm.StartUpdate;
+end;
+
+procedure TDeckFrame.EndFormUpdate;
+begin
+	MainForm.EndUpdate;
+end;
+
 procedure TDeckFrame.ShowPanel_Effects;
 var
 	B: Boolean;
@@ -1994,14 +1991,17 @@ begin
 	pnlEffects.Visible := B;
 end;
 
-procedure TDeckFrame.BeginFormUpdate;
+procedure TDeckFrame.ApplyEffects;
+var
+	Fx: TGUIEffect;
 begin
-	MainForm.StartUpdate;
-end;
-
-procedure TDeckFrame.EndFormUpdate;
-begin
-	MainForm.EndUpdate;
+	if (Effects <> nil) and (Deck.OrigStream <> 0) then
+		for Fx in Effects do
+			if Fx.Effect <> nil then
+			begin
+				Fx.Effect.Stream := Deck.OrigStream;
+				Fx.Effect.BPM := @Deck.BPM;
+			end;
 end;
 
 procedure TDeckFrame.SelectEffect(EffectNum: Integer);
@@ -2052,7 +2052,6 @@ begin
 	begin
 		Button := Effects[SelectedEffect].Button;
 		Button.StateNormal.Border.LightWidth := IfThen(Fx.Enabled, 2, 0);
-		//pnlEffectKnobs.Tag := 0;
 
 		for i := 0 to High(GUIEffectParams) do
 		begin
@@ -2064,7 +2063,6 @@ begin
 			Knob.Visible := B;
 			if B then
 			begin
-				//pnlEffectKnobs.Tag := pnlEffectKnobs.Tag + 48;
 				Param := Fx.Params[i];
 				M := Param.Multiplier;
 				Knob.Max := Trunc(Param.Max * M);
