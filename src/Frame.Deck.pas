@@ -2131,7 +2131,7 @@ begin
 	end;
 
 	Inc(X, 8);
-	pnlEffectKnobs.SetBounds(X, 3, pnlEffects.ClientWidth - X, pnlEffects.ClientHeight-4);
+	pnlEffectKnobs.SetBounds(X, 3, pnlEffects.ClientWidth-X-5, pnlEffects.ClientHeight-6);
 
 	EndFormUpdate;
 end;
@@ -2221,7 +2221,11 @@ begin
 		B := not Fx.Enabled;
 		if B then
 			Fx.Stream := Deck.Stream;
-		Effects[X].Button.StateNormal.Border.LightWidth := IfThen(B, 2, 0);
+		with Effects[X].Button do
+		begin
+			StateNormal.Border.LightWidth := IfThen(B, 2, 0);
+			Down := B;
+		end;
 		Fx.Enabled := B;
 	end;
 end;

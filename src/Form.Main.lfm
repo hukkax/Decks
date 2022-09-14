@@ -22,7 +22,6 @@ object MainForm: TMainForm
   OnShow = FormShow
   ParentDoubleBuffered = False
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
   object PanelTop: TPanel
     Left = 0
     Height = 48

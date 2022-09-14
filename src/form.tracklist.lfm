@@ -6,6 +6,7 @@ object FormTracklist: TFormTracklist
   Caption = 'FormTracklist'
   ClientHeight = 338
   ClientWidth = 811
+  LCLVersion = '2.3.0.0'
   object SongList: ThListView
     Left = 0
     Height = 338
@@ -51,6 +52,6 @@ object FormTracklist: TFormTracklist
     LightAmount = 15
     Increment = 1
     Kind = sbVertical
-    Window = 15
+    Window = 7
   end
 end

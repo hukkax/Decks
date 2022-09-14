@@ -171,6 +171,7 @@ type
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
+		MIDIProcessing: Boolean;
 
 		procedure ResizeFrames;
 		function  FindFileListEntry(const Filename: String): ThListItem;
@@ -179,6 +180,9 @@ type
 		procedure SetButtonDown(Button: TDecksButton; MenuItem: TMenuItem; Down: Boolean);
 		procedure UpdateToggleButtons;
 		procedure AlignEmbeddedImage;
+		procedure OnFocusableControlDescend(Sender: TObject);
+		procedure OnFocusableControlEnter(Sender: TObject);
+		function  ClickButton(Ctrl: TControl; Pressed: Boolean): Boolean;
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
@@ -249,7 +253,7 @@ implementation
 uses
 	Math, FileUtil, LazFileUtils, StrUtils,
 	MouseWheelAccelerator, TextInputDialog,
-	BCTypes, TeeGenericTree, FocusRectangleUnit,
+	BCTypes, BCButton, TeeGenericTree, FocusRectangleUnit,
 	Form.Tracklist,
 	BASS, AudioTag, basetag, file_Wave, file_mp3, file_ogg,
 	Decks.Song, Decks.Beatgraph;
@@ -257,6 +261,8 @@ uses
 var
 	TagScanner: TTagScannerJob;
 	FocusableControls: TFocusableControls;
+	DeckInFocusableControls: array[0..2, 0..2] of TNode<TControl>;
+	FocusedDeck: Integer = 0;
 
 {$WARN 5024 off : Parameter "$1" not used}
 
@@ -371,7 +377,7 @@ var
 begin
 	Params := PExecuteParams(Data)^;
 	try
-		if not Application.Terminated then
+		if (not MIDIProcessing) and (not Application.Terminated) then
 			Execute(Params.Action, Params.Pressed, Params.Value);
 	finally
 		Dispose(PExecuteParams(Data));
@@ -390,6 +396,8 @@ var
 	S: String;
 begin
 	if Action.Kind = NO_ACTION then Exit;
+
+	MIDIProcessing := True;
 
 	if MIDI.Debug then
 	begin
@@ -414,7 +422,11 @@ begin
 
 		if (FileListIsActive) and (Action.Kind in [UI_SELECT_TOGGLE, UI_SELECT_OPEN]) then
 			Action.Kind := DECK_LOAD;
-		if (Deck = nil) and (Action.Kind <> DECK_LOAD) then Exit;
+		if (Deck = nil) and (Action.Kind <> DECK_LOAD) then
+		begin
+			MIDIProcessing := False;
+			Exit;
+		end;
 	end;
 
 	case Action.Kind of
@@ -452,7 +464,13 @@ begin
 	UI_SELECT_TOGGLE:	if Pressed then ListDirs.Selected.Expanded := not ListDirs.Selected.Expanded;
 	UI_SELECT_OPEN:		if Pressed then ListDirsChange(ListDirs, ListDirs.Selected);
 
+	UI_SELECT_ENTER:	if not ClickButton(FocusableControls.ActiveControl, Pressed) then
+							if Pressed then FocusableControls.Descend;
+	UI_SELECT_EXIT:		if Pressed then FocusableControls.Ascend;
+
 	end;
+
+	MIDIProcessing := False;
 end;
 
 procedure TMainForm.UpdateController(Deck: TDeck; Event: Integer);
@@ -515,8 +533,20 @@ procedure TMainForm.ListBrowse(Dir: Integer);
 var
 	i: Integer;
 	Node: TTreeNode;
+	Ctrl: TControl;
 begin
-	if FileListIsActive then
+	Ctrl := FocusableControls.ActiveControl;
+
+	if Ctrl = nil then
+	begin
+		if Dir < 0 then
+			FocusableControls.SelectPrevious
+		else
+		if Dir > 0 then
+			FocusableControls.SelectNext;
+	end
+	else
+	if Ctrl = FileList then // if FileListIsActive then
 	begin
 		i := FileList.ItemIndex + Dir;
 		if (i >= 0) and (i < FileList.Items.Count) then
@@ -526,6 +556,7 @@ begin
 		end;
 	end
 	else
+	if Ctrl = ListDirs then
 	begin
 		ListDirs.Tag := 1;
 		if ListDirs.Selected = nil then
@@ -539,6 +570,32 @@ begin
 			ListDirs.Selected := Node
 		else
 			ListDirs.Selected.MakeVisible;
+	end
+	else
+	begin
+		if Ctrl is ThKnob then
+		begin
+			with ThKnob(Ctrl) do
+				if Multiplier = 1 then
+					Position := Position + Dir
+				else
+					Position := Position + (((Max - Min) div 100) * Sign(Dir));
+		end
+		else
+		if (Ctrl is ThGaugeBar) then
+		begin
+			with ThGaugeBar(Ctrl) do
+				if Ctrl = sBPM then
+					Position := Position + (100 * Sign(Dir))
+				else
+					Position := Position + (SmallChange * Sign(Dir));
+		end
+		else
+		if (Ctrl is ThRangeBar) then
+		begin
+			with ThRangeBar(Ctrl) do
+				Position := Position + (Increment * Sign(Dir));
+		end;
 	end;
 end;
 
@@ -663,13 +720,24 @@ begin
 			Add(sBPM);
 		end;
 		Root.Add(ListDirs); // Root.Add(LeftPanel);
-		with Root.Add(DeckPanel) do;
+		//with Root.Add(DeckPanel) do
+		begin
+			for i := 0 to High(DeckInFocusableControls) do
+			begin
+				DeckInFocusableControls[i,0] := Root.Add(nil); // graph
+				DeckInFocusableControls[i,1] := Root.Add(nil); // mixer
+				DeckInFocusableControls[i,2] := Root.Add(nil); // controls
+			end;
+		end;
 		with Root.Add(MixerPanel) do begin
 			Add(sEQ1L); Add(sEQ1M); Add(sEQ1H);
 			Add(sFader);
 			Add(sEQ2L); Add(sEQ2M); Add(sEQ2H);
 		end;
 		Root.Add(FileList);
+
+		OnDescend := OnFocusableControlDescend;
+		OnLock    := OnFocusableControlEnter;
 	end;
 
 {	i := 0;
@@ -736,37 +804,30 @@ procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
 begin
 	if Key = VK_SHIFT then IsShiftDown := True;
 
-	if MasterDeck = nil then
-	begin
-		case Key of
-
-			VK_LEFT:
-			begin
-				if IsShiftDown then
-					FocusableControls.Ascend
-				else
-					FocusableControls.SelectPrevious;
-				Key := 0;
-			end;
-
-			VK_RIGHT:
-			begin
-				if IsShiftDown then
-					FocusableControls.Descend
-				else
-					FocusableControls.SelectNext;
-				Key := 0;
-			end;
-		end;
-		Exit;
-	end;
-
 	case Key of
+
+		VK_LEFT:
+		begin
+			if IsShiftDown then
+				FocusableControls.Ascend
+			else
+				FocusableControls.SelectPrevious;
+			Key := 0;
+		end;
+
+		VK_RIGHT:
+		begin
+			if IsShiftDown then
+				FocusableControls.Descend
+			else
+				FocusableControls.SelectNext;
+			Key := 0;
+		end;
 
 		VK_DELETE:
 			CloseDeck(MasterDeck);
 
-		VK_LEFT:
+{		VK_LEFT:
 		begin
 			if MasterDeckIndex > 1 then
 				SetMaster(MasterDeckIndex-1);
@@ -778,7 +839,7 @@ begin
 			SetMaster(MasterDeckIndex+1);
 			Key := 0;
 		end;
-
+}
 	else
 		if MasterDeck.ProcessKeyDown(Key, Shift) then
 			Key := 0;
@@ -1293,7 +1354,9 @@ begin
 	HadNone := DeckList.Count = 0;
 	Deck := FindDeck(Index);
 	if Deck = nil then
-		Deck := CreateDeck;
+		Deck := CreateDeck
+	else
+		if not Deck.Paused then Exit;
 	if Deck.Load(SelectedFile) then
 	begin
 		if (HadNone) and (Config.Deck.FirstSetsMasterBPM) then
@@ -1396,6 +1459,7 @@ procedure TMainForm.DeckLayoutChanged;
 var
 	i: Integer;
 	Deck: TDeck;
+	DF: TDeckFrame;
 begin
 	for i := 0 to DeckList.Count-1 do
 	begin
@@ -1404,6 +1468,53 @@ begin
 		Deck.Form.Name := Deck.Form.Name + Deck.Index.ToString;
 		if i in [0,1] then
 			MixerDeck[i+1].Deck := Deck;
+
+		if i <= High(DeckInFocusableControls) then
+		if DeckInFocusableControls[i,2].Data = nil then
+		begin
+			DF := TDeckFrame(Deck.Form);
+
+			with DeckInFocusableControls[i,0] do
+			begin
+				Data := DF.pnlGraph;
+				Add(DF.SliderTempo);
+				Add(DF.SliderTempoFrac);
+				Add(DF.bStart);
+				Add(DF.bStore);
+			end;
+
+			with DeckInFocusableControls[i,1] do
+			begin
+				Data := DF.pnlEffects;
+				Add(DF.bEffect0);
+				Add(DF.bEffect1);
+				Add(DF.bEffect2);
+				Add(DF.bEffect3);
+				Add(DF.bEffect4);
+				Add(DF.bEffect5);
+				Add(DF.bEffect6);
+				Add(DF.bEffect7);
+				Add(DF.SliderFxParam0);
+				Add(DF.SliderFxParam1);
+				Add(DF.SliderFxParam2);
+				Add(DF.SliderFxParam3);
+				Add(DF.SliderFxParam4);
+				Add(DF.SliderFxParam5);
+			end;
+
+			with DeckInFocusableControls[i,2] do
+			begin
+				Data := DF.pnlControls;
+				Add(DF.bPlay);
+				Add(DF.bSync);
+				Add(DF.bReverse);
+				Add(DF.bBendUp);
+				Add(DF.bBendDown);
+				//
+				Add(DF.SliderAmp);
+			end;
+
+		end;
 	end;
 
 	if MixerDeck[1].Deck <> nil then
@@ -1832,6 +1943,97 @@ end;
 procedure TMainForm.miEnableMixerClick(Sender: TObject);
 begin
 	bToggleMixerMouseDown(Self, mbLeft, [], 0, 0);
+end;
+
+procedure TMainForm.OnFocusableControlDescend(Sender: TObject);
+var
+	Ctrl: TControl;
+	i, DeckIndex: Integer;
+begin
+	Ctrl := FocusableControls.GetItem;
+
+	// stupid hack to find out which Deck instance we are browsing
+	if Ctrl is TPanel then
+	begin
+		for DeckIndex := 0 to High(DeckInFocusableControls) do
+		begin
+			for i := 0 to 2 do
+				if Ctrl = DeckInFocusableControls[DeckIndex, i].Data then
+				begin
+					FocusedDeck := DeckIndex+1;
+					Break;
+				end;
+		end;
+	end;
+end;
+
+function TMainForm.ClickButton(Ctrl: TControl; Pressed: Boolean): Boolean;
+var
+	Btn: TDecksButton;
+begin
+	Result := False;
+	if Ctrl = nil then
+		Ctrl := FocusableControls.GetItem; // get focused item
+
+	if Ctrl is TDecksButton then
+	begin
+		Btn := TDecksButton(Ctrl);
+
+		if (Pressed) and (FocusedDeck > 0) and (Btn.Style = bbtDropDown) and
+			(Btn.Name.StartsWith('bEffect')) then
+		begin
+			// special handling for effect enable buttons
+			if Assigned(Btn.OnMouseDown) then
+			begin
+				Btn.OnMouseDown(Btn, mbRight, [], 0, 0);
+				if Btn.Down then
+				begin // activate first effect knob when enabling an effect
+					Ctrl := TDeckFrame(DeckList[FocusedDeck-1].Form).SliderFxParam0;
+					if Ctrl <> nil then
+						FocusableControls.SelectControl(Ctrl);
+				end;
+			end;
+		end
+		else
+		begin
+			if Pressed then // press a button
+			begin
+				if Assigned(Btn.OnButtonClick) then
+					Btn.OnButtonClick(Ctrl)
+				else
+				if Assigned(Btn.OnClick) then
+					Btn.OnClick(Ctrl)
+				else
+				if Assigned(Btn.OnMouseDown) then
+					Btn.OnMouseDown(Ctrl, mbLeft, [], 0, 0);
+			end
+			else // release button press
+				if Assigned(Btn.OnMouseUp) then
+					Btn.OnMouseUp(Ctrl, mbLeft, [], 0, 0);
+		end;
+
+		Result := True;
+	end
+	else
+	if (Pressed) and (Ctrl is ThListView) then
+	begin
+		// "click" on a list = invoke doubleclick handler
+		if (Ctrl = FocusableControls.ActiveControl) and
+			(Assigned((Ctrl as ThListView).OnDblClick)) then
+		begin
+			(Ctrl as ThListView).OnDblClick(Ctrl);
+			Result := True;
+		end;
+	end;
+end;
+
+procedure TMainForm.OnFocusableControlEnter(Sender: TObject);
+var
+	Ctrl: TControl;
+begin
+	Ctrl := FocusableControls.ActiveControl;
+	if Ctrl is TDecksButton then
+		FocusableControls.Unlock;
 end;
 
 end.

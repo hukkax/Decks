@@ -123,12 +123,11 @@
         <ResourceBaseClass Value="Form"/>
       </Unit17>
       <Unit18>
-        <Filename Value="form.tracklist.pas"/>
+        <Filename Value="Form.Tracklist.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FormTracklist"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="Form.Tracklist"/>
       </Unit18>
       <Unit19>
         <Filename Value="include\teegenerictree.pas"/>

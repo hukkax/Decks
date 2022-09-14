@@ -686,8 +686,10 @@ object DeckFrame: TDeckFrame
     BevelOuter = bvLowered
     ClientHeight = 54
     ClientWidth = 707
+    Color = 3553082
     DoubleBuffered = True
     FullRepaint = False
+    ParentColor = False
     ParentDoubleBuffered = False
     TabOrder = 2
     Visible = False
@@ -1382,14 +1384,14 @@ object DeckFrame: TDeckFrame
     object pnlEffectKnobs: TPanel
       Tag = 300
       Left = 407
-      Height = 52
-      Top = 0
-      Width = 300
+      Height = 48
+      Top = 3
+      Width = 297
       Anchors = [akTop, akRight, akBottom]
       BevelColor = 2171427
       BevelOuter = bvNone
-      ClientHeight = 52
-      ClientWidth = 300
+      ClientHeight = 48
+      ClientWidth = 297
       FullRepaint = False
       TabOrder = 0
       object SliderFxParam0: ThKnob

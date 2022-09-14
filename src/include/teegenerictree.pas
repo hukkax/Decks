@@ -142,7 +142,7 @@ type
 			Data: T;
 
 		constructor Create(const AData: T); overload;
-		destructor Destroy; override;
+		destructor  Destroy; override;
 
 		function  Add(const AData: T): TTypeItem;
 		procedure Clear; inline;
@@ -390,8 +390,7 @@ end;
 
 function TNode<T>.GetNextAncestor: TTypeItem;
 var
-	_parent, _child: TTypeItem;
-	t: Integer;
+	_parent: TTypeItem;
 begin
 	Result := nil;
 	if (Assigned(Self)) and (not Self.IsRoot) then

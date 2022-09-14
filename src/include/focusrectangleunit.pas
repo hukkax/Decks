@@ -5,7 +5,7 @@ unit FocusRectangleUnit;
 interface
 
 uses
-	Classes, SysUtils, Controls, ExtCtrls, Graphics,
+	Classes, SysUtils, Forms, Controls, ExtCtrls, Graphics,
 	TeeGenericTree;
 
 type
@@ -23,29 +23,51 @@ type
 	TFocusableControl = TNode<TControl>;
 
 	TFocusableControls = class
+	const
+		MAXLEVELS = 9; // maximum nesting level
 	private
+		FFocusColor,
+		FLockedColor: TColor;
+		CurrentLevel: Integer;
+		PrevCtrl:  array[0..MAXLEVELS] of TControl;
+		//PrevColor: array[0..MAXLEVELS] of TColor;
 		procedure ShowFocusRect;
+		function  CanFocusControl(Ctrl: TControl): Boolean; inline;
+		procedure SetFocusColor(Value: TColor);
+		procedure SetLockedColor(Value: TColor);
 	public
 		Root,
-		CurrentItem: TFocusableControl;
-		CurrentLevel: Integer;
-		ActiveControl: TControl;
+		CurrentItem:    TFocusableControl;
+		ActiveControl:  TControl;
 		FocusRectangle: TFocusRectangle;
-		FocusColor: TColor;
-		PrevCtrl:  array[0..6] of TControl;
-		PrevColor: array[0..6] of TColor;
+		OnSelect,
+		OnAscend,
+		OnDescend,
+		OnLock,
+		OnUnlock:       TNotifyEvent;
 
-		function SelectNext:     TFocusableControl;
-		function SelectPrevious: TFocusableControl;
-		function Ascend:         TFocusableControl;
-		function Descend:        TFocusableControl;
+		procedure Lock;
+		procedure Unlock;
+		procedure SelectControl(Ctrl: TControl);
+		function  SelectNext:     TFocusableControl;
+		function  SelectPrevious: TFocusableControl;
+		function  Ascend:         TFocusableControl;
+		function  Descend:        TFocusableControl;
+		function  GetItem:        TControl;
 
 		constructor Create;
 		destructor  Destroy; override;
+
+		property FocusColor:  TColor read FFocusColor  write SetFocusColor;
+		property LockedColor: TColor read FLockedColor write SetLockedColor;
 	end;
 
 
 implementation
+
+{$IFDEF DEBUG}
+uses Form.Main;
+{$ENDIF}
 
 // =================================================================================================
 // TFocusableControls
@@ -59,7 +81,8 @@ begin
 
 	CurrentItem := nil;
 	CurrentLevel := 0;
-	FocusColor := clRed;
+	FFocusColor  := clRed;
+	FLockedColor := clYellow;
 
 	FocusRectangle := TFocusRectangle.Create(nil);
 	FocusRectangle.BorderWidth := 2;
@@ -67,7 +90,7 @@ begin
 	FocusRectangle.Brush.Style := bsClear; // bsFDiagonal;
 	//FocusRectangle.Brush.Color := clMaroon;
 	FocusRectangle.Pen.Style := psSolid;
-	FocusRectangle.Pen.Color := FocusColor;
+	FocusRectangle.Pen.Color := FFocusColor;
 	FocusRectangle.Pen.Width := FocusRectangle.BorderWidth;
 	FocusRectangle.Pen.JoinStyle := pjsMiter;
 	FocusRectangle.Visible := False;
@@ -81,6 +104,51 @@ begin
 	inherited Destroy;
 end;
 
+function TFocusableControls.CanFocusControl(Ctrl: TControl): Boolean;
+begin
+	Result := (Ctrl <> nil) and (Ctrl.Visible) and (Ctrl.Enabled) and (Ctrl.Parent.Visible);
+end;
+
+procedure TFocusableControls.Lock;
+begin
+	if CurrentItem <> nil then
+	begin
+		FocusRectangle.Pen.Color := FLockedColor;
+		ActiveControl := CurrentItem.Data;
+		if ActiveControl <> nil then
+			if Assigned(OnLock) then OnLock(Self);
+	end;
+end;
+
+procedure TFocusableControls.Unlock;
+begin
+	if ActiveControl <> nil then
+	begin
+		ActiveControl := nil;
+		FocusRectangle.Pen.Color := FFocusColor;
+		if Assigned(OnUnlock) then OnUnlock(Self);
+	end;
+end;
+
+procedure TFocusableControls.SelectControl(Ctrl: TControl);
+var
+	Item: TFocusableControl;
+begin
+	if ActiveControl <> nil then
+		ActiveControl := Ctrl;
+	Item := Root;
+	if Item.Data <> Ctrl then
+	repeat
+		if Item <> nil then Item := Item.GetNext;
+	until (Item = nil) or (Item.Data = Ctrl);
+	if Item <> nil then
+	begin
+		CurrentItem := Item;
+		if Assigned(OnSelect) then OnSelect(Self);
+	end;
+	ShowFocusRect;
+end;
+
 function TFocusableControls.SelectNext: TFocusableControl;
 begin
 	if ActiveControl <> nil then Exit;
@@ -89,8 +157,14 @@ begin
 		CurrentItem := Root.GetFirstChild
 	else
 		CurrentItem := CurrentItem.GetNextSibling;
+
+	if not CanFocusControl(CurrentItem.Data) then
+		CurrentItem := SelectNext;
+
 	if ActiveControl <> nil then
 		ActiveControl := CurrentItem.Data;
+
+	if Assigned(OnSelect) then OnSelect(Self);
 	Result := CurrentItem;
 	ShowFocusRect;
 end;
@@ -103,8 +177,14 @@ begin
 		CurrentItem := Root.GetFirstChild
 	else
 		CurrentItem := CurrentItem.GetPreviousSibling;
+
+	if not CanFocusControl(CurrentItem.Data) then
+		CurrentItem := SelectPrevious;
+
 	if ActiveControl <> nil then
 		ActiveControl := CurrentItem.Data;
+
+	if Assigned(OnSelect) then OnSelect(Self);
 	Result := CurrentItem;
 	ShowFocusRect;
 end;
@@ -113,9 +193,7 @@ function TFocusableControls.Ascend: TFocusableControl;
 begin
 	if CurrentItem <> nil then
 	begin
-		if ActiveControl <> nil then
-			ActiveControl := nil
-		else
+		if ActiveControl = nil then
 			CurrentItem := CurrentItem.Parent;
 	end;
 	if CurrentItem = Root then
@@ -124,8 +202,11 @@ begin
 		PrevCtrl[1] := nil;
 		CurrentItem := nil;
 	end;
-	ActiveControl := nil;
-	FocusRectangle.Pen.Color := FocusColor;
+
+	Unlock;
+
+	if Assigned(OnAscend) then OnAscend(Self);
+
 	Result := CurrentItem;
 	ShowFocusRect;
 end;
@@ -136,15 +217,14 @@ begin
 		CurrentItem := Root;
 	if CurrentItem.Count > 0 then
 	begin
+		Unlock;
+		if Assigned(OnDescend) then OnDescend(Self);
 		CurrentItem := CurrentItem.GetFirstChild;
-		FocusRectangle.Pen.Color := FocusColor;
-		ActiveControl := nil;
+		if Assigned(OnSelect) then OnSelect(Self);
 	end
 	else
-	begin
-		ActiveControl := CurrentItem.Data;
-		FocusRectangle.Pen.Color := clYellow;
-	end;
+		Lock;
+
 	Result := CurrentItem;
 	ShowFocusRect;
 end;
@@ -158,10 +238,15 @@ begin
 	begin
 		Ctrl := CurrentItem.Data;
 		Level := CurrentItem.Level;
-		if (CurrentLevel = Level) and (PrevCtrl[Level] = Ctrl) then Exit;
+
+		//if (CurrentLevel = Level) and (PrevCtrl[Level] = Ctrl) then Exit;
+		{$IFDEF DEBUG}
+		MainForm.Caption := Ctrl.ClassName + ': ' + Ctrl.Name;
+		{$ENDIF}
 
 		//if (Ctrl is TPanel) or (Ctrl is ThListView) or (Ctrl is ThShellTree) then
-		if (Ctrl is TWinControl) and (TWinControl(Ctrl).TabStop) then
+		if (Ctrl is TFrame) or (Ctrl is TCustomForm) or
+			((Ctrl is TWinControl) and (TWinControl(Ctrl).TabStop)) then
 		begin
 			{if (PrevCtrl[Level] <> nil) and (PrevCtrl[Level] is TWinControl) then
 				TWinControl(PrevCtrl[Level]).Color := PrevColor[Level];
@@ -173,7 +258,39 @@ begin
 		CurrentLevel := Level;
 		FocusRectangle.AlignToControl(Ctrl);
 		FocusRectangle.Visible := True;
+	end
+	else
+	begin
+		FocusRectangle.Visible := False;
 	end;
+end;
+
+procedure TFocusableControls.SetFocusColor(Value: TColor);
+begin
+	if FFocusColor <> Value then
+	begin
+		FFocusColor := Value;
+		if ActiveControl = nil then
+			FocusRectangle.Pen.Color := Value;
+	end;
+end;
+
+procedure TFocusableControls.SetLockedColor(Value: TColor);
+begin
+	if FLockedColor <> Value then
+	begin
+		FLockedColor := Value;
+		if ActiveControl <> nil then
+			FocusRectangle.Pen.Color := Value;
+	end;
+end;
+
+function TFocusableControls.GetItem: TControl;
+begin
+	if CurrentItem = nil then
+		Result := nil
+	else
+		Result := CurrentItem.Data;
 end;
 
 // =================================================================================================
@@ -194,17 +311,18 @@ procedure TFocusRectangle.AlignToControl(Ctrl: TControl);
 begin
 	if Ctrl <> nil then
 	begin
-		if (Ctrl is TWinControl) then
+		if (Ctrl is TWinControl) or (Ctrl is TFrame) or (Ctrl is TCustomForm) then
 		begin
 			Parent := TWinControl(Ctrl);
 			Align := alClient;
+			BringToFront;
 		end
 		else
 		begin
 			Align := alNone;
 			Parent := Ctrl.Parent;
-			BoundsRect := Bounds(Ctrl.Left-FBorderWidth, Ctrl.Top-FBorderWidth,
-				Ctrl.Width+(FBorderWidth*2), Ctrl.Height+(FBorderWidth*2));
+			BoundsRect := Bounds(Ctrl.Left - FBorderWidth, Ctrl.Top - FBorderWidth,
+				Ctrl.Width + (FBorderWidth*2), Ctrl.Height + (FBorderWidth*2));
 			Anchors := Ctrl.Anchors;
 		end;
 	end;
