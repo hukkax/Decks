@@ -1,0 +1,56 @@
+object FormTracklist: TFormTracklist
+  Left = 510
+  Height = 338
+  Top = 30
+  Width = 811
+  Caption = 'FormTracklist'
+  ClientHeight = 338
+  ClientWidth = 811
+  object SongList: ThListView
+    Left = 0
+    Height = 338
+    Top = 0
+    Width = 791
+    Align = alClient
+    Color = clBlack
+    ColorSelection = 10188589
+    ColorSelectedText = clWhite
+    ColorGrid = 4473924
+    ColorHover = clBlack
+    SortColumn = 0
+    HeaderHeight = 0
+    HeaderColor = 3553082
+    HeaderTextColor = 10001052
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWhite
+    Font.Height = -29
+    Font.Name = 'Segoe UI Semibold'
+    Font.Pitch = fpVariable
+    Font.Style = [fsBold]
+    ItemHeight = 46
+    Scrollbar = Scrollbar
+    ParentShowHint = False
+    ShowHint = True
+    DoubleBuffered = True
+    TabOrder = 0
+    TabStop = True
+  end
+  object Scrollbar: ThRangeBar
+    Left = 791
+    Height = 338
+    Top = 0
+    Width = 20
+    Align = alRight
+    Color = 2171427
+    HandleColor = 5395800
+    ButtonColor = 2171427
+    HighLightColor = 2171427
+    ShadowColor = 2171427
+    BorderColor = 2171427
+    ArrowColor = 5395800
+    LightAmount = 15
+    Increment = 1
+    Kind = sbVertical
+    Window = 15
+  end
+end

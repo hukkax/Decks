@@ -529,6 +529,9 @@ end;
 
 procedure ThListView.SetItemHeight(H: Integer);
 begin
+	if H < 1 then
+		H := Font.GetTextHeight('Xgjq"!_');
+
 	FItemHeight := H;
 	GetVisibleRows;
 
@@ -942,7 +945,7 @@ begin
 	Canvas.Brush.Style := bsSolid;
 	Canvas.Brush.Color := C;
 
-	CR := Rect(0, 0, ClientWidth, ClientHeight-FHeaderHeight);
+	CR := Rect(0, 0, Width, ClientHeight-FHeaderHeight);
 
 	if Columns.Count >= 1 then
 		W := Columns.First.Width-1
@@ -956,7 +959,7 @@ begin
 
 		if Y > 0 then
 		begin
-			IR := Bounds(0, 0, ClientWidth, Y);
+			IR := Bounds(0, 0, ClientWidth-1, Y);
 			FillRect(IR, FHeaderColor);
 			Canvas.Font.Color := FHeaderTextColor;
 			X := 0;
@@ -993,7 +996,7 @@ begin
 		if not FullRedraw then
 		begin
 			if I = FPreviousHoveredItem then
-				FillRect(Bounds(0, Y, Width, FItemHeight), C)
+				FillRect(Bounds(1, Y, Width-3, FItemHeight), C)
 			else
 			if not Hovered then
 			begin
@@ -1003,11 +1006,11 @@ begin
 			end;
 		end;
 
-		IR := Bounds(0, Y, W, FItemHeight);
+		IR := Bounds(0, Y, W-1, FItemHeight);
 
 		if I = FItemIndex then
 		begin
-			FillRect(Bounds(0, Y, Width, FItemHeight), FColorSelection);
+			FillRect(Bounds(1, Y, Width-3, FItemHeight), FColorSelection);
 			Canvas.Font.Color := FColorSelectedText;
 		end
 		else
@@ -1016,7 +1019,7 @@ begin
 				Item.Color, FFont.Color);
 			if Hovered then
 			begin
-				FillRect(Bounds(0, Y, Width, FItemHeight), FColorHover);
+				FillRect(Bounds(1, Y, Width-3, FItemHeight), FColorHover);
 				SetLength(HintColumn, Item.SubItems.Count + 1);
 				HintColumn[0] := IR;
 			end;
@@ -1061,12 +1064,10 @@ begin
 		begin
 			Canvas.Pen.Color := FColorGrid;
 			Canvas.Line(0, IR.Bottom-1, Canvas.Width-1, IR.Bottom-1);
-			//Buffer.HorzLineS(0, IR.Bottom-1, Width, FColorGrid);
 		end;
 
-		Inc(Y, FItemHeight);
-//		if (Y + FItemHeight) >= Buffer.Height then Break;
 		FLastVisibleIndex := I;
+		Inc(Y, FItemHeight);
 	end;
 
 	C := FColorGrid;
@@ -1078,8 +1079,8 @@ begin
 			if Columns[Col].Visible then
 			begin
 				Inc(X, Columns[Col].Width);
-				Canvas.Line(X-1, 0, X-1, Canvas.Height-1);
-	//			Buffer.VertLineS(X-1, 0, ClientHeight, C);
+				if X < ClientWidth-1 then
+					Canvas.Line(X-1, 0, X-1, Canvas.Height-1);
 			end;
 	end;
 

@@ -8,7 +8,8 @@ uses
 	Interfaces, // this includes the LCL widgetset
 	Forms, Form.Main, Frame.Deck,
 	Decks.Audio, Decks.Song, Decks.Beatgraph,
-	Decks.SongInfo, Decks.TagScanner, Decks.Effects, TextInputDialog;
+	Decks.SongInfo, Decks.TagScanner, Decks.Effects, TextInputDialog,
+	Form.Tracklist;
 
 {$R *.res}
 
@@ -38,6 +39,7 @@ begin
 	RequireDerivedFormResource := True;
 	Application.Initialize;
 	Application.CreateForm(TMainForm, MainForm);
+	Application.CreateForm(TFormTracklist, FormTracklist);
 	Application.Run;
 end.
 

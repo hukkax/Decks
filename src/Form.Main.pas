@@ -42,8 +42,33 @@ type
 		constructor Create(const AFilename: String; ATime: TDateTime);
 	end;
 
+	{TFocusableControl = class
+	public
+		Control: TControl;
+		Parent:  TFocusableControl;
+		Level:   Integer;
+
+		function  AddChild(AControl: TControl): TFocusableControl;
+		procedure AddChildren;
+	end;
+
+	TFocusableControlList = TFPGObjectList<TFocusableControl>;
+
+	TFocusableControls = class
+	public
+		Items:       TFocusableControlList;
+		CurrentItem: TFocusableControl;
+
+		function     SelectPrevious: TFocusableControl;
+		function     SelectNext:     TFocusableControl;
+		function     AddControl(AControl: TControl; AAddChildren: Boolean = False): TFocusableControl;
+
+		constructor  Create;
+		destructor   Destroy; override;
+	end;}
+
 	TMainForm = class(TForm)
-		DecksButton1: TDecksButton;
+		bMainMenu: TDecksButton;
 		miMIDIInput: TMenuItem;
 		pbBeats: TBGRAVirtualScreen;
 		PopupMenu: TPopupMenu;
@@ -81,7 +106,6 @@ type
 		MenuItem1: TMenuItem;
 		MenuItem2: TMenuItem;
 		miAbout: TMenuItem;
-		bMainMenu: TDecksButton;
 		EmbeddedImage: TImage;
 		bToggleEffects: TDecksButton;
 		bToggleMixer: TDecksButton;
@@ -91,6 +115,7 @@ type
 		bToggleGraphLines: TDecksButton;
 		bToggleWaveDual: TDecksButton;
 		lCPU: TBCLabel;
+		bToggleTracklist: TDecksButton;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -140,6 +165,9 @@ type
 			X, Y: Integer);
 		procedure bToggleGraphLinesMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
+		procedure FormShow(Sender: TObject);
+		procedure miEnableEffectsClick(Sender: TObject);
+		procedure miEnableMixerClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -155,6 +183,7 @@ type
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
 
+		procedure ShowFocusRect;
 		procedure UpdateMixerVisibility;
 		procedure ApplyMixer(ApplyEQ: Boolean = True);
 		procedure SetMasterTempo(BPM: Single);
@@ -194,7 +223,6 @@ type
 		procedure Apply(ApplyEQ: Boolean = True);
 	end;
 
-
 var
 	MainForm: TMainForm;
 
@@ -205,6 +233,7 @@ var
 	MasterBPM: Single;
 	MasterDeck: TDeckFrame;
 	MasterDeckIndex: Integer;
+
 
 	SelectedFile, CurrentDir: String;
 
@@ -222,12 +251,37 @@ implementation
 
 uses
 	Math, FileUtil, LazFileUtils, StrUtils,
-	MouseWheelAccelerator, BCTypes, TextInputDialog,
+	MouseWheelAccelerator, TextInputDialog,
+	BCTypes, TeeGenericTree,
+	Form.Tracklist,
 	BASS, AudioTag, basetag, file_Wave, file_mp3, file_ogg,
 	Decks.Song, Decks.Beatgraph;
 
+type
+	TFocusableControl = TNode<TControl>;
+
+	TFocusableControls = class
+		Root,
+		CurrentItem: TFocusableControl;
+		CurrentLevel: Integer;
+		ActiveControl: TControl;
+		FocusRectangle: TShape;
+		FocusColor: TColor;
+		PrevCtrl:  array[0..6] of TControl;
+		PrevColor: array[0..6] of TColor;
+
+		function SelectNext:     TFocusableControl;
+		function SelectPrevious: TFocusableControl;
+		function Ascend:         TFocusableControl;
+		function Descend:        TFocusableControl;
+
+		constructor Create;
+		destructor  Destroy; override;
+	end;
+
 var
 	TagScanner: TTagScannerJob;
+	FocusableControls: TFocusableControls;
 
 {$WARN 5024 off : Parameter "$1" not used}
 
@@ -513,6 +567,141 @@ begin
 	end;
 end;
 
+constructor TFocusableControls.Create;
+begin
+	inherited Create;
+	Root := TFocusableControl.Create;
+	CurrentItem := nil;
+	CurrentLevel := 0;
+	FocusColor := clRed;
+	FocusRectangle := TShape.Create(MainForm.PanelTop);
+	FocusRectangle.Shape := stRectangle;
+	FocusRectangle.Brush.Style := bsClear; // bsFDiagonal;
+	//FocusRectangle.Brush.Color := clMaroon;
+	FocusRectangle.Pen.Style := psSolid;
+	FocusRectangle.Pen.Color := FocusColor;
+	FocusRectangle.Pen.Width := 2;
+	FocusRectangle.Pen.JoinStyle := pjsMiter;
+	FocusRectangle.Visible := False;
+	FocusRectangle.Enabled := False;
+end;
+
+destructor TFocusableControls.Destroy;
+begin
+	Root.Free;
+	FocusRectangle.Free;
+	inherited Destroy;
+end;
+
+function TFocusableControls.SelectNext: TFocusableControl;
+begin
+	if ActiveControl <> nil then Exit;
+
+	if CurrentItem = nil then
+		CurrentItem := Root.GetFirstChild
+	else
+		CurrentItem := CurrentItem.GetNextSibling;
+	if ActiveControl <> nil then
+		ActiveControl := CurrentItem.Data;
+	Result := CurrentItem;
+	MainForm.ShowFocusRect;
+end;
+
+function TFocusableControls.SelectPrevious: TFocusableControl;
+begin
+	if ActiveControl <> nil then Exit;
+
+	if CurrentItem = nil then
+		CurrentItem := Root.GetFirstChild
+	else
+		CurrentItem := CurrentItem.GetPreviousSibling;
+	if ActiveControl <> nil then
+		ActiveControl := CurrentItem.Data;
+	Result := CurrentItem;
+	MainForm.ShowFocusRect;
+end;
+
+function TFocusableControls.Ascend: TFocusableControl;
+begin
+	if CurrentItem <> nil then
+	begin
+		if ActiveControl <> nil then
+			ActiveControl := nil
+		else
+			CurrentItem := CurrentItem.Parent;
+	end;
+	if CurrentItem = Root then
+	begin
+		FocusRectangle.Visible := False;
+		PrevCtrl[1] := nil;
+		CurrentItem := nil;
+	end;
+	ActiveControl := nil;
+	FocusRectangle.Pen.Color := FocusColor;
+	Result := CurrentItem;
+	MainForm.ShowFocusRect;
+end;
+
+function TFocusableControls.Descend: TFocusableControl;
+begin
+	if CurrentItem = nil then
+		CurrentItem := Root;
+	if CurrentItem.Count > 0 then
+	begin
+		CurrentItem := CurrentItem.GetFirstChild;
+		FocusRectangle.Pen.Color := FocusColor;
+		ActiveControl := nil;
+	end
+	else
+	begin
+		ActiveControl := CurrentItem.Data;
+		FocusRectangle.Pen.Color := clYellow;
+	end;
+	Result := CurrentItem;
+	MainForm.ShowFocusRect;
+end;
+
+procedure TMainForm.ShowFocusRect;
+var
+	Ctrl: TControl;
+	WCtrl: TWinControl;
+	Level: Integer;
+begin
+	with FocusableControls do
+	begin
+		if (CurrentItem <> nil) and (CurrentItem.Data <> nil) then
+		begin
+			Ctrl := CurrentItem.Data;
+			Level := CurrentItem.Level;
+			with FocusRectangle do
+			begin
+				if (CurrentLevel = Level) and (PrevCtrl[Level] = Ctrl) then Exit;
+
+				if (Ctrl is TPanel) or (Ctrl is ThListView) or (Ctrl is ThShellTree) then
+				begin
+					WCtrl := TWinControl(Ctrl);
+					Parent := WCtrl;
+					Align := alClient;
+{					if (PrevCtrl[Level] <> nil) and (PrevCtrl[Level] is TWinControl) then
+						TWinControl(PrevCtrl[Level]).Color := PrevColor[Level];
+					PrevColor[Level] := WCtrl.Color;
+					WCtrl.Color := FocusColor;}
+					PrevCtrl[Level] := Ctrl;
+				end
+				else
+				begin
+					Align := alNone;
+					Parent := Ctrl.Parent;
+					BoundsRect := Bounds(Ctrl.Left-1, Ctrl.Top-1, Ctrl.Width+2, Ctrl.Height+2);
+					Anchors := Ctrl.Anchors;
+				end;
+				CurrentLevel := Level;
+				Visible := True;
+			end;
+		end;
+	end;
+end;
+
 // ================================================================================================
 // TMainForm
 // ================================================================================================
@@ -524,6 +713,9 @@ var
 	S: String;
 	mi: TMenuItem;
 	{$ENDIF}
+
+//	FC, CC: TFocusableControl;
+//	Ctrl: TControl;
 begin
 	DefaultFormatSettings.DecimalSeparator := '.';
 	Config.Load;
@@ -617,8 +809,38 @@ begin
 		if i < FileList.Columns.Count then
 			FileList.Columns[i].Visible := Config.Window.FileList.ColumnVisible[i];
 
-	UpdateMixerVisibility;
-	UpdateToggleButtons;
+	FocusableControls := TFocusableControls.Create;
+	with FocusableControls do
+	begin
+		with Root.Add(PanelTop) do
+		begin
+			Add(bToggleLeftPane);
+			Add(bToggleEffects);
+			Add(bToggleMixer);
+			Add(bToggleGraphLines);
+			Add(bToggleTracklist);
+//			Add(bToggleWaveDual);
+			Add(sBPM);
+		end;
+		Root.Add(ListDirs); // Root.Add(LeftPanel);
+		with Root.Add(DeckPanel) do;
+		with Root.Add(MixerPanel) do begin
+			Add(sEQ1L); Add(sEQ1M); Add(sEQ1H);
+			Add(sFader);
+			Add(sEQ2L); Add(sEQ2M); Add(sEQ2H);
+		end;
+		Root.Add(FileList);
+	end;
+
+{	i := 0;
+	FC := FocusableControls.Root;
+	for CC in FC.Items do
+	begin
+		Memo1.Lines.Add(Format('%d (%d) %s:%s', [i, CC.Level, CC.Data.ClassName, CC.Data.Name ]));
+		if CC.Count > 0 then
+			Memo1.Lines.Add(Format('    %d children', [CC.Count]));
+		Inc(i);
+	end;}
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -650,6 +872,7 @@ begin
 	{$IFDEF USEMIDI}
 	MIDI.Uninit;
 	{$ENDIF}
+	FocusableControls.Free;
 	PlayedFilenames.Free;
 	MasterDeck := nil;
 	//FileList.Free;
@@ -673,7 +896,30 @@ procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
 begin
 	if Key = VK_SHIFT then IsShiftDown := True;
 
-	if MasterDeck = nil then Exit;
+	if MasterDeck = nil then
+	begin
+		case Key of
+
+			VK_LEFT:
+			begin
+				if IsShiftDown then
+					FocusableControls.Ascend
+				else
+					FocusableControls.SelectPrevious;
+				Key := 0;
+			end;
+
+			VK_RIGHT:
+			begin
+				if IsShiftDown then
+					FocusableControls.Descend
+				else
+					FocusableControls.SelectNext;
+				Key := 0;
+			end;
+		end;
+		Exit;
+	end;
 
 	case Key of
 
@@ -951,6 +1197,7 @@ var
 	i: Integer;
 	Item: ThListItem;
 	Info: TPlayedFileInfo;
+	S: String;
 begin
 	if PlayedFilenames.IndexOf(Filename) >= 0 then Exit;
 
@@ -964,6 +1211,30 @@ begin
 		Info.Title  := Item.SubItems[COLUMN_TITLE-1];
 		Item.Color := COLOR_FILE_PLAYED;
 		FileList.Invalidate;
+	end;
+
+	//if FormTracklist.Visible then
+	begin
+		Item := ThListItem.Create(FormTracklist.SongList);
+
+		if Info.Artist.IsEmpty then
+		begin
+			if Info.Title.IsEmpty then
+				S := ExtractFileNameWithoutExt(Info.Filename)
+			else
+				S := Info.Title;
+		end
+		else
+		begin
+			S := Format('%s - %s', [Info.Artist, Info.Title]);
+		end;
+
+		Item.Caption := S;
+		FormTracklist.SongList.Items.Add(Item);
+		FormTracklist.SongList.ItemIndex := FormTracklist.SongList.Items.Count-1;
+		if FormTracklist.Visible then
+			FormTracklist.SongList.Invalidate;
+		FormTracklist.SongList.ScrollToView(Item);
 	end;
 end;
 
@@ -1269,6 +1540,7 @@ begin
 	StartUpdate;
 	MixerPanel.Visible := Config.Mixer.Enabled;
 	MixerPanel.Enabled := MixerPanel.Visible;
+	FormTracklist.Visible := Config.Window.Tracklist.Visible;
 	EndUpdate;
 end;
 
@@ -1617,6 +1889,8 @@ begin
 	SetButtonDown(bToggleLeftPane, {miEnableLeftPane}nil, Config.Window.DirList.Enabled);
 	SetButtonDown(bToggleGraphLines, nil, Config.Deck.BeatGraph.ShowHorizontalLines);
 	SetButtonDown(bToggleWaveDual, nil, Config.Deck.Waveform.ShowDual);
+	SetButtonDown(bToggleTracklist, nil, Config.Window.Tracklist.Visible);
+
 	LeftPanel.Visible := Config.Window.DirList.Enabled;
 end;
 
@@ -1671,7 +1945,13 @@ begin
 		Config.Deck.BeatGraph.ShowHorizontalLines := not Config.Deck.BeatGraph.ShowHorizontalLines
 	else
 	if Sender = bToggleWaveDual then
-		Config.Deck.Waveform.ShowDual := not Config.Deck.Waveform.ShowDual;
+		Config.Deck.Waveform.ShowDual := not Config.Deck.Waveform.ShowDual
+	else
+	if Sender = bToggleTracklist then
+	begin
+		Config.Window.Tracklist.Visible := not Config.Window.Tracklist.Visible;
+		FormTracklist.Visible := Config.Window.Tracklist.Visible;
+	end;
 	UpdateToggleButtons;
 	for Deck in DeckList do
 		TDeckFrame(Deck.Form).FormResize(Self);
@@ -1698,5 +1978,20 @@ begin
 	FileList.Invalidate;
 end;
 
+procedure TMainForm.FormShow(Sender: TObject);
+begin
+	UpdateMixerVisibility;
+	UpdateToggleButtons;
+end;
+
+procedure TMainForm.miEnableEffectsClick(Sender: TObject);
+begin
+	bToggleEffectsMouseDown(Self, mbLeft, [], 0, 0);
+end;
+
+procedure TMainForm.miEnableMixerClick(Sender: TObject);
+begin
+	bToggleMixerMouseDown(Self, mbLeft, [], 0, 0);
+end;
 
 end.

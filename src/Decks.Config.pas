@@ -34,6 +34,9 @@ type
 			FileList: record
 				ColumnVisible: array[0..9] of Boolean;
 			end;
+			Tracklist: record
+				Visible: Boolean;
+			end;
 		end;
 
 		Directory: record
@@ -166,6 +169,7 @@ begin
 	for i := 0 to High(Window.FileList.ColumnVisible) do
 		Window.FileList.ColumnVisible[i] :=
 			Ini.ReadBool(Sect, Format('filelist.columns.%d.visible', [i]), True);
+	Window.Tracklist.Visible := Ini.ReadBool(Sect, 'tracklist.visible', False);
 
 	Sect := 'audio';
 	Audio.Buffer       := Ini.ReadInteger(Sect, 'buffer', 20);
@@ -219,6 +223,7 @@ begin
 	for i := 0 to High(Window.FileList.ColumnVisible) do
 		Ini.WriteBool(Sect, Format('filelist.columns.%d.visible', [i]),
 			Window.FileList.ColumnVisible[i]);
+	Ini.WriteBool(Sect, 'tracklist.visible', Window.Tracklist.Visible);
 
 	Sect := 'audio';
 	Ini.WriteInteger(Sect, 'buffer',       Audio.Buffer);
