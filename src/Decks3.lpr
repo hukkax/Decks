@@ -9,7 +9,7 @@ uses
 	Forms, Form.Main, Frame.Deck,
 	Decks.Audio, Decks.Song, Decks.Beatgraph,
 	Decks.SongInfo, Decks.TagScanner, Decks.Effects, TextInputDialog,
-	Form.Tracklist;
+	Form.Tracklist, FocusRectangleUnit;
 
 {$R *.res}
 

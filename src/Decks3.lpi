@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="20">
+    <Units Count="21">
       <Unit0>
         <Filename Value="Decks3.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -135,6 +135,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="TeeGenericTree"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="include\focusrectangleunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="FocusRectangleUnit"/>
+      </Unit20>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

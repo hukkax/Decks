@@ -183,7 +183,6 @@ type
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
 
-		procedure ShowFocusRect;
 		procedure UpdateMixerVisibility;
 		procedure ApplyMixer(ApplyEQ: Boolean = True);
 		procedure SetMasterTempo(BPM: Single);
@@ -233,8 +232,6 @@ var
 	MasterBPM: Single;
 	MasterDeck: TDeckFrame;
 	MasterDeckIndex: Integer;
-
-
 	SelectedFile, CurrentDir: String;
 
 	procedure SetMaster(Index: Byte);
@@ -252,32 +249,10 @@ implementation
 uses
 	Math, FileUtil, LazFileUtils, StrUtils,
 	MouseWheelAccelerator, TextInputDialog,
-	BCTypes, TeeGenericTree,
+	BCTypes, TeeGenericTree, FocusRectangleUnit,
 	Form.Tracklist,
 	BASS, AudioTag, basetag, file_Wave, file_mp3, file_ogg,
 	Decks.Song, Decks.Beatgraph;
-
-type
-	TFocusableControl = TNode<TControl>;
-
-	TFocusableControls = class
-		Root,
-		CurrentItem: TFocusableControl;
-		CurrentLevel: Integer;
-		ActiveControl: TControl;
-		FocusRectangle: TShape;
-		FocusColor: TColor;
-		PrevCtrl:  array[0..6] of TControl;
-		PrevColor: array[0..6] of TColor;
-
-		function SelectNext:     TFocusableControl;
-		function SelectPrevious: TFocusableControl;
-		function Ascend:         TFocusableControl;
-		function Descend:        TFocusableControl;
-
-		constructor Create;
-		destructor  Destroy; override;
-	end;
 
 var
 	TagScanner: TTagScannerJob;
@@ -564,141 +539,6 @@ begin
 			ListDirs.Selected := Node
 		else
 			ListDirs.Selected.MakeVisible;
-	end;
-end;
-
-constructor TFocusableControls.Create;
-begin
-	inherited Create;
-	Root := TFocusableControl.Create;
-	CurrentItem := nil;
-	CurrentLevel := 0;
-	FocusColor := clRed;
-	FocusRectangle := TShape.Create(MainForm.PanelTop);
-	FocusRectangle.Shape := stRectangle;
-	FocusRectangle.Brush.Style := bsClear; // bsFDiagonal;
-	//FocusRectangle.Brush.Color := clMaroon;
-	FocusRectangle.Pen.Style := psSolid;
-	FocusRectangle.Pen.Color := FocusColor;
-	FocusRectangle.Pen.Width := 2;
-	FocusRectangle.Pen.JoinStyle := pjsMiter;
-	FocusRectangle.Visible := False;
-	FocusRectangle.Enabled := False;
-end;
-
-destructor TFocusableControls.Destroy;
-begin
-	Root.Free;
-	FocusRectangle.Free;
-	inherited Destroy;
-end;
-
-function TFocusableControls.SelectNext: TFocusableControl;
-begin
-	if ActiveControl <> nil then Exit;
-
-	if CurrentItem = nil then
-		CurrentItem := Root.GetFirstChild
-	else
-		CurrentItem := CurrentItem.GetNextSibling;
-	if ActiveControl <> nil then
-		ActiveControl := CurrentItem.Data;
-	Result := CurrentItem;
-	MainForm.ShowFocusRect;
-end;
-
-function TFocusableControls.SelectPrevious: TFocusableControl;
-begin
-	if ActiveControl <> nil then Exit;
-
-	if CurrentItem = nil then
-		CurrentItem := Root.GetFirstChild
-	else
-		CurrentItem := CurrentItem.GetPreviousSibling;
-	if ActiveControl <> nil then
-		ActiveControl := CurrentItem.Data;
-	Result := CurrentItem;
-	MainForm.ShowFocusRect;
-end;
-
-function TFocusableControls.Ascend: TFocusableControl;
-begin
-	if CurrentItem <> nil then
-	begin
-		if ActiveControl <> nil then
-			ActiveControl := nil
-		else
-			CurrentItem := CurrentItem.Parent;
-	end;
-	if CurrentItem = Root then
-	begin
-		FocusRectangle.Visible := False;
-		PrevCtrl[1] := nil;
-		CurrentItem := nil;
-	end;
-	ActiveControl := nil;
-	FocusRectangle.Pen.Color := FocusColor;
-	Result := CurrentItem;
-	MainForm.ShowFocusRect;
-end;
-
-function TFocusableControls.Descend: TFocusableControl;
-begin
-	if CurrentItem = nil then
-		CurrentItem := Root;
-	if CurrentItem.Count > 0 then
-	begin
-		CurrentItem := CurrentItem.GetFirstChild;
-		FocusRectangle.Pen.Color := FocusColor;
-		ActiveControl := nil;
-	end
-	else
-	begin
-		ActiveControl := CurrentItem.Data;
-		FocusRectangle.Pen.Color := clYellow;
-	end;
-	Result := CurrentItem;
-	MainForm.ShowFocusRect;
-end;
-
-procedure TMainForm.ShowFocusRect;
-var
-	Ctrl: TControl;
-	WCtrl: TWinControl;
-	Level: Integer;
-begin
-	with FocusableControls do
-	begin
-		if (CurrentItem <> nil) and (CurrentItem.Data <> nil) then
-		begin
-			Ctrl := CurrentItem.Data;
-			Level := CurrentItem.Level;
-			with FocusRectangle do
-			begin
-				if (CurrentLevel = Level) and (PrevCtrl[Level] = Ctrl) then Exit;
-
-				if (Ctrl is TPanel) or (Ctrl is ThListView) or (Ctrl is ThShellTree) then
-				begin
-					WCtrl := TWinControl(Ctrl);
-					Parent := WCtrl;
-					Align := alClient;
-{					if (PrevCtrl[Level] <> nil) and (PrevCtrl[Level] is TWinControl) then
-						TWinControl(PrevCtrl[Level]).Color := PrevColor[Level];
-					PrevColor[Level] := WCtrl.Color;
-					WCtrl.Color := FocusColor;}
-					PrevCtrl[Level] := Ctrl;
-				end
-				else
-				begin
-					Align := alNone;
-					Parent := Ctrl.Parent;
-					BoundsRect := Bounds(Ctrl.Left-1, Ctrl.Top-1, Ctrl.Width+2, Ctrl.Height+2);
-					Anchors := Ctrl.Anchors;
-				end;
-				CurrentLevel := Level;
-				Visible := True;
-			end;
-		end;
 	end;
 end;
 
