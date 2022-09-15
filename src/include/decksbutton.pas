@@ -256,7 +256,7 @@ uses
 
 const
 	DropDownReopenDelay = 0.2/(24*60*60);
-	HoverLight = 1300;
+	HoverLight = 1500;
 
 
 function Lighten(C: TColor; Light: Integer): TColor;
@@ -593,6 +593,10 @@ begin
 	FStateHover.Assign(AValue);
 	AssignFont(FStateHover.FontEx, AValue.FontEx);
 
+	with FStateHover.Background do
+	begin
+		Color := Lighten(Color, HoverLight);
+	end;
 	with FStateHover.Background.Gradient1 do
 	begin
 		Color := Lighten(Color, HoverLight);
