@@ -129,8 +129,6 @@ type
 		procedure FormResize(Sender: TObject);
 		procedure ListDirsChange(Sender: TObject; Node: TTreeNode);
 		procedure ListDirsCollapsed(Sender: TObject; Node: TTreeNode);
-		procedure ListDirsMouseDown(Sender: TObject; Button: TMouseButton;
-			Shift: TShiftState; X, Y: Integer);
 		procedure FileListClickItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
 		procedure FileListSelectItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
 		procedure miLoadFileClick(Sender: TObject);
@@ -420,8 +418,8 @@ begin
 		if Deck <> nil then
 			Form := TDeckFrame(Deck.Form);
 
-		if (FileListIsActive) and (Action.Kind in [UI_SELECT_TOGGLE, UI_SELECT_OPEN]) then
-			Action.Kind := DECK_LOAD;
+		{if (FileListIsActive) and (Action.Kind in [UI_SELECT_TOGGLE, UI_SELECT_OPEN]) then
+			Action.Kind := DECK_LOAD;}
 		if (Deck = nil) and (Action.Kind <> DECK_LOAD) then
 		begin
 			MIDIProcessing := False;
@@ -560,12 +558,23 @@ begin
 	begin
 		ListDirs.Tag := 1;
 		if ListDirs.Selected = nil then
-			ListDirs.Select(ListDirs.Items.GetFirstVisibleNode);
+			ListDirs.Select(ListDirs.Items.GetFirstNode);
 		Node := ListDirs.Selected;
+		if Node = nil then Exit;
 		if Dir > 0 then
-			ListDirs.Selected := ListDirs.Selected.GetNext
+		begin
+			if Node = ListDirs.Items.GetLastNode then
+				ListDirs.Select(ListDirs.Items.GetFirstNode)
+			else
+				ListDirs.MoveToNextNode(True);
+		end
 		else
-			ListDirs.Selected := ListDirs.Selected.GetPrev;
+		begin
+			if Node = ListDirs.Items.GetFirstNode then
+				ListDirs.Select(ListDirs.Items.GetLastNode)
+			else
+				ListDirs.MoveToPrevNode(True);
+		end;
 		if ListDirs.Selected = nil then
 			ListDirs.Selected := Node
 		else
@@ -840,6 +849,9 @@ begin
 
 		VK_UP:
 		begin
+			if FocusableControls.ActiveControl is TWinControl then
+				ListBrowse(-1)
+			else
 			if MasterDeckIndex > 1 then
 				SetMaster(MasterDeckIndex-1);
 			Key := 0;
@@ -847,7 +859,10 @@ begin
 
 		VK_DOWN:
 		begin
-			SetMaster(MasterDeckIndex+1);
+			if FocusableControls.ActiveControl is TWinControl then
+				ListBrowse(+1)
+			else
+				SetMaster(MasterDeckIndex+1);
 			Key := 0;
 		end;
 
@@ -1292,6 +1307,8 @@ begin
 	begin
 		FileList.ScrollPos := 0;
 		ListFilesInDir(ListDirs.Path);
+		if (Sender = nil) then
+			Node.Expanded := not Node.Expanded;
 	end;
 	ListDirs.Tag := 0;
 end;
@@ -1321,16 +1338,6 @@ end;
 procedure TMainForm.ListDirsCollapsed(Sender: TObject; Node: TTreeNode);
 begin
 	FormResize(Self);
-end;
-
-procedure TMainForm.ListDirsMouseDown(Sender: TObject; Button: TMouseButton;
-	Shift: TShiftState; X, Y: Integer);
-//var
-//	Node: TTreeNode;
-begin
- //	Node := ListDirs.GetNodeAt(X, Y);
- //	if Node <> nil then
- //		Node.Expanded := not Node.Expanded;
 end;
 
 procedure TMainForm.miLoadFileClick(Sender: TObject);
@@ -2052,7 +2059,18 @@ begin
 		if (Ctrl = FocusableControls.ActiveControl) and
 			(Assigned((Ctrl as ThListView).OnDblClick)) then
 		begin
-			(Ctrl as ThListView).OnDblClick(Ctrl);
+			ThListView(Ctrl).OnDblClick(Ctrl);
+			Result := True;
+		end;
+	end
+	else
+	if (Pressed) and (Ctrl is TShellTreeView) then
+	begin
+		if (Ctrl = FocusableControls.ActiveControl) and
+			(Assigned((Ctrl as TShellTreeView).OnChange)) then
+		with TShellTreeView(Ctrl) do
+		begin
+			OnChange(nil, Selected);
 			Result := True;
 		end;
 	end;
@@ -2064,7 +2082,10 @@ var
 begin
 	Ctrl := FocusableControls.ActiveControl;
 	if Ctrl is TDecksButton then
-		FocusableControls.Unlock;
+		FocusableControls.Unlock
+	else
+	if Ctrl is TWinControl then
+		Self.ActiveControl := TWinControl(Ctrl);
 end;
 
 end.

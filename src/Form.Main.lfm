@@ -870,7 +870,6 @@ object MainForm: TMainForm
       OnChange = ListDirsChange
       OnCollapsed = ListDirsCollapsed
       OnExpanded = ListDirsCollapsed
-      OnMouseDown = ListDirsMouseDown
       Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
       ExpandSignColor = 748784
       ObjectTypes = [otFolders]
