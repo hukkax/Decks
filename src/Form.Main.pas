@@ -801,47 +801,59 @@ end;
 
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
 	Shift: TShiftState);
+var
+	Act: TDecksAction;
 begin
 	if Key = VK_SHIFT then IsShiftDown := True;
 
 	case Key of
 
+		VK_RETURN:
+		begin
+			Act.Kind := UI_SELECT_ENTER;
+			Act.Param := 0;
+			Execute(Act);
+			Key := 0;
+		end;
+
+		VK_BACK:
+		begin
+			Act.Kind := UI_SELECT_EXIT;
+			Act.Param := 0;
+			Execute(Act);
+			Key := 0;
+		end;
+
 		VK_LEFT:
 		begin
-			if IsShiftDown then
-				FocusableControls.Ascend
-			else
-				FocusableControls.SelectPrevious;
+			ListBrowse(-1);
 			Key := 0;
 		end;
 
 		VK_RIGHT:
 		begin
-			if IsShiftDown then
-				FocusableControls.Descend
-			else
-				FocusableControls.SelectNext;
+			ListBrowse(+1);
 			Key := 0;
 		end;
 
-		VK_DELETE:
-			CloseDeck(MasterDeck);
-
-{		VK_LEFT:
+		VK_UP:
 		begin
 			if MasterDeckIndex > 1 then
 				SetMaster(MasterDeckIndex-1);
 			Key := 0;
 		end;
 
-		VK_RIGHT:
+		VK_DOWN:
 		begin
 			SetMaster(MasterDeckIndex+1);
 			Key := 0;
 		end;
-}
+
+		VK_DELETE:
+			CloseDeck(MasterDeck);
+
 	else
-		if MasterDeck.ProcessKeyDown(Key, Shift) then
+		if (MasterDeck <> nil) and (MasterDeck.ProcessKeyDown(Key, Shift)) then
 			Key := 0;
 	end;
 end;
@@ -1559,6 +1571,8 @@ var
 	I: Integer;
 	Deck: TDeck;
 begin
+	if DeckFrame = nil then Exit;
+
 	SetMaster(0);
 	DeckFrame.Timer.Enabled := False;
 	Deck := DeckFrame.Deck;
