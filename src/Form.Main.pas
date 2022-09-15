@@ -1570,13 +1570,15 @@ end;
 
 procedure TMainForm.CloseDeck(DeckFrame: TDeckFrame);
 var
-	I: Integer;
+	I, J: Integer;
 	Deck: TDeck;
 begin
 	if DeckFrame = nil then Exit;
 
-	SetMaster(0);
+	BeginFormUpdate;
 	DeckFrame.Timer.Enabled := False;
+
+	SetMaster(0);
 	Deck := DeckFrame.Deck;
 
 	for I := 1 to 2 do
@@ -1585,12 +1587,25 @@ begin
 
 	I := DeckList.IndexOf(Deck);
 	if I >= 0 then
+	begin
+		if I <= High(DeckInFocusableControls) then
+		begin
+			for J := 0 to 2 do
+			begin
+				DeckInFocusableControls[I,J].Clear;
+				DeckInFocusableControls[I,J].Data := nil;
+			end;
+			if I = FocusedDeck-1 then
+				FocusableControls.Reset;
+		end;
 		DeckList.Delete(I); // destroys the frame, too
+	end;
 	MasterDeck := nil;
 
 	DeckLayoutChanged;
-
 	ResizeFrames;
+
+	EndFormUpdate;
 end;
 
 procedure TMainForm.sBPMChange(Sender: TObject);

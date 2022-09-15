@@ -410,7 +410,7 @@ object MainForm: TMainForm
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 3
-      Caption = '≈'
+      Caption = '≈ '
       Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -501,7 +501,7 @@ object MainForm: TMainForm
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 3
-      Caption = '⚌'
+      Caption = '⚌ '
       Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8

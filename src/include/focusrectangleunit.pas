@@ -30,9 +30,9 @@ type
 		FLockedColor: TColor;
 		CurrentLevel: Integer;
 		PrevCtrl:  array[0..MAXLEVELS] of TControl;
-		//PrevColor: array[0..MAXLEVELS] of TColor;
-		procedure ShowFocusRect;
+
 		function  CanFocusControl(Ctrl: TControl): Boolean; inline;
+		procedure ShowFocusRect;
 		procedure SetFocusColor(Value: TColor);
 		procedure SetLockedColor(Value: TColor);
 	public
@@ -46,6 +46,7 @@ type
 		OnLock,
 		OnUnlock:       TNotifyEvent;
 
+		procedure Reset;
 		procedure Lock;
 		procedure Unlock;
 		procedure SelectControl(Ctrl: TControl);
@@ -79,22 +80,17 @@ begin
 
 	Root := TFocusableControl.Create;
 
-	CurrentItem := nil;
-	CurrentLevel := 0;
-
-	FFocusColor  := clRed; //$FFC20A;
-	FLockedColor := clYellow; //$0C7BDC;
+	FFocusColor  := clRed; // $FFC20A;
+	FLockedColor := clYellow; // $0C7BDC;
 
 	FocusRectangle := TFocusRectangle.Create(nil);
 	FocusRectangle.BorderWidth := 2;
 	FocusRectangle.Shape := stRectangle;
-	FocusRectangle.Brush.Style := bsClear; // bsFDiagonal;
-	//FocusRectangle.Brush.Color := clMaroon;
+	FocusRectangle.Brush.Style := bsClear;
 	FocusRectangle.Pen.Width := FocusRectangle.BorderWidth;
 	FocusRectangle.Pen.JoinStyle := pjsMiter;
-	FocusRectangle.Visible := False;
-	FocusRectangle.Enabled := False;
-	Unlock;
+
+	Reset;
 end;
 
 destructor TFocusableControls.Destroy;
@@ -102,6 +98,17 @@ begin
 	Root.Free;
 	FocusRectangle.Free;
 	inherited Destroy;
+end;
+
+procedure TFocusableControls.Reset;
+begin
+	CurrentItem := nil;
+	CurrentLevel := 0;
+
+	FocusRectangle.Visible := False;
+	FocusRectangle.Enabled := False;
+
+	Unlock;
 end;
 
 function TFocusableControls.CanFocusControl(Ctrl: TControl): Boolean;
@@ -245,14 +252,9 @@ begin
 
 		//if (CurrentLevel = Level) and (PrevCtrl[Level] = Ctrl) then Exit;
 
-		//if (Ctrl is TPanel) or (Ctrl is ThListView) or (Ctrl is ThShellTree) then
 		if (Ctrl is TFrame) or (Ctrl is TCustomForm) or
 			((Ctrl is TWinControl) and (TWinControl(Ctrl).TabStop)) then
 		begin
-			{if (PrevCtrl[Level] <> nil) and (PrevCtrl[Level] is TWinControl) then
-				TWinControl(PrevCtrl[Level]).Color := PrevColor[Level];
-			PrevColor[Level] := WCtrl.Color;
-			WCtrl.Color := FocusColor;}
 			PrevCtrl[Level] := Ctrl;
 		end;
 
