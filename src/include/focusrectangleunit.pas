@@ -81,20 +81,20 @@ begin
 
 	CurrentItem := nil;
 	CurrentLevel := 0;
-	FFocusColor  := clRed;
-	FLockedColor := clYellow;
+
+	FFocusColor  := clRed; //$FFC20A;
+	FLockedColor := clYellow; //$0C7BDC;
 
 	FocusRectangle := TFocusRectangle.Create(nil);
 	FocusRectangle.BorderWidth := 2;
 	FocusRectangle.Shape := stRectangle;
 	FocusRectangle.Brush.Style := bsClear; // bsFDiagonal;
 	//FocusRectangle.Brush.Color := clMaroon;
-	FocusRectangle.Pen.Style := psSolid;
-	FocusRectangle.Pen.Color := FFocusColor;
 	FocusRectangle.Pen.Width := FocusRectangle.BorderWidth;
 	FocusRectangle.Pen.JoinStyle := pjsMiter;
 	FocusRectangle.Visible := False;
 	FocusRectangle.Enabled := False;
+	Unlock;
 end;
 
 destructor TFocusableControls.Destroy;
@@ -111,9 +111,11 @@ end;
 
 procedure TFocusableControls.Lock;
 begin
+	FocusRectangle.Pen.Color := FLockedColor;
+	FocusRectangle.Pen.Style := psSolid;
+
 	if CurrentItem <> nil then
 	begin
-		FocusRectangle.Pen.Color := FLockedColor;
 		ActiveControl := CurrentItem.Data;
 		if ActiveControl <> nil then
 			if Assigned(OnLock) then OnLock(Self);
@@ -122,10 +124,12 @@ end;
 
 procedure TFocusableControls.Unlock;
 begin
+	FocusRectangle.Pen.Color := FFocusColor;
+	FocusRectangle.Pen.Style := psDash;
+
 	if ActiveControl <> nil then
 	begin
 		ActiveControl := nil;
-		FocusRectangle.Pen.Color := FFocusColor;
 		if Assigned(OnUnlock) then OnUnlock(Self);
 	end;
 end;

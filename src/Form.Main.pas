@@ -576,10 +576,12 @@ begin
 		if Ctrl is ThKnob then
 		begin
 			with ThKnob(Ctrl) do
+			begin
 				if Multiplier = 1 then
 					Position := Position + Dir
 				else
-					Position := Position + (((Max - Min) div 100) * Sign(Dir));
+					Position := Position + Round( (((Max - Min) / 100) * Sign(Dir)) );
+			end;
 		end
 		else
 		if (Ctrl is ThGaugeBar) then

@@ -524,7 +524,7 @@ begin
 	fCutoff := 0;
 
 	AddParam(fCutoff, 'Cutoff',	-1.0, +1.0, 200, 'LP <-> HP');
-	AddParam(BFX.fQ,  'Q',		 0.1,	1, 		MUL_DEFAULT, 'Q');
+	AddParam(BFX.fQ,  'Q',		+0.1, +1.0, MUL_DEFAULT, 'Q');
 
 	AddPreset([0, 0.55], 'Default');
 	ApplyPreset(Presets.First);
