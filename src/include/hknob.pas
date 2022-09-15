@@ -389,19 +389,27 @@ end;
 
 procedure ThKnob.SetPositionLabel(const NewLabel: TLabel);
 begin
-	if FPositionLabel <> NewLabel then FPositionLabel:= NewLabel;
-	if FPositionLabel <> nil then ShowPosition(Position);
+	if FPositionLabel <> NewLabel then
+	begin
+		FPositionLabel := NewLabel;
+		if FPositionLabel <> nil then
+			ShowPosition(Position);
+	end;
 end;
 
 procedure ThKnob.SetSpringLoaded(const Sprung: Boolean);
 begin
-	if FSpringLoaded <> Sprung then FSpringLoaded := Sprung;
-	if Sprung then Position := 0;
+	if FSpringLoaded <> Sprung then
+	begin
+		FSpringLoaded := Sprung;
+		if Sprung then Position := 0;
+	end;
 end;
 
 procedure ThKnob.SetPosition(const NewPosition: Integer);
 begin
-	SetParams(NewPosition, FMin, FMax);
+	if Position <> NewPosition then
+		SetParams(NewPosition, FMin, FMax);
 end;
 
 function ThKnob.GetFloatPosition: Single;
@@ -422,19 +430,23 @@ end;
 
 procedure ThKnob.SetMin(const NewMinValue: Integer);
 begin
-	SetParams(FPosition, NewMinValue, FMax);
+	if Min <> NewMinValue then
+		SetParams(FPosition, NewMinValue, FMax);
 end;
 
 procedure ThKnob.SetMax(const NewMaxValue: Integer);
 begin
-	SetParams(FPosition, FMin, NewMaxValue);
+	if Max <> NewMaxValue then
+		SetParams(FPosition, FMin, NewMaxValue);
 end;
 
 {Called whenever Min or Max is changed}
 procedure ThKnob.SetSteps;
 begin
 	FSteps := FMax - FMin;
-	if FSteps = 0 then FAngleInterval := 0 else
+	if FSteps = 0 then
+		FAngleInterval := 0
+	else
 	begin
 		FAngleInterval := (180 + (FArc*2)) / FSteps;
 		FSteps := Abs(FSteps);
@@ -443,11 +455,14 @@ end;
 
 procedure ThKnob.SetArc(Value: Word);
 begin
-	if Value > 88 then Value := 88;
-	if FArc = Value then Exit;
-	FArc := Value;
-	SetSteps;
-	Invalidate;
+	Value := Math.Min(Value, 88);
+	if FArc <> Value then
+	begin
+		FArc := Value;
+		SetSteps;
+		CalcAngle;
+		Invalidate;
+	end;
 end;
 
 {Calculate characteristics of knob when Position, Max or Min are changed}
@@ -465,17 +480,18 @@ begin
 	end;
 	if fAngleInterval >= 0 then {Max is greater than Min}
 	begin
-		if APosition < AMin then APosition := AMin;
-		if APosition > AMax then APosition := AMax;
+		APosition := EnsureRange(APosition, AMin, AMax);
 	end else
 	begin						 {Min is Greater than Max}
 		if APosition > AMin then APosition := AMax;
 		if APosition < AMax then APosition := AMin;
 	end;
 	if fPosition <> APosition then fPosition := APosition;
+
 	CalcAngle;					{Set fAngle}
 	ShowPosition(fPosition);	{Update the PositionLabel caption}
 	Invalidate;
+
 	{Fire the OnChange event if not in Designing state}
 	if (Assigned(fOnChange)) and not (csDesigning in ComponentState) then
 		fOnChange(Self);
@@ -496,7 +512,7 @@ begin
 	begin
 		if not IsZero(FMultiplier) then
 		begin
-			if (Pos('%f', Caption) > 0) then
+			if Pos('%', Caption) > 0 then
 				FPositionLabel.Caption := Format(Caption, [GetFloatPosition])
 			else
 				FPositionLabel.Caption := Format('%.2f', [GetFloatPosition])
@@ -569,7 +585,7 @@ begin
 	end;
 end;
 
-{Reset the PositionLabel caption on mouse-exit}
+{Reset the PositionLabel caption on mouse exit}
 procedure ThKnob.CMMouseLeave(var Msg: TLMessage);
 begin
 	ShowPosition(Position);
@@ -611,7 +627,7 @@ begin
 	inherited;
 end;
 
-{If the caption changes then re-draw on Position Label as suffix}
+{If the caption changes then redraw position label}
 procedure ThKnob.CM_TextChanged(var Msg: TLMessage);
 begin
 	ShowPosition(Position);
@@ -826,7 +842,7 @@ begin
 
 	Buffer := TBGRABitmap.Create(ClientWidth, ClientHeight);
 
-	Radius := (Math.Min(ClientWidth, ClientHeight) - 1) / 2;
+	Radius := (ClientWidth-1) / 2; //(Math.Min(ClientWidth, ClientHeight) - 1) / 2;
 	AngleInRadians := FAngle * Pi / 180;
 	CosAngle := Cos(AngleInRadians);
 	SinAngle := Sin(AngleInRadians);

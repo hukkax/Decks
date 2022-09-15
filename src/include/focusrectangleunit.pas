@@ -240,9 +240,6 @@ begin
 		Level := CurrentItem.Level;
 
 		//if (CurrentLevel = Level) and (PrevCtrl[Level] = Ctrl) then Exit;
-		{$IFDEF DEBUG}
-		MainForm.Caption := Ctrl.ClassName + ': ' + Ctrl.Name;
-		{$ENDIF}
 
 		//if (Ctrl is TPanel) or (Ctrl is ThListView) or (Ctrl is ThShellTree) then
 		if (Ctrl is TFrame) or (Ctrl is TCustomForm) or
@@ -258,6 +255,11 @@ begin
 		CurrentLevel := Level;
 		FocusRectangle.AlignToControl(Ctrl);
 		FocusRectangle.Visible := True;
+
+		{$IFDEF DEBUG}
+		MainForm.Caption := Format('%s: %s (%d,%d  %d*%d)', [Ctrl.ClassName, Ctrl.Name,
+			FocusRectangle.Left, FocusRectangle.Top, FocusRectangle.Width, FocusRectangle.Height]);
+		{$ENDIF}
 	end
 	else
 	begin
@@ -315,7 +317,6 @@ begin
 		begin
 			Parent := TWinControl(Ctrl);
 			Align := alClient;
-			BringToFront;
 		end
 		else
 		begin
@@ -325,6 +326,7 @@ begin
 				Ctrl.Width + (FBorderWidth*2), Ctrl.Height + (FBorderWidth*2));
 			Anchors := Ctrl.Anchors;
 		end;
+		BringToFront;
 	end;
 	FAlignedTo := Ctrl;
 end;
