@@ -16,6 +16,7 @@ type
 		procedure SetBorderWidth(Value: Integer);
 	public
 		procedure AlignToControl(Ctrl: TControl);
+		procedure Realign;
 
 		property BorderWidth: Integer read FBorderWidth write SetBorderWidth;
 	end;
@@ -337,6 +338,10 @@ begin
 	FAlignedTo := Ctrl;
 end;
 
+procedure TFocusRectangle.Realign;
+begin
+	AlignToControl(FAlignedTo);
+end;
 
 end.
 
