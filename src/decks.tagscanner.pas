@@ -11,7 +11,7 @@ uses
 
 type
 	TTagScannerEventKind = (
-		tsFileScanStarted, tsFileAdded, tsFileScanFinished,
+		tsFileScanStarted, tsDirAdded, tsFileAdded, tsFileScanFinished,
 		tsTagScanStarted,  tsTagsRead,  tsTagScanFinished );
 
 	TTagScannerEvent = procedure(EventKind: TTagScannerEventKind; const Filename: String; Tags: PSongTags) of Object;
@@ -34,6 +34,8 @@ type
 		procedure InternalFileAdded(const Filename: String);
 		procedure FileProcessed;
 		procedure FileAdded;
+		procedure InternalDirAdded(const Filename: String);
+		procedure DirAdded;
 	public
 		procedure Execute(UseThreads: Boolean = True);
 		procedure Terminate;
@@ -92,13 +94,22 @@ var
 	Info: TSearchRec;
 begin
 	// gather list of audio files we want to process
-	if FindFirst(FDirectory + '*.*', 0, Info) = 0 then
+	if FindFirst(FDirectory + '*.*', faDirectory, Info) = 0 then
 	try
 		if Assigned(FOnEvent) then FOnEvent(tsFileScanStarted, FDirectory, nil);
 		repeat
-			E := LowerCase(ExtractFileExt(Info.Name));
-			If Pos(E, FExtensions) > 0 then
-				InternalFileAdded(FDirectory + Info.Name);
+			if (Info.Attr and faDirectory) = faDirectory then
+			begin
+				if Info.Name <> '.' then
+					InternalDirAdded(FDirectory + Info.Name);
+			end
+			else
+			begin
+				E := LowerCase(ExtractFileExt(Info.Name));
+				If Pos(E, FExtensions) > 0 then
+					InternalFileAdded(FDirectory + Info.Name);
+			end;
+
 		until (FindNext(Info) <> 0) or Terminated;
 	finally
 		FindClose(Info);
@@ -116,6 +127,12 @@ begin
 	if Assigned(FOnEvent) then FOnEvent(tsTagScanFinished, '', nil);
 end;
 
+procedure TTagScannerJob.InternalDirAdded(const Filename: String);
+begin
+	FCurrentFilename := Filename;
+	TThread.Synchronize(FThread, DirAdded);
+end;
+
 // signal a new file in file listing
 procedure TTagScannerJob.InternalFileAdded(const Filename: String);
 begin
@@ -130,6 +147,12 @@ begin
 	FCurrentFilename := Filename;
 	Queued := True;
 	TThread.Synchronize(FThread, FileProcessed);
+end;
+
+procedure TTagScannerJob.DirAdded;
+begin
+	if Assigned(FOnEvent) then FOnEvent(tsDirAdded, FCurrentFilename, nil);
+	Queued := False;
 end;
 
 procedure TTagScannerJob.FileAdded;

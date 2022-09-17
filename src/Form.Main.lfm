@@ -558,6 +558,11 @@ object MainForm: TMainForm
       Width = 765
       Align = alTop
       BevelOuter = bvNone
+      ChildSizing.EnlargeHorizontal = crsScaleChilds
+      ChildSizing.EnlargeVertical = crsScaleChilds
+      ChildSizing.ShrinkHorizontal = crsScaleChilds
+      ChildSizing.ShrinkVertical = crsScaleChilds
+      ChildSizing.ControlsPerLine = 2
       Color = 3553082
       Constraints.MinHeight = 280
       FullRepaint = False

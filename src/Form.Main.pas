@@ -7,7 +7,7 @@ interface
 
 uses
 	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-	Types, ShellCtrls, ComCtrls, Menus, FGL, {LMessages,} LCLIntf, LCLType,
+	Types, ShellCtrls, ComCtrls, Menus, FGL, LCLIntf, LCLType,
 	BGRABitmap, BGRABitmapTypes, BCLabel, BGRAVirtualScreen,
 	hListView, hShellTree, DecksButton, hSlider, hKnob,
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
@@ -19,9 +19,14 @@ uses
 const
 	SupportedFormats = '.mp3 .ogg .wav .it .s3m .xm .mod .sid .nsf';
 
-	COLOR_FILE_DEFAULT = $AAAAAA;
-	COLOR_FILE_HASBPM  = $DDEEFF;
-	COLOR_FILE_PLAYED  = $5EB078;
+	COLOR_FILE_DIRECTORY = $FF9966;
+	COLOR_FILE_DEFAULT   = $AAAAAA;
+	COLOR_FILE_HASBPM    = $DDEEFF;
+	COLOR_FILE_PLAYED    = $5EB078;
+
+	LI_NORMAL = 0;
+	LI_HASEMBEDDEDIMAGE = 1;
+	LI_ISDIRECTORY = 2;
 
 	COLUMN_FILENAME  = 0;
 	COLUMN_BPM       = 1;
@@ -227,6 +232,12 @@ type
 var
 	MainForm: TMainForm;
 
+	SelectedListItem: record
+		Kind:     Integer;
+		Filename: String;
+		ListItem: ThListItem;
+	end;
+
 	AudioManager: TAudioManager;
 	DeckList: TFPGObjectList<TDeck>;
 	MixerDeck: array[1..2] of TMixerDeck;
@@ -234,7 +245,7 @@ var
 	MasterBPM: Single;
 	MasterDeck: TDeckFrame;
 	MasterDeckIndex: Integer;
-	SelectedFile, CurrentDir: String;
+	CurrentDir: String;
 
 	procedure SetMaster(Index: Byte);
 	procedure SetMasterBPM(BPM: Single);
@@ -633,7 +644,9 @@ begin
 		CurrentDir := Config.AppPath;
 
 	Caption := AppVersionString.Replace('/', '-', [rfReplaceAll]);
-	SelectedFile := '';
+	SelectedListItem.Filename := '';
+	SelectedListItem.Kind := 0;
+	SelectedListItem.ListItem := nil;
 	MasterDeck := nil;
 	PlayedFilenames := TStringList.Create;
 	PlayedFilenames.OwnsObjects := True;
@@ -808,6 +821,8 @@ begin
 	FileList.Invalidate;
 	MixerPanel.Invalidate;
 	{$ENDIF}
+	if FocusableControls <> nil then
+		FocusableControls.FocusRectangle.Realign;
 end;
 
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
@@ -996,7 +1011,7 @@ var
 	TagReader: TTagReader;
 	Tags: TCommonTags;
 begin
-	if Button <> mbMiddle then Exit;
+	if (Button <> mbMiddle) or (SelectedListItem.Filename.IsEmpty) then Exit;
 
 	Col := FileList.ClickedColumn;
 	S := FileList.GetSubItemFor(Item, Col);
@@ -1019,7 +1034,7 @@ begin
 
 			if (ShiftDown) or (Tag <> S) then
 			try
-				TagReader := ReadTags(SelectedFile);
+				TagReader := ReadTags(SelectedListItem.Filename);
 				if not TagReader.isUpdateable then
 				begin
 					ShowMessage('Sorry, unsupported tag format!');
@@ -1082,39 +1097,6 @@ begin
 	EmbeddedImage.Height := H;
 end;
 
-procedure TMainForm.FileListSelectItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
-var
-	B: Boolean = False;
-begin
-	if Item <> nil then
-	begin
-		SelectedFile := CurrentDir + Item.Caption;
-		if Item.Tag > 0 then
-		begin
-			Application.ProcessMessages;
-			B := ReadImageFromTags(SelectedFile);
-		end;
-		if B then
-			AlignEmbeddedImage
-		else
-		begin
-			EmbeddedImage.Height := 0;
-			EmbeddedImage.Picture.Clear;
-		end;
-	end;
-end;
-
-function TMainForm.FindFileListEntry(const Filename: String): ThListItem;
-var
-	Item: ThListItem;
-begin
-	FileNameCaseSensitive := False;
-	for Item in FileList.Items do
-		if SameFileName(Item.Caption, Filename) then
-			Exit(Item);
-	Result := nil;
-end;
-
 constructor TPlayedFileInfo.Create(const AFilename: String; ATime: TDateTime);
 begin
  	inherited Create;
@@ -1175,7 +1157,22 @@ var
 	I: Integer;
 begin
 	case EventKind of
-		tsFileScanStarted: FileList.ItemIndex := -1;
+		tsFileScanStarted:
+		begin
+			bToggleLeftPane.Enabled := False;
+			FileList.ItemIndex := -1;
+		end;
+
+		tsDirAdded:
+		begin
+			Item := FileList.AddItem('<' + ExtractFileName(Filename) + '>');
+			Item.SubItems.Add('DIR');
+			Item.Color := COLOR_FILE_DIRECTORY;
+			Item.Tag := LI_ISDIRECTORY;
+			if FileList.ItemIndex < 0 then
+				FileList.ItemIndex := 0;
+			FileList.Invalidate;
+		end;
 
 		tsFileAdded:
 		begin
@@ -1188,7 +1185,10 @@ begin
 		end;
 
 		tsFileScanFinished: // we can only sort by filename at this point
+		begin
 			if FileList.SortColumn = 0 then FileList.SortItems;
+			bToggleLeftPane.Enabled := True;
+		end;
 
 		tsTagScanStarted: ;
 
@@ -1225,7 +1225,7 @@ begin
 			Item.SubItems[COLUMN_ARTIST-1]  := Tags.Artist;
 			Item.SubItems[COLUMN_TITLE-1]   := Tags.Title;
 			Item.SubItems[COLUMN_COMMENT-1] := Tags.Comment;
-			Item.Tag := IfThen(Tags.HasImage, 1, 0);
+			Item.Tag := IfThen(Tags.HasImage, LI_HASEMBEDDEDIMAGE, LI_NORMAL);
 
 			Item.SubItems.EndUpdate;
 			FileList.Invalidate;
@@ -1378,7 +1378,7 @@ begin
 		Deck := CreateDeck
 	else
 		if not Deck.Paused then Exit;
-	if Deck.Load(SelectedFile) then
+	if Deck.Load(SelectedListItem.Filename) then
 	begin
 		if (HadNone) and (Config.Deck.FirstSetsMasterBPM) then
 			SetMasterTempo(Deck.OrigBPM);
@@ -1404,28 +1404,73 @@ begin
 	ResizeFrames;
 end;
 
+function TMainForm.FindFileListEntry(const Filename: String): ThListItem;
+var
+	Item: ThListItem;
+begin
+	FileNameCaseSensitive := False;
+	for Item in FileList.Items do
+		if SameFileName(Item.Caption, Filename) then
+			Exit(Item);
+	Result := nil;
+end;
+
+procedure TMainForm.FileListSelectItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
+var
+	S: String;
+begin
+	if Item = nil then Exit;
+	S := Item.Caption;
+	if Item.Tag = LI_HASEMBEDDEDIMAGE then
+	begin
+		if ReadImageFromTags(CurrentDir + S) then
+		begin
+			AlignEmbeddedImage;
+			Application.ProcessMessages;
+		end;
+	end
+	else
+	begin
+		EmbeddedImage.Height := 0;
+		EmbeddedImage.Picture.Clear;
+		if Item.Tag = LI_ISDIRECTORY then
+			S := Item.Caption.Replace('<', '').Replace('>', '');
+	end;
+
+	SelectedListItem.Filename := CurrentDir + S;
+	SelectedListItem.Kind := Item.Tag;
+	SelectedListItem.ListItem := Item;
+end;
+
 procedure TMainForm.FileListDblClick(Sender: TObject);
 var
 	I: Integer;
 begin
-	if SelectedFile.IsEmpty then
+	if SelectedListItem.Filename.IsEmpty then
 	begin
 		I := FileList.ItemIndex;
 		if I >= 0 then
 			FileListSelectItem(Self, mbLeft, [], FileList.Items[I]);
 	end;
-	if not SelectedFile.IsEmpty then
+	if not SelectedListItem.Filename.IsEmpty then
 	begin
-		MasterDeckIndex := 0;
-		if DeckList.Count > 1 then
-			for I := 0 to DeckList.Count-1 do
-			with DeckList[I] do
-				if (not Loaded) or (Paused) then
-				begin
-					MasterDeckIndex := Index;
-					Break;
-				end;
-		LoadDeck(MasterDeckIndex);
+		if SelectedListItem.Kind = LI_ISDIRECTORY then
+		begin
+			ListDirs.Path := CreateAbsolutePath(SelectedListItem.Filename, CurrentDir);
+		end
+		else
+		begin
+			MasterDeckIndex := 0;
+			if DeckList.Count > 1 then
+				for I := 0 to DeckList.Count-1 do
+				with DeckList[I] do
+					if (not Loaded) or (Paused) then
+					begin
+						MasterDeckIndex := Index;
+						Break;
+					end;
+			LoadDeck(MasterDeckIndex);
+		end;
 	end;
 end;
 
@@ -1507,20 +1552,19 @@ begin
 			with DeckInFocusableControls[i,1] do
 			begin
 				Data := DF.pnlEffects;
-				Add(DF.bEffect0);
-				Add(DF.bEffect1);
-				Add(DF.bEffect2);
-				Add(DF.bEffect3);
-				Add(DF.bEffect4);
-				Add(DF.bEffect5);
-				Add(DF.bEffect6);
-				Add(DF.bEffect7);
-				Add(DF.SliderFxParam0);
-				Add(DF.SliderFxParam1);
-				Add(DF.SliderFxParam2);
-				Add(DF.SliderFxParam3);
-				Add(DF.SliderFxParam4);
-				Add(DF.SliderFxParam5);
+				{Add(DF.pnlEffectButtons);
+				Add(DF.pnlEffectKnobs);
+				Add(DF.pnlEffectLoop);}
+				Add(DF.bEffect0); Add(DF.bEffect1);
+				Add(DF.bEffect2); Add(DF.bEffect3);
+				Add(DF.bEffect4); Add(DF.bEffect5);
+				Add(DF.bEffect6); Add(DF.bEffect7);
+				Add(DF.SliderFxParam0); Add(DF.SliderFxParam1);
+				Add(DF.SliderFxParam2); Add(DF.SliderFxParam3);
+				Add(DF.SliderFxParam4); Add(DF.SliderFxParam5);
+				Add(DF.bLoopZone); Add(DF.bLoopSong);
+				Add(DF.bLoopBeat); Add(DF.bLoopBeat2);
+				Add(DF.bLoopBar); Add(DF.bLoopBar2); Add(DF.bLoopBar4);
 			end;
 
 			with DeckInFocusableControls[i,2] do
@@ -1769,11 +1813,11 @@ var
 	Path, Fn, Ext, NewName: String;
 	ListItem: ThListItem;
 begin
-	if SelectedFile.IsEmpty then Exit;
+	if SelectedListItem.Filename.IsEmpty then Exit;
 
-	Path := ExtractFilePath(SelectedFile);
-	Ext  := ExtractFileExt(SelectedFile);
-	Fn   := ExtractFileNameWithoutExt(ExtractFileName(SelectedFile));
+	Path := ExtractFilePath(SelectedListItem.Filename);
+	Ext  := ExtractFileExt(SelectedListItem.Filename);
+	Fn   := ExtractFileNameWithoutExt(ExtractFileName(SelectedListItem.Filename));
 	NewName := Fn;
 
 	if not IsShiftDown then
@@ -1785,13 +1829,13 @@ begin
 	ListItem := FindFileListEntry(Fn + Ext);
 	Fn := IncludeTrailingPathDelimiter(Path) + NewName;
 
-	if not RenameFile(SelectedFile, Fn) then
+	if not RenameFile(SelectedListItem.Filename, Fn) then
 	begin
 		ErrorMessage('Could not rename the file.');
 		Exit;
 	end;
 
-	Path := GetBPMFile(ExtractFileName(SelectedFile));
+	Path := GetBPMFile(ExtractFileName(SelectedListItem.Filename));
 	if FileExists(Path) then
 		RenameFile(Path, GetBPMFile(NewName));
 
@@ -1801,13 +1845,18 @@ begin
 		FileList.Invalidate;
 	end;
 
-	SelectedFile := Fn;
+	SelectedListItem.Filename := Fn;
 end;
 
 procedure TMainForm.miFileDeleteClick(Sender: TObject);
 var
 	ListItem: ThListItem;
+	SelectedFile: String;
 begin
+	ListItem := SelectedListItem.ListItem;
+	if (ListItem = nil) or (ListItem.Tag = LI_ISDIRECTORY) then Exit;
+
+	SelectedFile := SelectedListItem.Filename;
 	if SelectedFile.IsEmpty then Exit;
 
 	if MessageDlg('Delete File', 'Are you sure?', mtConfirmation, mbYesNo, '') = mrYes then
@@ -1818,8 +1867,6 @@ begin
 			Exit;
 		end;
 
-		ListItem := FindFileListEntry(ExtractFileName(SelectedFile));
-
 		SelectedFile := GetBPMFile(ExtractFileName(SelectedFile));
 		if FileExists(SelectedFile) then
 		begin
@@ -1828,13 +1875,9 @@ begin
 					SysUtils.DeleteFile(SelectedFile);
 		end;
 
-		if ListItem <> nil then
-		begin
-			FileList.Items.Remove(ListItem);
-			FileList.Invalidate;
-		end;
-
-		SelectedFile := '';
+		FileList.Items.Remove(ListItem);
+		FileList.Invalidate;
+		SelectedListItem.Filename := '';
 	end;
 end;
 
@@ -2016,6 +2059,7 @@ begin
 	if Ctrl is TDecksButton then
 	begin
 		Btn := TDecksButton(Ctrl);
+		if not Btn.Enabled then Exit;
 
 		if (Pressed) and (FocusedDeck > 0) and (Btn.Style = bbtDropDown) and
 			(Btn.Name.StartsWith('bEffect')) then
