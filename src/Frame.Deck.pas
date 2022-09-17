@@ -99,10 +99,13 @@ type
 		SliderFxParam3: ThKnob;
 		SliderFxParam4: ThKnob;
 		SliderFxParam5: ThKnob;
-		pnlEffectKnobs: TPanel;
+		pnlEffectParams: TPanel;
 		PopupEffectPresets: TPopupMenu;
 		miSetMasterTempo: TMenuItem;
 		MenuItem2: TMenuItem;
+		pnlEffectButtons: TPanel;
+		pnlEffectLoop: TPanel;
+		pnlEffectKnobs: TPanel;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -2048,6 +2051,8 @@ begin
 	Fx := Effects[SelectedEffect].Effect;
 	B := Fx <> nil;
 	pnlEffectKnobs.Visible := B;
+	pnlEffectLoop.Visible := not B;
+
 	if B then
 	begin
 		Button := Effects[SelectedEffect].Button;
@@ -2105,7 +2110,8 @@ begin
 	BeginFormUpdate;
 
 	X := 8;
-	W := Min(180, (pnlEffects.ClientWidth - 16 - 300) div 4);
+	W := (pnlEffectButtons.ClientWidth - X) div 4;
+	//Min(180, (pnlEffectButtons.ClientWidth - 16 - 300) div 4);
 
 	for i := 0 to Effects.Count-1 do
 	begin
@@ -2130,8 +2136,8 @@ begin
 		if (i mod 2) = 1 then Inc(X, W);
 	end;
 
-	Inc(X, 8);
-	pnlEffectKnobs.SetBounds(X, 3, pnlEffects.ClientWidth-X-5, pnlEffects.ClientHeight-6);
+	{Inc(X, 8);
+	pnlEffectParams.SetBounds(X, 3, pnlEffects.ClientWidth-X-5, pnlEffects.ClientHeight-6);}
 
 	EndFormUpdate;
 end;
