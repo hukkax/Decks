@@ -1,15 +1,18 @@
 object FormTracklist: TFormTracklist
   Left = 510
-  Height = 338
+  Height = 213
   Top = 30
   Width = 811
-  Caption = 'FormTracklist'
-  ClientHeight = 338
+  BorderIcons = []
+  BorderStyle = bsSizeToolWin
+  Caption = 'Tracklist'
+  ClientHeight = 213
   ClientWidth = 811
-  LCLVersion = '2.3.0.0'
+  OnShow = FormShow
+  Position = poMainFormCenter
   object SongList: ThListView
     Left = 0
-    Height = 338
+    Height = 213
     Top = 0
     Width = 791
     Align = alClient
@@ -38,7 +41,7 @@ object FormTracklist: TFormTracklist
   end
   object Scrollbar: ThRangeBar
     Left = 791
-    Height = 338
+    Height = 213
     Top = 0
     Width = 20
     Align = alRight
@@ -52,6 +55,6 @@ object FormTracklist: TFormTracklist
     LightAmount = 15
     Increment = 1
     Kind = sbVertical
-    Window = 7
+    Window = 4
   end
 end

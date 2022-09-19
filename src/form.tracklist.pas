@@ -11,6 +11,7 @@ type
 	TFormTracklist = class(TForm)
 		SongList: ThListView;
 		Scrollbar: ThRangeBar;
+		procedure FormShow(Sender: TObject);
 	private
 
 	public
@@ -23,6 +24,13 @@ var
 implementation
 
 {$R *.lfm}
+
+{ TFormTracklist }
+
+procedure TFormTracklist.FormShow(Sender: TObject);
+begin
+	ClientHeight := SongList.ItemHeight * 2;
+end;
 
 end.
 

@@ -15,205 +15,209 @@ const
 	ColumnSortText: array[Boolean] of String = ('▲', '▼');
 
 type
-  ThListView = class;
+	ThListView = class;
 
-  ThListItem = class(TPersistent)
-  public
-	ImageIndex: Integer;
-	SortIndex:  Integer;
-	Caption:    String;
-	Color,
-	Background: TColor;
-	SubItems:   TStringList;
-	Tag:        PtrInt;
+	ThListItem = class(TPersistent)
+	public
+		ImageIndex: Integer; // TODO
+		SortIndex:  Integer;
+		Caption:    String;
+		Color,
+		Background: TColor;  // TODO
+		SubItems:   TStringList;
+		Tag:        PtrInt;
 
-    constructor Create(AOwner: ThListView);
-    destructor  Destroy; override;
-  end;
+	    constructor Create(AOwner: ThListView);
+	    destructor  Destroy; override;
+	end;
 
-  ThListColumn = class
-  public
-	Width,
-	Left,
-	Percentage: Integer;
-	Visible:    Boolean;
-	DrawnRect:  TRect;
-	Caption:    String;
-	Tag:        PtrInt;
-	AlwaysShow: Boolean;
+	ThListColumn = class
+	public
+		Width,
+		Left,
+		Percentage: Integer;
+		Visible:    Boolean;
+		DrawnRect:  TRect;
+		Caption:    String;
+		Tag:        PtrInt;
+		AlwaysShow: Boolean;
 
-    constructor Create(AOwner: ThListView; ACaption: String; AWidth: Integer);
-    destructor  Destroy; override;
-  end;
+		constructor Create(AOwner: ThListView; ACaption: String; AWidth: Integer);
+		destructor  Destroy; override;
+	end;
 
-  TSelectItemProc = procedure(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem) of Object;
+	TSelectItemProc = procedure(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem) of Object;
 
-  (*
-  TMyHintData = record
-	FontSize:  Integer;
-	FontColor: TColor;
-	FontName:  String;
-  end;
+	(*
+	TMyHintData = record
+		FontSize:  Integer;
+		FontColor: TColor;
+		FontName:  String;
+	end;
 
-  TMyHintWindow = class(THintWindow)
-  public
-    function CalcHintRect(MaxWidth: Integer; const AHint: String; AData: Pointer): TRect; override;
-  end;
-  *)
+	TMyHintWindow = class(THintWindow)
+	public
+		function CalcHintRect(MaxWidth: Integer; const AHint: String; AData: Pointer): TRect; override;
+	end;
+	*)
 
-  ThListView = class(TCustomControl)
-  private
-	FEnabled: Boolean;
-	FScrollPos: Integer;
-	FItemHeight: Integer;
-	FItemIndex: Integer;
-	FColor,
-	FColorSelection,
-	FColorSelectedText,
-	FColorGrid,
-	FColorHover: TColor;
-	FScrollbar: ThRangebar;
-	FMouseOver: Boolean;
-	FFont: TFont;
+	ThListView = class(TCustomControl)
+	private
+		FEnabled: Boolean;
+		FScrollPos: Integer;
+		FItemHeight: Integer;
+		FItemIndex: Integer;
+		FColor,
+		FColorSelection,
+		FColorSelectedText,
+		FColorGrid,
+		FColorHover: TColor;
+		FScrollbar: ThRangebar;
+		FMouseOver: Boolean;
+		FFont: TFont;
 
-	FSelectedItem: ThListItem;
+		FSelectedItem: ThListItem;
 
-	//FHintData: TMyHintData;
-	FHoveredColumn,
-	FHoveredItem,
-	FPreviousHoveredItem: Integer;
-	FClickedColumn: Integer;
-	FHintTextWidth: Integer;
-	FHintRect: TRect;
+		//FHintData: TMyHintData;
+		FHoveredColumn,
+		FHoveredItem,
+		FPreviousHoveredItem: Integer;
+		FClickedColumn: Integer;
+		FHintTextWidth: Integer;
+		FHintRect: TRect;
 
-	FSortColumn: Integer;
-	FSortReverse: Boolean;
-	FHeaderHeight: Integer;
-	FHeaderColor,
-	FHeaderTextColor: TColor;
+		FSortColumn: Integer;
+		FSortReverse: Boolean;
+		FHeaderHeight: Integer;
+		FHeaderColor,
+		FHeaderTextColor: TColor;
 
-	FTextOffset: TPoint;
-	FRowsVisible: Integer;
-	FFirstVisibleIndex,
-	FLastVisibleIndex: Integer;
+		FTextOffset: TPoint;
+		FRowsVisible: Integer;
+		FFirstVisibleIndex,
+		FLastVisibleIndex: Integer;
 
-	FPopupHeader,
-	FPopupList: TPopupMenu;
+		FPopupHeader,
+		FPopupList: TPopupMenu;
 
-	FOnClickItem,
-	FOnSelectItem: TSelectItemProc;
+		FOnClickItem,
+		FOnSelectItem: TSelectItemProc;
 
-	procedure SetColorGrid(AValue: TColor);
-	procedure SetColorHover(AValue: TColor);
-	procedure SetColorSelectedText(AValue: TColor);
-	procedure SetColorSelection(AValue: TColor);
-	procedure Resized;
+		procedure SetColorGrid(AValue: TColor);
+		procedure SetColorHover(AValue: TColor);
+		procedure SetColorSelectedText(AValue: TColor);
+		procedure SetColorSelection(AValue: TColor);
+		procedure Resized;
 
-	procedure WMSize(var Message: TLMSize); message LM_SIZE;
-	procedure CMMouseEnter(var Message: TLMessage); message CM_MouseEnter;
-	procedure CMMouseLeave(var Message: TLMessage); message CM_MouseLeave;
-    procedure CMHintShow(var Message: TCMHintShow); message CM_HintShow;
-	procedure ShowColumnPopup(P: TPoint);
-	procedure ToggleColumnVisibilityFromMenu(Sender: TObject);
-  protected
-	procedure SetEnabled(Value: Boolean); override;
-	procedure SetItemHeight(H: Integer);
-	procedure SetColor(C: TColor); override;
-	procedure SetFont(F: TFont);
-	procedure SetScrollPos(Y: Integer);
-	procedure SetFirstVisibleIndex(I: Integer);
-	procedure SetLastVisibleIndex(I: Integer);
-	procedure SetItemIndex(I: Integer);
-	procedure SetScrollbar(AScrollbar: ThRangebar);
+		procedure WMSize(var Message: TLMSize); message LM_SIZE;
+		procedure CMMouseEnter(var Message: TLMessage); message CM_MouseEnter;
+		procedure CMMouseLeave(var Message: TLMessage); message CM_MouseLeave;
+	    procedure CMHintShow(var Message: TCMHintShow); message CM_HintShow;
+		procedure ShowColumnPopup(P: TPoint);
+		procedure ToggleColumnVisibilityFromMenu(Sender: TObject);
 
-	procedure SetSortColumn(I: Integer);
-	procedure SetHeaderHeight(H: Integer);
-	procedure SetHeaderColor(C: TColor);
-	procedure SetHeaderTextColor(C: TColor);
+	protected
+		procedure SetEnabled(Value: Boolean); override;
+		procedure SetItemHeight(H: Integer);
+		procedure SetColor(C: TColor); override;
+		procedure SetFont(F: TFont);
+		procedure SetScrollPos(Y: Integer);
+		procedure SetFirstVisibleIndex(I: Integer);
+		procedure SetLastVisibleIndex(I: Integer);
+		procedure SetItemIndex(I: Integer);
+		procedure SetScrollbar(AScrollbar: ThRangebar);
 
-	procedure Draw(FullRedraw: Boolean = True);
-	procedure UpdateScrollbar;
+		procedure SetSortColumn(I: Integer);
+		procedure SetHeaderHeight(H: Integer);
+		procedure SetHeaderColor(C: TColor);
+		procedure SetHeaderTextColor(C: TColor);
 
-	procedure Paint; override;
-	procedure ScrollbarChange(Sender: TObject);
+		procedure Draw(FullRedraw: Boolean = True);
+		procedure UpdateScrollbar;
 
-	procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-	procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-	procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-	procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
-    function  DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
-  public
-	Columns:  TFPGObjectList<ThListColumn>;
-	Items:    TFPGObjectList<ThListItem>;
-	HintColumn: array of TRect;
+		procedure Paint; override;
+		procedure ScrollbarChange(Sender: TObject);
 
-	constructor Create(AOwner: TComponent); override;
-	destructor  Destroy; override;
+		procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+		procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+		procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+		procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
+	    function  DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
 
-	function  AddItem(const Caption: String): ThListItem;
-	function  AddColumn(const ACaption: String; AWidth: Integer; AVisible: Boolean = True): ThListColumn;
-	function  ColumnAt(X: Integer): Integer;
-	function  GetSubItemFor(const Item: ThListItem; var Column: Integer): String;
-	procedure SortItems;
+	public
+		Columns:  TFPGObjectList<ThListColumn>;
+		Items:    TFPGObjectList<ThListItem>;
+		HintColumn: array of TRect;
 
-	function  GetVisibleRows: Integer;
-	procedure ScrollToView(const Item: ThListItem);
-	procedure ScrollBy(DeltaX, DeltaY: Integer); override;
+		constructor Create(AOwner: TComponent); override;
+		destructor  Destroy; override;
 
-	property ClickedColumn: Integer read FClickedColumn;
-	property ScrollPos: Integer read FScrollPos write SetScrollPos default 0;
-	property FirstVisibleIndex: Integer read FFirstVisibleIndex write SetFirstVisibleIndex;
-	property LastVisibleIndex:  Integer read FLastVisibleIndex  write SetLastVisibleIndex;
-	property ItemIndex: Integer read FItemIndex write SetItemIndex;
-	property HoveredItem: Integer read FHoveredItem;
-	property SelectedItem: ThListItem read FSelectedItem;
+		function  AddItem(const Caption: String): ThListItem;
+		function  AddColumn(const ACaption: String; AWidth: Integer; AVisible: Boolean = True): ThListColumn;
+		function  ColumnAt(X: Integer): Integer;
+		function  GetSubItemFor(const Item: ThListItem; var Column: Integer): String;
+		procedure SortItems;
 
-  published
-	property Align;
-	property Anchors;
+		function  GetVisibleRows: Integer;
+		procedure ScrollToView(const Item: ThListItem);
+		procedure ScrollBy(DeltaX, DeltaY: Integer); override;
+		procedure ScrollToTop;
+		procedure ScrollToBottom;
 
-	property Color:             TColor read FColor              write SetColor;
-	property ColorSelection:    TColor read FColorSelection     write SetColorSelection;
-	property ColorSelectedText: TColor read FColorSelectedText  write SetColorSelectedText;
-	property ColorGrid:         TColor read FColorGrid          write SetColorGrid;
-	property ColorHover:        TColor read FColorHover         write SetColorHover;
+		property ClickedColumn: Integer read FClickedColumn;
+		property ScrollPos: Integer read FScrollPos write SetScrollPos default 0;
+		property FirstVisibleIndex: Integer read FFirstVisibleIndex write SetFirstVisibleIndex;
+		property LastVisibleIndex:  Integer read FLastVisibleIndex  write SetLastVisibleIndex;
+		property ItemIndex: Integer read FItemIndex write SetItemIndex;
+		property HoveredItem: Integer read FHoveredItem;
+		property SelectedItem: ThListItem read FSelectedItem;
 
-	property SortColumn:      Integer read FSortColumn      write SetSortColumn;
-	property HeaderHeight:    Integer read FHeaderHeight    write SetHeaderHeight;
-	property HeaderColor:     TColor  read FHeaderColor     write SetHeaderColor;
-	property HeaderTextColor: TColor  read FHeaderTextColor write SetHeaderTextColor;
+	published
+		property Align;
+		property Anchors;
 
-	property Enabled: Boolean read FEnabled write SetEnabled default True;
-	property Font: TFont read FFont write SetFont;
-	property ItemHeight: Integer read FItemHeight write SetItemHeight default 12;
-	property Scrollbar: ThRangebar read FScrollbar write SetScrollbar;
+		property Color:             TColor read FColor              write SetColor;
+		property ColorSelection:    TColor read FColorSelection     write SetColorSelection;
+		property ColorSelectedText: TColor read FColorSelectedText  write SetColorSelectedText;
+		property ColorGrid:         TColor read FColorGrid          write SetColorGrid;
+		property ColorHover:        TColor read FColorHover         write SetColorHover;
 
-	property ParentShowHint;
-	//property PopupMenu;
-	property PopupHeader: TPopupMenu read FPopupHeader write FPopupHeader;
-	property PopupList:   TPopupMenu read FPopupList   write FPopupList;
-	property ShowHint;
-	property Visible;
+		property SortColumn:      Integer read FSortColumn      write SetSortColumn;
+		property HeaderHeight:    Integer read FHeaderHeight    write SetHeaderHeight;
+		property HeaderColor:     TColor  read FHeaderColor     write SetHeaderColor;
+		property HeaderTextColor: TColor  read FHeaderTextColor write SetHeaderTextColor;
 
-	property OnSelectItem: TSelectItemProc read FOnSelectItem write FOnSelectItem;
-	property OnClickItem:  TSelectItemProc read FOnClickItem  write FOnClickItem;
-	property OnClick;
-	property OnDblClick;
-	property OnEnter;
-	property OnExit;
-	property OnKeyDown;
-	property OnKeyPress;
-	property OnKeyUp;
-	property OnMouseDown;
-	property OnMouseUp;
-	property OnMouseMove;
-	property OnMouseWheel;
-	property OnMouseEnter;
-	property OnMouseLeave;
-	property DoubleBuffered;
-	property TabOrder;
-	property TabStop;
-  end;
+		property Enabled: Boolean read FEnabled write SetEnabled default True;
+		property Font: TFont read FFont write SetFont;
+		property ItemHeight: Integer read FItemHeight write SetItemHeight default 12;
+		property Scrollbar: ThRangebar read FScrollbar write SetScrollbar;
+
+		property ParentShowHint;
+		//property PopupMenu;
+		property PopupHeader: TPopupMenu read FPopupHeader write FPopupHeader;
+		property PopupList:   TPopupMenu read FPopupList   write FPopupList;
+		property ShowHint;
+		property Visible;
+
+		property OnSelectItem: TSelectItemProc read FOnSelectItem write FOnSelectItem;
+		property OnClickItem:  TSelectItemProc read FOnClickItem  write FOnClickItem;
+		property OnClick;
+		property OnDblClick;
+		property OnEnter;
+		property OnExit;
+		property OnKeyDown;
+		property OnKeyPress;
+		property OnKeyUp;
+		property OnMouseDown;
+		property OnMouseUp;
+		property OnMouseMove;
+		property OnMouseWheel;
+		property OnMouseEnter;
+		property OnMouseLeave;
+		property DoubleBuffered;
+		property TabOrder;
+		property TabStop;
+	  end;
 
 
   procedure Register;
@@ -243,7 +247,9 @@ begin
 	Result := inherited;
 end;*)
 
-{ ThListColumn }
+// ================================================================================================
+// ThListColumn
+// ================================================================================================
 
 constructor ThListColumn.Create(AOwner: ThListView; ACaption: String; AWidth: Integer);
 begin
@@ -269,7 +275,9 @@ begin
 	inherited Destroy;
 end;
 
-{ ThListItem }
+// ================================================================================================
+// ThListItem
+// ================================================================================================
 
 constructor ThListItem.Create(AOwner: ThListView);
 begin
@@ -289,7 +297,9 @@ begin
 	inherited Destroy;
 end;
 
-{ ThListView }
+// ================================================================================================
+// ThListView
+// ================================================================================================
 
 constructor ThListView.Create(AOwner: TComponent);
 begin
@@ -390,30 +400,41 @@ begin
 		SetScrollPos(I)
 	else
 	if (I >= FLastVisibleIndex) then
-		SetScrollPos(I - (FLastVisibleIndex - FFirstVisibleIndex) + 1);
+		SetScrollPos(I - FRowsVisible + 1);
+	UpdateScrollbar;
 end;
 
 procedure ThListView.ScrollBy(DeltaX, DeltaY: Integer);
 begin
-	FFirstVisibleIndex := EnsureRange(FFirstVisibleIndex - DeltaY, 0, Items.Count - FRowsVisible);
-	UpdateScrollbar;
-	Invalidate;
+	SetFirstVisibleIndex(FFirstVisibleIndex - DeltaY);
+end;
+
+procedure ThListView.ScrollToTop;
+begin
+	SetFirstVisibleIndex(0);
+end;
+
+procedure ThListView.ScrollToBottom;
+begin
+	SetLastVisibleIndex(Items.Count-1);
 end;
 
 function ThListView.GetVisibleRows: Integer;
 begin
-	FRowsVisible := (ClientHeight - FHeaderHeight) div FItemHeight;
+	FRowsVisible := Trunc((ClientHeight - FHeaderHeight) / FItemHeight);
 	Result := FRowsVisible;
 end;
 
 procedure ThListView.SetFirstVisibleIndex(I: Integer);
 begin
-//
+	FFirstVisibleIndex := EnsureRange(I, 0, Items.Count - FRowsVisible);
+	UpdateScrollbar;
+	Invalidate;
 end;
 
 procedure ThListView.SetLastVisibleIndex(I: Integer);
 begin
-//
+	SetFirstVisibleIndex(I - FRowsVisible);
 end;
 
 procedure ThListView.SetItemIndex(I: Integer);

@@ -174,7 +174,6 @@ type
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
-		MIDIProcessing: Boolean;
 
 		procedure ResizeFrames;
 		function  FindFileListEntry(const Filename: String): ThListItem;
@@ -386,7 +385,7 @@ var
 begin
 	Params := PExecuteParams(Data)^;
 	try
-		if (not MIDIProcessing) and (not Application.Terminated) then
+		if (not Application.Terminated) then
 			Execute(Params.Action, Params.Pressed, Params.Value);
 	finally
 		Dispose(PExecuteParams(Data));
@@ -405,8 +404,6 @@ var
 	S: String;
 begin
 	if Action.Kind = NO_ACTION then Exit;
-
-	MIDIProcessing := True;
 
 	if MIDI.Debug then
 	begin
@@ -431,11 +428,7 @@ begin
 
 		{if (FileListIsActive) and (Action.Kind in [UI_SELECT_TOGGLE, UI_SELECT_OPEN]) then
 			Action.Kind := DECK_LOAD;}
-		if (Deck = nil) and (Action.Kind <> DECK_LOAD) then
-		begin
-			MIDIProcessing := False;
-			Exit;
-		end;
+		if (Deck = nil) and (Action.Kind <> DECK_LOAD) then Exit;
 	end;
 
 	case Action.Kind of
@@ -478,8 +471,6 @@ begin
 	UI_SELECT_EXIT:		if Pressed then FocusableControls.Ascend;
 
 	end;
-
-	MIDIProcessing := False;
 end;
 
 procedure TMainForm.UpdateController(Deck: TDeck; Event: Integer);
@@ -1142,11 +1133,12 @@ begin
 		end;
 
 		Item.Caption := S;
-		FormTracklist.SongList.Items.Add(Item);
-		FormTracklist.SongList.ItemIndex := FormTracklist.SongList.Items.Count-1;
-		if FormTracklist.Visible then
-			FormTracklist.SongList.Invalidate;
-		FormTracklist.SongList.ScrollToView(Item);
+		with FormTracklist.SongList do
+		begin
+			Items.Add(Item);
+			ScrollToBottom;
+			ItemIndex := Items.Count-1;
+		end;
 	end;
 end;
 
