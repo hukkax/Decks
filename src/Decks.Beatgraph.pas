@@ -369,20 +369,18 @@ begin
 end;
 
 function TBeatGraph.RemoveZone(ZoneIndex: Word): Boolean;
-var
-	X, BI: Integer;
-	P: QWord;
 begin
 	if (Generating) or (Zones.Count <= 1) or (ZoneIndex >= Zones.Count) then Exit(False);
 
+	{$IFDEF DEBUG}
 	ShowMessage(Format('Delete Zone %d (%f BPM)', [ZoneIndex, Zones[ZoneIndex].BPM]));
+	{$ENDIF}
 
-	P := Zones[ZoneIndex].Pos;
-	BI := Zones[ZoneIndex].barindex;
-	for X := BI to amount_bars do
-		Bars[X].Zone -= 1;
+	if ZoneIndex < 1 then Exit(False); // todo
+
+	Inc(Zones[ZoneIndex-1].amount_bars, Zones[ZoneIndex].amount_bars);
+	Inc(Zones[ZoneIndex-1].length, Zones[ZoneIndex].length);
 	Zones.Delete(ZoneIndex);
-	Zones[ZoneIndex].Pos := P;
 
 	ZonesLoaded;
 	Result := True;

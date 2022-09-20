@@ -1088,6 +1088,7 @@ begin
 		if Deck.Graph.RemoveZone(CurrentZone) then
 		begin
 			if CurrentZone > 0 then Dec(CurrentZone);
+			ZoneChanged(CurrentZone, False, False);
 			RedrawGraph;
 		end;
 
