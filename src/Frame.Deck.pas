@@ -252,6 +252,7 @@ type
 		procedure DrawRuler(Recalc: Boolean = True);
 		procedure DrawGraph;
 		procedure RedrawGraph;
+		procedure UpdateCaption;
 
 		procedure ShowPanel_Effects;
 	end;
@@ -432,7 +433,6 @@ begin
 	Deck.OnModeChange := OnDeckEvent;
 	Deck.Index := DeckList.Add(Deck) + 1;
 
-	Tag := Deck.Index;
 	lTime.Tag := -1;
 	GraphHover := Point(-1, -1);
 
@@ -611,7 +611,7 @@ end;
 procedure TDeckFrame.bMasterMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
-	SetMaster(Tag);
+	SetMaster(Deck.Index);
 end;
 
 procedure TDeckFrame.bReverseMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1782,6 +1782,11 @@ begin
 	Application.ProcessMessages;
 end;
 
+procedure TDeckFrame.UpdateCaption;
+begin
+	bMaster.Caption := Format('%d: %s', [Deck.Index, ExtractFileName(Deck.Filename)]);
+end;
+
 procedure TDeckFrame.OnDeckEvent(Kind: Integer);
 var
 	S: String;
@@ -1834,8 +1839,7 @@ begin
 		MODE_LOAD_SUCCESS:
 		begin
 			Log('MODE_LOAD_SUCCESS');
-			S := ExtractFileName(Deck.Filename);
-			bMaster.Caption := Format('%d: %s', [Deck.Index, S]);
+			UpdateCaption;
 
 			Deck.Info.BPM := MasterBPM;
 			if Deck.GetInfo then

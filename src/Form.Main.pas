@@ -331,11 +331,14 @@ var
 	Form: TDeckFrame;
 begin
 	if Index > DeckList.Count then Exit;
+
 	MasterDeck := nil;
 	MasterDeckIndex := 0;
+
 	for Deck in DeckList do
 	begin
 		Form := TDeckFrame(Deck.Form);
+
 		if Deck.Index = Index then
 		begin
 			MasterDeck := Form;
@@ -1524,13 +1527,14 @@ begin
 		Deck := DeckList[i];
 		Deck.Index := i+1;
 		Deck.Form.Name := Deck.Form.Name + Deck.Index.ToString;
+		DF := TDeckFrame(Deck.Form);
+		DF.UpdateCaption;
 		if i in [0,1] then
 			MixerDeck[i+1].Deck := Deck;
 
 		if i <= High(DeckInFocusableControls) then
 		if DeckInFocusableControls[i,2].Data = nil then
 		begin
-			DF := TDeckFrame(Deck.Form);
 
 			with DeckInFocusableControls[i,0] do
 			begin
@@ -1617,12 +1621,11 @@ var
 	Deck: TDeck;
 begin
 	if DeckFrame = nil then Exit;
+	Deck := DeckFrame.Deck;
+	if not Deck.Paused then Exit;
 
 	BeginFormUpdate;
 	DeckFrame.Timer.Enabled := False;
-
-	SetMaster(0);
-	Deck := DeckFrame.Deck;
 
 	for I := 1 to 2 do
 		if MixerDeck[I].Deck = Deck then
@@ -1647,6 +1650,7 @@ begin
 
 	DeckLayoutChanged;
 	ResizeFrames;
+	SetMaster(1);
 
 	EndFormUpdate;
 end;
