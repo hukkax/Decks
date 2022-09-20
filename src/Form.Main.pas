@@ -437,14 +437,21 @@ begin
 	case Action.Kind of
 
 	DECK_PLAY:			if Pressed then Form.bPlayClick(Self);
-	DECK_CUE:			if (Deck.Paused) or (Deck.Cueing) then Form.Cue(Pressed)
+	DECK_CUE:			if (Deck.Paused) or (Deck.Cueing) then
+							//Form.Cue(Pressed)
+							Form.bPlay.SetMouseDown(mbRight, Pressed)
 							else if Pressed then Form.JumpToCue;
-	DECK_SYNC:			if Pressed then Form.SetSynced(not Deck.Synced);
-	DECK_REVERSE:		Deck.SetReverse(Pressed, True);
+	DECK_SYNC:			//if Pressed then Form.SetSynced(not Deck.Synced);
+						Form.bSync.SetMouseDown(mbLeft, Pressed);
+	DECK_REVERSE:		Deck.SetReverse(Pressed, Deck.Synced);
 	DECK_LOAD:			if Pressed then LoadDeck(DeckNum);
 	DECK_AMP:			Form.SliderAmp.Position := Trunc(((Value) / 128) * 200);
-	DECK_BEND:			if Pressed then Deck.BendStart(Value > 0, False)
-							else Deck.BendStop;
+	DECK_BEND:			{if Pressed then Deck.BendStart(Value > 0, False)
+							else Deck.BendStop;}
+						if Value > 0 then
+							Form.bBendUp.SetMouseDown(mbLeft, Pressed)
+						else
+							Form.bBendDown.SetMouseDown(mbLeft, Pressed);
 	DECK_SEEK:			Form.SetCue(Point(Max(0, Form.GraphCue.X + Value), 0));
 
 	MIXER_CROSSFADER:	sFader.Position := Round((Value / 127) * 1000);
@@ -507,7 +514,6 @@ begin
 
 		MODE_PLAY_WAITSYNC:
 			MIDI.SetLed(DECK_CUE, B);
-
 
 		MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:
 		begin
@@ -2089,7 +2095,6 @@ begin
 				if Assigned(Btn.OnMouseUp) then
 					Btn.OnMouseUp(Ctrl, mbLeft, [], 0, 0);
 		end;
-
 		Result := True;
 	end
 	else

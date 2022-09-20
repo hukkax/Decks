@@ -57,6 +57,7 @@ type
 		FGlyphMargin: integer;
 		FButtonState: TBCMouseState;
 		FDownButtonState: TBCMouseState;
+		FPrevButtonState: TBCMouseState;
 		FOnAfterRenderBCButton: TOnAfterRenderBCButton;
 		FOnButtonClick: TNotifyEvent;
 		FStaticButton: Boolean;
@@ -129,18 +130,18 @@ type
 		procedure MouseMove(Shift: TShiftState; X, Y: integer); override;
 		procedure SetEnabled(Value: boolean); override;
 		procedure TextChanged;  override;
-	protected
+
 		procedure ActionChange(Sender: TObject; CheckDefaults: boolean); override;
 		function GetActionLinkClass: TControlActionLinkClass; override;
 		procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 		procedure Render(ABGRA: TBGRABitmapEx; AState: TBCButtonState); virtual;
 		procedure RenderState(ABGRA: TBGRABitmapEx; AState: TBCButtonState;
 			const ARect: TRect; ARounding: TBCRounding); virtual;
-	protected
+
 		function GetStyleExtension: string; override;
 		procedure DrawControl; override;
 		procedure RenderControl; override;
-	protected
+
 		property AutoSizeExtraVertical: integer read AutoSizeExtraY;
 		property AutoSizeExtraHorizontal: integer read AutoSizeExtraX;
 	public
@@ -153,7 +154,6 @@ type
 			newAutoSizeExtraVertical, newAutoSizeExtraHorizontal: integer);
 		{ Called by EndUpdate }
 		procedure UpdateControl; override;
-	public
 		{ Load and assign all published settings from file }
 		procedure LoadFromFile(AFileName: string); override;
 		{ Save all published settings to file }
@@ -163,6 +163,8 @@ type
 		{ Used by SaveToFile/LoadFromFile }
 		procedure OnFindClass({%H-}Reader: TReader; const AClassName: string;
 			var ComponentClass: TComponentClass);
+
+		procedure SetMouseDown(Button: TMouseButton; ButtonDown: Boolean; InvokeCallback: Boolean = True);
 	published
 		property Action;
 		property Align;
@@ -960,26 +962,51 @@ begin
   FDropDownClosingTime := Now;
 end;
 
+procedure TDecksButton.SetMouseDown(Button: TMouseButton; ButtonDown: Boolean; InvokeCallback: Boolean = True);
+begin
+	if not Enabled then Exit;
+
+	if ButtonDown then
+	begin
+		if FButtonState = msClicked then Exit;
+		if (InvokeCallback) and (Assigned(OnMouseDown)) then
+			OnMouseDown(Self, Button, [], 0, 0);
+
+		FPrevButtonState := FButtonState;
+		FButtonState := msClicked;
+		if FDropDownStyle = bdsCommon then
+			FDownButtonState := msClicked
+		else
+			FDownButtonState := msNone;
+	end
+	else
+	begin
+		if FButtonState <> msClicked then Exit;
+		if (InvokeCallback) and (Assigned(OnMouseUp)) then
+			OnMouseUp(Self, Button, [], 0, 0);
+
+		FButtonState := FPrevButtonState;
+		if FDropDownStyle = bdsCommon then
+			FDownButtonState := msHover
+		else
+			FDownButtonState := msNone;
+	end;
+
+	Invalidate;
+end;
+
 procedure TDecksButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
 	ClientToScreenPoint : TPoint;
 begin
-	inherited MouseDown(Button, Shift, X, Y);
-	if csDesigning in ComponentState then Exit;
+  inherited MouseDown(Button, Shift, X, Y);
+  if csDesigning in ComponentState then Exit;
 
-	if {(Button = mbLeft) and} Enabled {and (not (FButtonState = msClicked)) } then
+  if {(Button = mbLeft) and} Enabled {and (not (FButtonState = msClicked)) } then
   begin
     case FActiveButt of
       bbtButton:
-        if not (FButtonState = msClicked) then
-        begin
-          FButtonState := msClicked;
-          if FDropDownStyle = bdsCommon then
-            FDownButtonState := msClicked
-          else
-            FDownButtonState := msNone;
-          Invalidate;
-        end;
+		SetMouseDown(Button, True, False);
       bbtDropDown:
         if not (FDownButtonState = msClicked) then
         begin
@@ -1050,22 +1077,13 @@ procedure TDecksButton.MouseUp(Button: TMouseButton; Shift: TShiftState;
   p: TPoint;}
 begin
   inherited MouseUp(Button, Shift, X, Y);
-  if csDesigning in ComponentState then
-    exit;
+  if csDesigning in ComponentState then Exit;
 
   if {(Button = mbLeft) and} Enabled {and (FButtonState = msClicked)} then
   begin
     case FActiveButt of
       bbtButton:
-        if FButtonState = msClicked then
-        begin
-          FButtonState := msHover;
-          if FDropDownStyle = bdsCommon then
-            FDownButtonState := msHover
-          else
-            FDownButtonState := msNone;
-          Invalidate;
-        end;
+		SetMouseDown(Button, False, False);
       bbtDropDown:
         if FDownButtonState = msClicked then
         begin
