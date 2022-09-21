@@ -36,6 +36,20 @@ uses
 	BGRABitmap, BGRABitmapTypes, BCTypes, BCBasectrls, BCButton;
 
 type
+	TBCBevel = class(TBCProperty)
+	private
+		FOpacity: Byte;
+		FVerticalOnly: Boolean;
+		procedure SetOpacity(Value: Byte);
+		procedure SetVerticalOnly(Value: Boolean);
+	public
+		constructor Create(AControl: TControl); override;
+		procedure   Assign(Source: TPersistent); override;
+	published
+		property Opacity: Byte read FOpacity write SetOpacity;
+		property VerticalOnly: Boolean read FVerticalOnly write SetVerticalOnly;
+	end;
+
 	TDecksButton = class(TBCStyleGraphicControl)
 	private
 		FDropDownArrowSize: integer;
@@ -67,6 +81,7 @@ type
 		AutoSizeExtraY: integer;
 		AutoSizeExtraX: integer;
 		FLastBorderWidth: integer;
+		FBevel: TBCBevel;
 		// MORA
 		FClickOffset: boolean;
 		FDropDownArrow: boolean;
@@ -81,13 +96,14 @@ type
 		FSaveDropDownClosed: TNotifyEvent;
 		FShowCaption: boolean;
 
+		function  GetButtonRect: TRect;
+		function  GetDropDownWidth(AFull: boolean = True): integer;
+		function  GetDropDownRect(AFull: boolean = True): TRect;
+		function  GetGlyph: TBitmap;
 		procedure AssignDefaultStyle;
 		procedure CalculateGlyphSize(out NeededWidth, NeededHeight: integer);
 		procedure DropDownClosed(Sender: TObject);
 		procedure RenderAll(ANow: boolean = False);
-		function GetButtonRect: TRect;
-		function GetDropDownWidth(AFull: boolean = True): integer;
-		function GetDropDownRect(AFull: boolean = True): TRect;
 		procedure SetBCButtonStateClicked(const AValue: TBCButtonState);
 		procedure SetBCButtonStateHover(const AValue: TBCButtonState);
 		procedure SetBCButtonStateNormal(const AValue: TBCButtonState);
@@ -116,11 +132,11 @@ type
 		procedure OnChangeGlyph({%H-}Sender: TObject);
 		procedure OnChangeState({%H-}Sender: TObject; AData: PtrInt);
 		procedure ImageListChange(ASender: TObject);
-		function  GetGlyph: TBitmap;
+		procedure SetBevel(Value: TBCBevel);
 	protected
+		class function GetControlClassDefaultSize: TSize; override;
 		procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer;
 			{%H-}WithThemeSpace: boolean); override;
-		class function GetControlClassDefaultSize: TSize; override;
 		procedure Click; override;
 		procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
 			X, Y: integer); override;
@@ -132,13 +148,13 @@ type
 		procedure TextChanged;  override;
 
 		procedure ActionChange(Sender: TObject; CheckDefaults: boolean); override;
-		function GetActionLinkClass: TControlActionLinkClass; override;
+		function  GetActionLinkClass: TControlActionLinkClass; override;
 		procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 		procedure Render(ABGRA: TBGRABitmapEx; AState: TBCButtonState); virtual;
 		procedure RenderState(ABGRA: TBGRABitmapEx; AState: TBCButtonState;
 			const ARect: TRect; ARounding: TBCRounding); virtual;
 
-		function GetStyleExtension: string; override;
+		function  GetStyleExtension: string; override;
 		procedure DrawControl; override;
 		procedure RenderControl; override;
 
@@ -224,6 +240,8 @@ type
 		property ShowHint;
 		{ The style of button that will be used. bbtButton or bbtDropDown. }
 		property Style: TBCButtonStyle read FStyle write SetStyle default bbtButton;
+		{ Opacity of extra highlight/shadow lines at top/bottom }
+		property Bevel: TBCBevel read FBevel write SetBevel;
 		{ Apply the global opacity to rendered text. Default: False. }
 		property TextApplyGlobalOpacity: Boolean read FTextApplyGlobalOpacity write SetTextApplyGlobalOpacity;
 		property Visible;
@@ -287,10 +305,46 @@ begin
 	RegisterComponents('Custom', [TDecksButton]);
 end;
 
+{ TBCBevel }
+
+procedure TBCBevel.SetOpacity(Value: Byte);
+begin
+	if FOpacity = Value then Exit;
+	FOpacity := Value;
+	Change;
+end;
+
+procedure TBCBevel.SetVerticalOnly(Value: Boolean);
+begin
+	if FVerticalOnly = Value then Exit;
+	FVerticalOnly := Value;
+	Change;
+end;
+
+constructor TBCBevel.Create(AControl: TControl);
+begin
+	inherited Create(AControl);
+	FOpacity := 50;
+	FVerticalOnly := True;
+end;
+
+procedure TBCBevel.Assign(Source: TPersistent);
+begin
+	if Source is TBCBevel then
+	begin
+		FOpacity := TBCBevel(Source).FOpacity;
+		FVerticalOnly := TBCBevel(Source).FVerticalOnly;
+	end
+	else
+		inherited Assign(Source);
+end;
+
 procedure TDecksButton.AssignDefaultStyle;
 begin
 	FRounding.RoundX := 0;
 	FRounding.RoundY := 0;
+	FBevel.Opacity := 50;
+	FBevel.VerticalOnly := True;
 	with FStateNormal do
 	begin
 		FontEx.Color := 11775917;
@@ -400,6 +454,14 @@ end;
 function TDecksButton.GetGlyph: TBitmap;
 begin
   Result := FGlyph as TBitmap;
+end;
+
+procedure TDecksButton.SetBevel(Value: TBCBevel);
+begin
+	if FBevel = Value then Exit;
+	FBevel.Assign(Value);
+	RenderControl;
+	Invalidate;
 end;
 
 function TDecksButton.GetDropDownRect(AFull: boolean): TRect;
@@ -538,24 +600,62 @@ end;
 procedure TDecksButton.RenderState(ABGRA: TBGRABitmapEx;
   AState: TBCButtonState; const ARect: TRect; ARounding: TBCRounding);
 var
-	Padding: Integer;
+	PaddingX, PaddingY: Integer;
+	w: Single;
+	BG: TBCBackground;
+	Bor: TBCBorder;
+	ColBri, ColDark: TBGRAPixel;
 begin
-	RenderBackgroundAndBorder(ARect, AState.Background, TBGRABitmap(ABGRA),
-		ARounding, AState.Border, FInnerMargin);
+	BG := AState.Background;
+	Bor := AState.Border;
 
-	if AState.Background.Gradient1EndPercent >= 100 then
+	if Bor.Style = bboNone then
 	begin
-		Padding := AState.Border.Width + AState.Border.LightWidth;
+		w := FInnerMargin - 0.5;
+		RenderBackgroundF(ARect.Left+w, ARect.Top+w, ARect.Right-1-w,
+			ARect.Bottom-1-w, BG, ABGRA, ARounding);
+	end
+	else
+	begin
+		w := (Bor.Width-1) / 2 + FInnerMargin;
+		RenderBackgroundF(ARect.Left+w, ARect.Top+w, ARect.Right-1-w, ARect.Bottom-1-w,
+			BG, ABGRA, ARounding);
+	end;
 
-		// top bright line
-		ABGRA.FastBlendHorizLine(
-			ARect.Left+Padding, ARect.Top+Padding, ARect.Right-1-Padding,
-			ColorToBGRA(AState.Background.Gradient2.StartColor));
+	if FBevel.Opacity > 0 then
+	begin
+		PaddingY := Bor.Width + Bor.LightWidth;
+		PaddingX := Trunc(PaddingY + (Rounding.RoundX * 0.5));
 
-		// bottom dark line
+		// bright bevel
+		ColBri := BGRA(255, 255, 255, FBevel.Opacity);
+		// top
 		ABGRA.FastBlendHorizLine(
-			ARect.Left+Padding, ARect.Bottom-1-Padding, ARect.Right-1-Padding,
-			ColorToBGRA(AState.Background.Gradient2.EndColor));
+			ARect.Left+PaddingX, ARect.Top+PaddingY, ARect.Right-1-PaddingX, ColBri);
+
+		// dark bevel
+		ColDark := BGRA(0, 0, 0, FBevel.Opacity);
+		// bottom
+		ABGRA.FastBlendHorizLine(
+			ARect.Left+PaddingX, ARect.Bottom-1-PaddingY, ARect.Right-1-PaddingX, ColDark);
+
+		if not Bevel.VerticalOnly then
+		begin
+			PaddingX := PaddingY;
+			PaddingY := Trunc(PaddingX + (Rounding.RoundY * 0.5));
+			// left: bright
+			ABGRA.FastBlendVertLine(
+				ARect.Left+PaddingX, ARect.Top+PaddingY, ARect.Bottom-1-PaddingY, ColBri);
+			// right: dark
+			ABGRA.FastBlendVertLine(
+				ARect.Right-1-PaddingX, ARect.Top+PaddingY, ARect.Bottom-1-PaddingY, ColDark);
+		end;
+	end;
+
+	if Bor.Style <> bboNone then
+	begin
+		RenderBorderF(ARect.Left+w, ARect.Top+w, ARect.Right-1-w, ARect.Bottom-1-w,
+			Bor, ABGRA, ARounding);
 	end;
 end;
 
@@ -995,7 +1095,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TDecksButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: integer);
 var
 	ClientToScreenPoint : TPoint;
 begin
@@ -1463,6 +1563,9 @@ begin
     FRounding := TBCRounding.Create(Self);
     FRounding.OnChange := OnChangeState;
 
+	FBevel := TBCBevel.Create(Self);
+    FBevel.OnChange := OnChangeState;
+
     FRoundingDropDown := TBCRounding.Create(Self);
     FRoundingDropDown.OnChange := OnChangeState;
 
@@ -1528,6 +1631,7 @@ begin
   {$IFDEF FPC}FreeThenNil(FGlyph);{$ELSE}FreeAndNil(FGlyph);{$ENDIF}
   FRounding.Free;
   FRoundingDropDown.Free;
+  FBevel.Free;
   inherited Destroy;
 end;
 
@@ -1553,6 +1657,7 @@ begin
     FDown := TDecksButton(Source).FDown;
     FRounding.Assign(TDecksButton(Source).FRounding);
     FRoundingDropDown.Assign(TDecksButton(Source).FRoundingDropDown);
+    FBevel.Assign(TDecksButton(Source).FBevel);
 
     RenderControl;
     Invalidate;
