@@ -121,6 +121,12 @@ type
 		bToggleWaveDual: TDecksButton;
 		lCPU: TDecksLabel;
 		bToggleTracklist: TDecksButton;
+		PanelWin: TPanel;
+		shpBorder1: TShape;
+		bWinMin: TDecksButton;
+		bWinMax: TDecksButton;
+		bWinClose: TDecksButton;
+		Panel1: TPanel;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -171,6 +177,12 @@ type
 		procedure FormShow(Sender: TObject);
 		procedure miEnableEffectsClick(Sender: TObject);
 		procedure miEnableMixerClick(Sender: TObject);
+		procedure FormActivate(Sender: TObject);
+		procedure shpBorderMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
+		procedure bWinMinClick(Sender: TObject);
+		procedure bWinMaxClick(Sender: TObject);
+		procedure bWinCloseClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -259,6 +271,7 @@ implementation
 {$R *.lfm}
 
 uses
+	{$IFDEF WINDOWS}Windows,{$ENDIF}
 	Math, FileUtil, LazFileUtils, StrUtils,
 	MouseWheelAccelerator, TextInputDialog,
 	BCTypes, BCButton, TeeGenericTree, FocusRectangleUnit,
@@ -310,7 +323,7 @@ begin
 			Butt := TDecksButton(ChildControl);
 			if Butt.HelpKeyword <> '' then
 			begin
-				Butt.Glyph := TBitmap.Create;
+				Butt.Glyph := Graphics.TBitmap.Create;
 				Pic := TPicture.Create;
 				try
 					Pic.LoadFromFile(Path + Butt.HelpKeyword);
@@ -452,7 +465,7 @@ begin
 							Form.bBendUp.SetMouseDown(mbLeft, Pressed)
 						else
 							Form.bBendDown.SetMouseDown(mbLeft, Pressed);
-	DECK_SEEK:			Form.SetCue(Point(Max(0, Form.GraphCue.X + Value), 0));
+	DECK_SEEK:			Form.SetCue(Types.Point(Max(0, Form.GraphCue.X + Value), 0));
 
 	MIXER_CROSSFADER:	sFader.Position := Round((Value / 127) * 1000);
 	MIXER_EQ_KILL:		if Pressed then Deck.ToggleEQKill(EQ_BAND_LOW);
@@ -625,6 +638,46 @@ end;
 // TMainForm
 // ================================================================================================
 
+procedure TMainForm.FormActivate(Sender: TObject);
+begin
+	{$IFDEF WINDOWS}
+	SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and not(WS_CAPTION));
+	MoveWindow(Handle, Left, Top, Width-1, Height, True);
+	{$ENDIF}
+end;
+
+procedure TMainForm.shpBorderMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+	{$IFDEF WINDOWS}
+	ReleaseCapture;
+	SendMessage(Self.Handle, WM_SYSCOMMAND, 61458, 0);
+	{$ENDIF}
+end;
+
+procedure TMainForm.bWinMinClick(Sender: TObject);
+begin
+	Application.Minimize;
+end;
+
+procedure TMainForm.bWinMaxClick(Sender: TObject);
+begin
+	if WindowState <> wsMaximized then
+	begin
+		WindowState := wsMaximized;
+		bWinMax.Caption := '🗗';
+	end
+	else
+	begin
+		WindowState := wsNormal;
+		bWinMax.Caption := '🗖';
+	end;
+end;
+
+procedure TMainForm.bWinCloseClick(Sender: TObject);
+begin
+	Close;
+end;
+
 procedure TMainForm.FormCreate(Sender: TObject);
 var
 	i: Integer;
@@ -636,6 +689,14 @@ var
 //	FC, CC: TFocusableControl;
 //	Ctrl: TControl;
 begin
+	{$IFDEF WINDOWS}
+	Caption := '';
+	BorderIcons := [];
+	BorderStyle := bsSizeable;
+	{$ELSE}
+	PanelWin.Visible := False;
+	{$ENDIF}
+
 	DefaultFormatSettings.DecimalSeparator := '.';
 	Config.Load;
 
@@ -1912,7 +1973,7 @@ begin
 	if Down then
 		Button.StateNormal.Background.Style := bbsColor
 	else
-		Button.StateNormal.Background.Style := bbsGradient;
+		Button.StateNormal.Background.Style := bbsClear;
 	if MenuItem <> nil then MenuItem.Checked := Down;
 end;
 
@@ -2000,7 +2061,7 @@ begin
 	W := FileList.ClientWidth  div 2;
 	H := FileList.ClientHeight div 2;
 	X := Min(W, H);
-	DR := Rect(W-X, H-X, W+X, H+X);
+	DR := Types.Rect(W-X, H-X, W+X, H+X);
 	FileList.Canvas.AntialiasingMode := amOn;
 	FileList.Canvas.StretchDraw(DR, EmbeddedImage.Picture.Bitmap);
 	FileList.Canvas.AntialiasingMode := amDontCare;
