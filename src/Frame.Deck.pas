@@ -277,14 +277,19 @@ procedure Audio_Callback_Play(handle: HSYNC; channel, data: DWord; user: Pointer
 	{$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
 var
 	DeckFrame: TDeckFrame;
+	Deck: TDeck;
 begin
 	DeckFrame := TDeckFrame(user);
-	if (DeckFrame = nil) or (DeckFrame.Deck = nil) then Exit;
-
-	if DeckFrame.Deck.Paused then
-		DeckFrame.Deck.Play
-	else
-		DeckFrame.JumpToCue(True);
+	if (DeckFrame = nil) then Exit;
+	Deck := DeckFrame.Deck;
+	if Deck <> nil then
+	begin
+		if Deck.Paused then
+			Deck.Play
+		else
+			DeckFrame.JumpToCue(True);
+		Deck.QueuedSync := 0;
+	end;
 end;
 
 { TDeckFrame }
@@ -716,7 +721,6 @@ begin
 	case Button of
 		mbLeft:
 			SetSynced(not Deck.Synced);
-
 		mbRight:
 			SyncToOtherDeck(True);
 	end;
@@ -730,19 +734,21 @@ begin
 	begin
 		Deck.Cueing := False;
 		UpdatePlayButton(MODE_PLAY_START);
-		Exit;
-	end;
-	BASS_SetDevice(CurrentDevice);
-
-	// jump to cue if song has been played through
-	GetPlayPosition;
-	if PlayPosition >= BASS_ChannelGetLength(Deck.OrigStream, BASS_POS_BYTE) then
-		JumpToCue;
-
-	if (Deck.Synced) and (Deck.Paused) then
-		SyncToOtherDeck(False)
+	end
 	else
-		Deck.Pause;
+	begin
+		BASS_SetDevice(CurrentDevice);
+
+		// jump to cue if song has been played through
+		GetPlayPosition;
+		if PlayPosition >= Deck.ByteLength then
+			JumpToCue;
+
+		if (Deck.Synced) and (Deck.Paused) then
+			SyncToOtherDeck(False)
+		else
+			Deck.Pause;
+	end;
 end;
 
 procedure TDeckFrame.bPlayMouseDown(Sender: TObject;
@@ -805,18 +811,31 @@ begin
 	end
 	else
 	begin
-		B := OtherDeck.GetCurrentBar+1;
-		P := OtherDeck.Graph.Bars[B].Pos;
-		P := OtherDeck.Graph.GraphToSongBytes(P);
-		if Deck.Paused then JumpToCue;
+		if Deck.QueuedSync = 0 then
+		begin
+			B := OtherDeck.GetCurrentBar+1;
+			P := OtherDeck.Graph.Bars[B].Pos;
+			P := OtherDeck.Graph.GraphToSongBytes(P);
+			if Deck.Paused then JumpToCue;
 
-		bPlay.StateNormal.Border.LightColor := $0022AAFF;
-		bPlay.StateNormal.Border.LightWidth := 2;
-		MainForm.UpdateController(Deck, MODE_PLAY_WAITSYNC);
+			bPlay.StateNormal.Border.LightColor := $0022AAFF;
+			bPlay.StateNormal.Border.LightWidth := 2;
+			MainForm.UpdateController(Deck, MODE_PLAY_WAITSYNC);
 
-		BASS_ChannelSetSync(OtherDeck.OrigStream,
-			BASS_SYNC_POS or BASS_SYNC_MIXTIME or BASS_SYNC_ONETIME, P,
-			@Audio_Callback_Play, Self);
+			Deck.QueuedSync := BASS_ChannelSetSync(OtherDeck.OrigStream,
+				BASS_SYNC_POS or BASS_SYNC_MIXTIME or BASS_SYNC_ONETIME, P,
+				@Audio_Callback_Play, Self);
+		end
+		else
+		begin
+			BASS_ChannelRemoveSync(OtherDeck.OrigStream, Deck.QueuedSync);
+			Deck.QueuedSync := 0;
+			bPlay.StateNormal.Border.LightWidth := 0;
+			if Deck.Paused then
+				MainForm.UpdateController(Deck, MODE_PLAY_PAUSE)
+			else
+				MainForm.UpdateController(Deck, MODE_PLAY_START);
+		end;
 	end;
 end;
 
@@ -1185,7 +1204,7 @@ begin
 		begin
 			GraphDragging := True;
 			pbMouseMove(Sender, Shift, X, Y);
-			SetMaster(Tag);
+			SetMaster(Deck.Index);
 		end;
 
 		mbRight:
@@ -1325,7 +1344,7 @@ begin
 	case Button of
 		mbLeft:
 		begin
-			SetMaster(Tag);
+			SetMaster(Deck.Index);
 			SetCaptureControl(pbWave);
 			DragWave.Dragging := True;
 			DragWave.Offset := X;
@@ -1386,7 +1405,7 @@ var
 begin
 	if not Enabled then Exit;
 
-	SetMaster(Tag);
+	SetMaster(Deck.Index);
 	Y := Deck.Graph.GraphToBar(X + Deck.Graph.Scroll.X);
 	CurrentZone := Deck.Graph.Bars[Y].Zone;
 	ZoneChanged(CurrentZone, False, False);

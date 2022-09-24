@@ -63,6 +63,7 @@ type
 		PitchBend:	TPitchBend;
 		Info:		TSongInfo;
 		MenuItem:	TMenuItem;
+		QueuedSync: HSYNC;
 
 		LoopInfo_Song,
 		LoopInfo_Zone,
