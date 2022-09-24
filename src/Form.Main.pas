@@ -644,6 +644,7 @@ begin
 	SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and not(WS_CAPTION));
 	MoveWindow(Handle, Left, Top, Width-1, Height, True);
 	{$ENDIF}
+	OnActivate := nil;
 end;
 
 procedure TMainForm.shpBorderMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -665,11 +666,13 @@ begin
 	begin
 		WindowState := wsMaximized;
 		bWinMax.Caption := '🗗';
+		bWinMax.Hint := 'Restore Down';
 	end
 	else
 	begin
 		WindowState := wsNormal;
 		bWinMax.Caption := '🗖';
+		bWinMax.Hint := 'Maximize';
 	end;
 end;
 
@@ -690,7 +693,6 @@ var
 //	Ctrl: TControl;
 begin
 	{$IFDEF WINDOWS}
-	Caption := '';
 	BorderIcons := [];
 	BorderStyle := bsSizeable;
 	{$ELSE}

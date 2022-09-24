@@ -614,7 +614,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = []
       StateNormal.FontEx.PaddingBottom = 3
-      Caption = '🖫'
+      Caption = '🖪'
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
