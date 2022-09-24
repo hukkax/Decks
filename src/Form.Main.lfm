@@ -22,7 +22,6 @@ object MainForm: TMainForm
   OnShow = FormShow
   ParentDoubleBuffered = False
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
   object PanelTop: TPanel
     Left = 0
     Height = 48
@@ -51,7 +50,7 @@ object MainForm: TMainForm
       Pen.JoinStyle = pjsMiter
       Pen.Width = 3
     end
-    object lBPM: TBCLabel
+    object lBPM: TDecksLabel
       Left = 922
       Height = 25
       Top = 12
@@ -75,6 +74,12 @@ object MainForm: TMainForm
       Background.Gradient2.Point2YPercent = 100
       Background.Gradient1EndPercent = 35
       Background.Style = bbsColor
+      Bevel.Opacity = 0
+      Bevel.ColorDark = 6710886
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbBottom
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+      Border.Color = 3355443
       Border.Style = bboSolid
       Border.Width = 0
       Caption = '125.00'
@@ -82,6 +87,7 @@ object MainForm: TMainForm
       FontEx.FontQuality = fqSystemClearType
       FontEx.Height = 16
       FontEx.Shadow = False
+      FontEx.ShadowColorOpacity = 100
       FontEx.ShadowRadius = 5
       FontEx.ShadowOffsetX = 5
       FontEx.ShadowOffsetY = 5
@@ -147,15 +153,16 @@ object MainForm: TMainForm
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 2
       Caption = '☰ Decks'
-      Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
+      Bevel.InnerBevel = bcbNone
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = []
       TextApplyGlobalOpacity = False
       ClickOffset = True
       DropDownMenu = PopupMenu
@@ -200,17 +207,18 @@ object MainForm: TMainForm
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 3
       Caption = 'FX'
-      Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
       OnMouseDown = bToggleEffectsMouseDown
-      ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       ShowHint = True
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
       TextApplyGlobalOpacity = False
       ClickOffset = True
     end
@@ -253,17 +261,18 @@ object MainForm: TMainForm
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 3
       Caption = 'EQ'
-      Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
       OnMouseDown = bToggleMixerMouseDown
-      ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       ShowHint = True
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
       TextApplyGlobalOpacity = False
       ClickOffset = True
     end
@@ -306,17 +315,18 @@ object MainForm: TMainForm
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 3
       Caption = 'Dir'
-      Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
       OnMouseDown = bToggleLeftPaneMouseDown
-      ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       ShowHint = True
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
       TextApplyGlobalOpacity = False
       ClickOffset = True
     end
@@ -359,17 +369,18 @@ object MainForm: TMainForm
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 3
       Caption = '⌸'
-      Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
       OnMouseDown = bToggleGraphLinesMouseDown
-      ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       ShowHint = True
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
       TextApplyGlobalOpacity = False
       ClickOffset = True
     end
@@ -412,23 +423,24 @@ object MainForm: TMainForm
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 3
       Caption = '≈ '
-      Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8
       Enabled = False
       GlobalOpacity = 255
       OnMouseDown = bToggleGraphLinesMouseDown
-      ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       ShowHint = True
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
       TextApplyGlobalOpacity = False
       Visible = False
       ClickOffset = True
     end
-    object lCPU: TBCLabel
+    object lCPU: TDecksLabel
       Left = 376
       Height = 25
       Top = 12
@@ -451,6 +463,12 @@ object MainForm: TMainForm
       Background.Gradient2.Point2YPercent = 100
       Background.Gradient1EndPercent = 35
       Background.Style = bbsColor
+      Bevel.Opacity = 0
+      Bevel.ColorDark = 6710886
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbBottom
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+      Border.Color = 3355443
       Border.Style = bboSolid
       Border.Width = 0
       Caption = 'CPU'
@@ -458,6 +476,7 @@ object MainForm: TMainForm
       FontEx.FontQuality = fqSystemClearType
       FontEx.Height = 16
       FontEx.Shadow = False
+      FontEx.ShadowColorOpacity = 100
       FontEx.ShadowRadius = 5
       FontEx.ShadowOffsetX = 5
       FontEx.ShadowOffsetY = 5
@@ -503,17 +522,18 @@ object MainForm: TMainForm
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 3
       Caption = '⚌ '
-      Color = clWhite
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
       OnMouseDown = bToggleGraphLinesMouseDown
-      ParentColor = False
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 1
       RoundingDropDown.RoundY = 1
       ShowHint = True
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
       TextApplyGlobalOpacity = False
       ClickOffset = True
     end

@@ -9,7 +9,7 @@ uses
 	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
 	Types, ShellCtrls, ComCtrls, Menus, FGL, LCLIntf, LCLType,
 	BGRABitmap, BGRABitmapTypes, BCLabel, BGRAVirtualScreen,
-	hListView, hShellTree, DecksButton, hSlider, hKnob,
+	hListView, hShellTree, DecksButton, hSlider, hKnob, DecksLabel,
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
 	Decks.SongInfo, Decks.TagScanner,
 	Frame.Deck;
@@ -83,7 +83,7 @@ type
 		sEQ2L: ThKnob;
 		sEQ2M: ThKnob;
 		sEQ2H: ThKnob;
-		lBPM: TBCLabel;
+		lBPM: TDecksLabel;
 		FileList: ThListView;
 		ImageListIcons: TImageList;
 		ListDirs: ThShellTree;
@@ -119,7 +119,7 @@ type
 		PopupListHeader: TPopupMenu;
 		bToggleGraphLines: TDecksButton;
 		bToggleWaveDual: TDecksButton;
-		lCPU: TBCLabel;
+		lCPU: TDecksLabel;
 		bToggleTracklist: TDecksButton;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);

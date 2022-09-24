@@ -16,7 +16,7 @@
         </CompilerMessages>
       </Other>
     </CompilerOptions>
-    <Files Count="5">
+    <Files Count="9">
       <Item1>
         <Filename Value="decksbutton.pas"/>
         <HasRegisterProc Value="True"/>
@@ -42,6 +42,25 @@
         <HasRegisterProc Value="True"/>
         <UnitName Value="hKnob"/>
       </Item5>
+      <Item6>
+        <Filename Value="deckspanel.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="DecksPanel"/>
+      </Item6>
+      <Item7>
+        <Filename Value="decksbevel.pas"/>
+        <UnitName Value="DecksBevel"/>
+      </Item7>
+      <Item8>
+        <Filename Value="deckslabel.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="DecksLabel"/>
+      </Item8>
+      <Item9>
+        <Filename Value="deckscombobox.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="DecksComboBox"/>
+      </Item9>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">

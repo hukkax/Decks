@@ -8,19 +8,23 @@ unit decksgui;
 interface
 
 uses
-    DecksButton, hSlider, hListView, hShellTree, hKnob, LazarusPackageIntf;
+    DecksButton, hSlider, hListView, hShellTree, hKnob, DecksPanel, DecksBevel, DecksLabel, 
+    DecksComboBox, LazarusPackageIntf;
 
 implementation
 
 procedure Register;
 begin
-  RegisterUnit('DecksButton', @DecksButton.Register);
-  RegisterUnit('hSlider', @hSlider.Register);
-  RegisterUnit('hListView', @hListView.Register);
-  RegisterUnit('hShellTree', @hShellTree.Register);
-  RegisterUnit('hKnob', @hKnob.Register);
+  RegisterUnit( 'DecksButton', @DecksButton.Register);
+  RegisterUnit( 'hSlider', @hSlider.Register);
+  RegisterUnit( 'hListView', @hListView.Register);
+  RegisterUnit( 'hShellTree', @hShellTree.Register);
+  RegisterUnit( 'hKnob', @hKnob.Register);
+  RegisterUnit( 'DecksPanel', @DecksPanel.Register);
+  RegisterUnit( 'DecksLabel', @DecksLabel.Register);
+  RegisterUnit( 'DecksComboBox', @DecksComboBox.Register);
 end;
 
 initialization
-  RegisterPackage('decksgui', @Register);
+  RegisterPackage( 'decksgui', @Register);
 end.

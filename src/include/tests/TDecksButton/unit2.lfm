@@ -1,0 +1,31 @@
+object Frame1: TFrame1
+  Left = 0
+  Height = 240
+  Top = 0
+  Width = 320
+  ClientHeight = 240
+  ClientWidth = 320
+  TabOrder = 0
+  DesignLeft = 510
+  DesignTop = 30
+  object ListBox1: TListBox
+    Left = 0
+    Height = 240
+    Top = 0
+    Width = 320
+    Align = alClient
+    Color = clMaroon
+    ExtendedSelect = False
+    Font.Color = clYellow
+    Items.Strings = (
+      'Raah'
+      'Kaah'
+      'Baah'
+    )
+    ItemHeight = 17
+    ItemIndex = 0
+    Options = []
+    ParentFont = False
+    TabOrder = 0
+  end
+end
