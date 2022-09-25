@@ -67,6 +67,7 @@ type
 
 	ThKnob = class(TBGRAGraphicCtrl)
 	private
+		Buffer: TBGRABitmap;
 		FDrawing: Boolean;
 		FKnobColor: TColor;			{ Knob color }
 		FBorderColor: TColor; 		{ Knob border color }
@@ -126,7 +127,7 @@ type
 		procedure CMVisibleChanged(var Msg: TLMessage);      message CM_VisibleChanged;
 		procedure CM_ParentColorChanged(var Msg: TLMessage); message CM_ParentColorChanged;
 		procedure CM_TextChanged(var Msg: TLMessage);        message CM_TextChanged;
-		function GetFloatPosition: Single;
+		function  GetFloatPosition: Single;
 		procedure SetFloatPosition(Value: Single);
 		procedure SetArc(Value: Word);
 	protected
@@ -134,6 +135,7 @@ type
 
 		procedure Paint; override;
 		procedure Draw;
+		procedure Resize; override;
 		procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 		procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 		procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
@@ -194,6 +196,7 @@ type
 implementation
 
 uses
+	{$IFDEF WINDOWS}Windows, Types,{$ENDIF}
 	Math, LCLIntf, LCLType;
 
 procedure Register;
@@ -341,6 +344,8 @@ begin
 	FIndicatorState := FIndicator.Normal;
 	// ControlStyle := ControlStyle - [csOpaque];
 
+	Buffer := TBGRABitmap.Create(ClientWidth, ClientHeight);
+
 	SetSteps;
 	CalcAngle;
 end;
@@ -352,6 +357,7 @@ begin
 	FIndicator.FDisabled.Free;
 	FIndicator.FHovered.Free;
 	FIndicator.Free;
+	Buffer.Free;
 	inherited Destroy;
 end;
 
@@ -648,7 +654,7 @@ begin
 			if fCursorHide then
 			begin
 				Mouse.CursorPos := oldMousePos;
-				//ShowCursor(True);
+				{$IFDEF WINDOWS}ShowCursor(True);{$ENDIF}
 			end;
 		end;
 		if SpringLoaded then Position := 0;
@@ -688,7 +694,7 @@ begin
 			if FCursorHide then
 			begin
 				oldMousePos := Mouse.CursorPos;
-				//ShowCursor(False);
+				{$IFDEF WINDOWS}ShowCursor(False);{$ENDIF}
 			end;
 			FDragging := True;
 		end;
@@ -699,8 +705,8 @@ begin
 			FDragging := True;
 			FVerticalMove := False;
 			MouseMove(Shift, X, Y);
-			RegionHandle := CreateEllipticRgnIndirect(Rect(
-				Left, Top, Math.Min(Width, Height), Math.Min(Width, Height)));
+			RegionHandle := CreateEllipticRgnIndirect(
+				Types.Rect(Left, Top, Math.Min(Width, Height), Math.Min(Width, Height)));
 			if RegionHandle > 0 then
 				if PtInRegion(RegionHandle, X,Y) then
 				try
@@ -834,18 +840,17 @@ procedure ThKnob.Draw;
 var
 	Radius, AngleInRadians, CosAngle, SinAngle: Single;
 	Save: Boolean;
-	Buffer: TBGRABitmap;
 	FillColor: TBGRAPixel;
 begin
 	Save := FDrawing;
 	FDrawing := True;
 
-	Buffer := TBGRABitmap.Create(ClientWidth, ClientHeight);
-
 	Radius := (ClientWidth-1) / 2; //(Math.Min(ClientWidth, ClientHeight) - 1) / 2;
 	AngleInRadians := FAngle * Pi / 180;
 	CosAngle := Cos(AngleInRadians);
 	SinAngle := Sin(AngleInRadians);
+
+	Buffer.Fill(BGRAPixelTransparent);
 
 	if FKnobColor = clNone then
 		FillColor := BGRAPixelTransparent
@@ -877,8 +882,14 @@ begin
 			FIndicator.FLineWidth);
 
 	Buffer.Draw(Canvas, 0, 0, False);
-	Buffer.Free;
 	FDrawing := Save;
+end;
+
+procedure ThKnob.Resize;
+begin
+	inherited;
+	if Buffer <> nil then
+		Buffer.SetSize(ClientWidth, ClientHeight);
 end;
 
 procedure ThKnob.ShowPosition;
