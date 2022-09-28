@@ -53,6 +53,7 @@ type
     procedure OnChangeFont({%H-}Sender: TObject; {%H-}AData: BGRAPtrInt);
 	procedure SetBevel(Value: TBCBevel);
   protected
+	procedure ChangeScale(Multiplier, Divider: Integer); override;
     procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer;
       {%H-}WithThemeSpace: boolean); override;
     class function GetControlClassDefaultSize: TSize; override;
@@ -119,7 +120,8 @@ type
 
 implementation
 
-uses BCTools;
+uses
+	LCLType, BCTools;
 
 procedure Register;
 begin
@@ -221,6 +223,13 @@ begin
 	FBevel.Assign(Value);
 	RenderControl;
 	Invalidate;
+end;
+
+procedure TDecksLabel.ChangeScale(Multiplier, Divider: Integer);
+begin
+	if Multiplier <> Divider then
+		FFontEx.Height := MulDiv(FBGRA.FontHeight, Multiplier, Divider);
+	inherited ChangeScale(Multiplier, Divider);
 end;
 
 procedure TDecksLabel.CalculatePreferredSize(var PreferredWidth,

@@ -16,7 +16,7 @@
         </CompilerMessages>
       </Other>
     </CompilerOptions>
-    <Files Count="9">
+    <Files Count="10">
       <Item1>
         <Filename Value="decksbutton.pas"/>
         <HasRegisterProc Value="True"/>
@@ -61,6 +61,11 @@
         <HasRegisterProc Value="True"/>
         <UnitName Value="DecksComboBox"/>
       </Item9>
+      <Item10>
+        <Filename Value="decksvaluelabel.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="DecksValueLabel"/>
+      </Item10>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">

@@ -9,7 +9,7 @@ interface
 
 uses
     DecksButton, hSlider, hListView, hShellTree, hKnob, DecksPanel, DecksBevel, DecksLabel, 
-    DecksComboBox, LazarusPackageIntf;
+    DecksComboBox, DecksValueLabel, LazarusPackageIntf;
 
 implementation
 
@@ -23,6 +23,7 @@ begin
   RegisterUnit( 'DecksPanel', @DecksPanel.Register);
   RegisterUnit( 'DecksLabel', @DecksLabel.Register);
   RegisterUnit( 'DecksComboBox', @DecksComboBox.Register);
+  RegisterUnit( 'DecksValueLabel', @DecksValueLabel.Register);
 end;
 
 initialization

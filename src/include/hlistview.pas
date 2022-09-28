@@ -6,8 +6,7 @@ interface
 
 uses
 	Classes, SysUtils, Graphics, Controls, ExtCtrls, Forms, Menus,
-	LMessages, LResources, FGL,
-	hSlider;
+	LMessages, LResources, FGL, hSlider;
 
 {$WARN 5024 off : Parameter "$1" not used}
 
@@ -126,18 +125,17 @@ type
 		procedure SetLastVisibleIndex(I: Integer);
 		procedure SetItemIndex(I: Integer);
 		procedure SetScrollbar(AScrollbar: ThRangebar);
-
 		procedure SetSortColumn(I: Integer);
 		procedure SetHeaderHeight(H: Integer);
 		procedure SetHeaderColor(C: TColor);
 		procedure SetHeaderTextColor(C: TColor);
 
 		procedure Draw(FullRedraw: Boolean = True);
-		procedure UpdateScrollbar;
-
 		procedure Paint; override;
-		procedure ScrollbarChange(Sender: TObject);
+		procedure UpdateScrollbar;
+		procedure ChangeScale(Multiplier, Divider: Integer); override;
 
+		procedure ScrollbarChange(Sender: TObject);
 		procedure KeyDown(var Key: Word; Shift: TShiftState); override;
 		procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 		procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
@@ -551,7 +549,7 @@ end;
 procedure ThListView.SetItemHeight(H: Integer);
 begin
 	if H < 1 then
-		H := Font.GetTextHeight('Xgjq"!_');
+		H := FFont.GetTextHeight('Xgjq"!_');
 
 	FItemHeight := H;
 	GetVisibleRows;
@@ -928,6 +926,17 @@ begin
 		FScrollbar.OnChange := ScrollbarChange;
 		FScrollbar.Repaint;
 	end;
+end;
+
+procedure ThListView.ChangeScale(Multiplier, Divider: Integer);
+begin
+	if Multiplier <> Divider then
+	begin
+		FFont.Height  := MulDiv(GetFontData(FFont.Reference.Handle).Height, Multiplier, Divider);
+		FItemHeight   := MulDiv(ItemHeight, Multiplier, Divider);
+		FHeaderHeight := MulDiv(FHeaderHeight, Multiplier, Divider);
+	end;
+	inherited ChangeScale(Multiplier, Divider);
 end;
 
 procedure ThListView.Paint;

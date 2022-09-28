@@ -121,6 +121,7 @@ type
 	protected
 		class function GetControlClassDefaultSize: TSize; override;
 
+		procedure ChangeScale(Multiplier, Divider: Integer); override;
 		procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer; {%H-}WithThemeSpace: boolean); override;
 		procedure Click; override;
 		procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: integer); override;
@@ -924,6 +925,22 @@ begin
 	Result.CY := 33;
 end;
 
+procedure TDecksButton.ChangeScale(Multiplier, Divider: Integer);
+begin
+	if Multiplier = Divider then Exit;
+	BeginUpdate;
+	with FStateNormal do
+	begin
+		FontEx.Height        := MulDiv(FontEx.Height, Multiplier, Divider);
+		FontEx.PaddingTop    := MulDiv(FontEx.PaddingTop, Multiplier, Divider);
+		FontEx.PaddingBottom := MulDiv(FontEx.PaddingBottom, Multiplier, Divider);
+		FontEx.PaddingLeft   := MulDiv(FontEx.PaddingLeft, Multiplier, Divider);
+		FontEx.PaddingRight  := MulDiv(FontEx.PaddingRight, Multiplier, Divider);
+	end;
+	inherited ChangeScale(Multiplier, Divider);
+	EndUpdate;
+end;
+
 procedure TDecksButton.Click;
 begin
 	if Assigned(FOnButtonClick) and ((FActiveButt = bbtDropDown) or (FStyle = bbtButton)) then
@@ -1547,8 +1564,7 @@ begin
 		inherited Assign(Source);
 end;
 
-procedure TDecksButton.SetSizeVariables(newDropDownWidth, newDropDownArrowSize,
-	newAutoSizeExtraVertical, newAutoSizeExtraHorizontal: Integer);
+procedure TDecksButton.SetSizeVariables(newDropDownWidth, newDropDownArrowSize, newAutoSizeExtraVertical, newAutoSizeExtraHorizontal: integer);
 begin
 	FDropDownArrowSize := newDropDownArrowSize;
 	FDropDownWidth := newDropDownWidth;

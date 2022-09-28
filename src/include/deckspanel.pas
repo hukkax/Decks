@@ -34,14 +34,14 @@ type
     {$IFDEF INDEBUG}
     FRenderCount: Integer;
     {$ENDIF}
-    FBackground: TBCBackground;
+    FBackground: TBCBackground2;
     FBGRA: TBGRABitmapEx;
     FBorder: TBCBorder;
     FFontEx: TBCFont;
     FOnAfterRenderBCPanel: TOnAfterRenderBCPanel;
     FRounding: TBCRounding;
 	FBevel: TBCBevel;
-    procedure SetBackground(AValue: TBCBackground);
+    procedure SetBackground(AValue: TBCBackground2);
 	procedure SetBevel(Value: TBCBevel);
     procedure SetBorder(AValue: TBCBorder);
     procedure SetFontEx(AValue: TBCFont);
@@ -53,6 +53,8 @@ type
     { Protected declarations }
     class function GetControlClassDefaultSize: TSize; override;
     function GetDefaultDockCaption: String; override;
+    procedure ChangeScale(Multiplier, Divider: Integer); override;
+    procedure AdjustClientRect(var ARect: TRect); override;
     procedure SetEnabled(Value: boolean); override;
     procedure TextChanged; override;
     function GetStyleExtension: String; override;
@@ -84,7 +86,7 @@ type
     {$IFDEF FPC} //#
     property OnGetDockCaption;
     {$ENDIF}
-    property Background: TBCBackground read FBackground write SetBackground;
+    property Background: TBCBackground2 read FBackground write SetBackground;
 	property Bevel: TBCBevel read FBevel write SetBevel;
     property Border: TBCBorder read FBorder write SetBorder;
     property Caption;
@@ -134,6 +136,8 @@ type
 
 
 implementation
+
+uses LCLType;
 
 
 procedure Register;
@@ -196,17 +200,28 @@ end;
 procedure TDecksPanel.Render;
 var
 	r: TRect;
+	tex: TBGRABitmap;
 begin
 	if (csCreating in ControlState) or IsUpdating then Exit;
 
 	FBGRA.NeedRender := False;
-
 	FBGRA.SetSize(Width, Height);
-	FBGRA.Fill(BGRAPixelTransparent);
 	r := FBGRA.ClipRect;
 
-	RenderBackgroundAndBorder(FBGRA.ClipRect, FBackground, TBGRABitmap(FBGRA),
-		FRounding, FBorder, FBevel, 0);
+	if FBackground.FillStyle <> bsClear then
+	begin
+	    tex := FBGRA.CreateBrushTexture(FBackground.FillStyle,
+			FBackground.FillColor, FBackground.Color);
+		FBGRA.Fill(tex);
+	    tex.Free;
+	end
+	else
+	begin
+		FBGRA.Fill(BGRAPixelTransparent);
+		RenderBackgroundAndBorder(r, FBackground, TBGRABitmap(FBGRA),
+			FRounding, FBorder, FBevel, 0);
+	end;
+
 	CalculateBorderRect(FBorder, r);
 
 	if Caption <> '' then
@@ -258,7 +273,20 @@ begin
   Result := Caption;
 end;
 
-procedure TDecksPanel.SetBackground(AValue: TBCBackground);
+procedure TDecksPanel.ChangeScale(Multiplier, Divider: Integer);
+begin
+	if Multiplier <> Divider then
+		FFontEx.Height := MulDiv(FBGRA.FontHeight, Multiplier, Divider);
+	inherited ChangeScale(Multiplier, Divider);
+end;
+
+procedure TDecksPanel.AdjustClientRect(var ARect: TRect);
+begin
+	ARect.Inflate(-FBorder.Width, -FBorder.Width);
+	inherited AdjustClientRect(ARect);
+end;
+
+procedure TDecksPanel.SetBackground(AValue: TBCBackground2);
 begin
   if FBackground = AValue then Exit;
   FBackground.Assign(AValue);
@@ -327,7 +355,7 @@ begin
       SetInitialBounds(0, 0, CX, CY);
 
     FBGRA               := TBGRABitmapEx.Create;
-    FBackground         := TBCBackground.Create(Self);
+    FBackground         := TBCBackground2.Create(Self);
     FBorder             := TBCBorder.Create(Self);
     FFontEx             := TBCFont.Create(Self);
 	FBevel              := TBCBevel.Create(Self);

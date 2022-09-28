@@ -6,7 +6,7 @@ interface
 
 uses
 	Classes, SysUtils, Graphics, Controls, ExtCtrls,
-	LCLType, LResources,
+	LCLType, LResources, FPCanvas,
 	BGRABitmap, BGRABitmapTypes, BCTypes, BCBasectrls;
 
 type
@@ -14,6 +14,21 @@ type
 
 	TBCSide = ( bcsTop, bcsBottom, bcsLeft, bcsRight );
 	TBCSides = set of TBCSide;
+
+	TBCBackground2 = class(TBCBackground)
+	private
+		FFillStyle: TFPBrushStyle;
+		FFillColor: TColor;
+		procedure SetFillStyle(AValue: TFPBrushStyle);
+		procedure SetFillColor(AValue: TColor);
+	public
+		procedure   Assign(Source: TPersistent); override;
+		constructor Create(AControl: TControl); override;
+		destructor  Destroy; override;
+	published
+		property FillStyle: TFPBrushStyle read FFillStyle write SetFillStyle;
+		property FillColor: TColor read FFillColor write SetFillColor;
+	end;
 
 	TBCBevel = class(TBCProperty)
 	private
@@ -80,6 +95,8 @@ procedure RenderBackgroundAndBorder(const ARect: TRect;
 var
 	w, ht, hb: Single;
 begin
+	ATargetBGRA.Canvas.FillRect(ARect);
+
 	if ABorder.Style = bboNone then
 		w := AInnerMargin - 0.5
 	else
@@ -102,6 +119,44 @@ begin
 		RenderBorderF(ARect.Left+w, ARect.Top+w+ht, ARect.Right-1-w, ARect.Bottom-1-w-hb,
 			ABorder, ATargetBGRA, ARounding);
 	end;
+end;
+
+{ TBCBackground2 }
+
+procedure TBCBackground2.SetFillStyle(AValue: TFPBrushStyle);
+begin
+	if FFillStyle = AValue then Exit;
+	FFillStyle := AValue;
+	Change;
+end;
+
+procedure TBCBackground2.SetFillColor(AValue: TColor);
+begin
+	if FFillColor = AValue then Exit;
+	FFillColor := AValue;
+	Change;
+end;
+
+procedure TBCBackground2.Assign(Source: TPersistent);
+begin
+  inherited Assign(Source);
+  if Source is TBCBackground2 then
+  begin
+    FFillStyle := TBCBackground2(Source).FFillStyle;
+    FFillColor := TBCBackground2(Source).FFillColor;
+  end;
+end;
+
+constructor TBCBackground2.Create(AControl: TControl);
+begin
+	inherited Create(AControl);
+	FFillStyle := bsClear;
+	FFillColor := $202020;
+end;
+
+destructor TBCBackground2.Destroy;
+begin
+	inherited Destroy;
 end;
 
 // =================================================================================================
