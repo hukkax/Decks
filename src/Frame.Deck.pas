@@ -11,7 +11,7 @@ uses
 	BGRAVirtualScreen, BGRABitmap, BGRABitmapTypes,
 	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, Decks.Effects,
 	BASS, BASSmix,
-	hKnob, hSlider, DecksButton, BCTypes, FGL;
+	hKnob, hSlider, DecksButton, DecksValueLabel, DecksPanel, BCTypes, FGL;
 
 const
 	BPMStep = 0.01;
@@ -44,36 +44,10 @@ type
 	TEffectsList = TFPGObjectList<TGUIEffect>;
 
 	TDeckFrame = class(TBaseDeckFrame)
-		bLoopBar: TDecksButton;
-		bLoopBar2: TDecksButton;
-		bLoopBar4: TDecksButton;
-		bLoopBeat: TDecksButton;
-		bLoopBeat2: TDecksButton;
-		bLoopSong: TDecksButton;
-		bLoopZone: TDecksButton;
-		bSync: TDecksButton;
-		bStore: TDecksButton;
-		bStart: TDecksButton;
-		bMaster: TLabel;
-		bPlay: TDecksButton;
-		bBendUp: TDecksButton;
-		bBendDown: TDecksButton;
-		bReverse: TDecksButton;
-		bDeckMenu: TDecksButton;
 		miAudioDevices: TMenuItem;
 		miDeckClose: TMenuItem;
 		N1: TMenuItem;
-		pb: TBGRAVirtualScreen;
-		pbRuler: TBGRAVirtualScreen;
-		pbWave: TBGRAVirtualScreen;
-		pbZones: TBGRAVirtualScreen;
 		PopupMenu: TPopupMenu;
-		SliderAmp: ThKnob;
-		lTime: TLabel;
-		shpGraph: TShape;
-		SliderGraphX: ThRangeBar;
-		SliderTempo: ThGaugeBar;
-		SliderTempoFrac: ThGaugeBar;
 		Timer: TTimer;
 		PopupZone: TPopupMenu;
 		miZoneKind0: TMenuItem;
@@ -81,10 +55,23 @@ type
 		miZoneKind2: TMenuItem;
 		miZoneKind3: TMenuItem;
 		miZoneKind4: TMenuItem;
-		pbVU: TBGRAVirtualScreen;
-		pnlControls: TPanel;
-		pnlGraph: TPanel;
-		pnlEffects: TPanel;
+		PopupEffectPresets: TPopupMenu;
+		miSetMasterTempo: TMenuItem;
+		MenuItem2: TMenuItem;
+		pnlEffects: TDecksPanel;
+		bLoopBeat: TDecksButton;
+		bLoopBeat2: TDecksButton;
+		bLoopBar: TDecksButton;
+		bLoopBar2: TDecksButton;
+		bLoopBar4: TDecksButton;
+		bLoopSong: TDecksButton;
+		bLoopZone: TDecksButton;
+		SliderFxParam0: ThKnob;
+		SliderFxParam1: ThKnob;
+		SliderFxParam2: ThKnob;
+		SliderFxParam3: ThKnob;
+		SliderFxParam4: ThKnob;
+		SliderFxParam5: ThKnob;
 		bEffect0: TDecksButton;
 		bEffect1: TDecksButton;
 		bEffect2: TDecksButton;
@@ -92,20 +79,29 @@ type
 		bEffect4: TDecksButton;
 		bEffect5: TDecksButton;
 		bEffect6: TDecksButton;
-		bEffect7: TDecksButton;
-		SliderFxParam0: ThKnob;
-		SliderFxParam1: ThKnob;
-		SliderFxParam2: ThKnob;
-		SliderFxParam3: ThKnob;
-		SliderFxParam4: ThKnob;
-		SliderFxParam5: ThKnob;
-		pnlEffectParams: TPanel;
-		PopupEffectPresets: TPopupMenu;
-		miSetMasterTempo: TMenuItem;
-		MenuItem2: TMenuItem;
-		pnlEffectButtons: TPanel;
-		pnlEffectLoop: TPanel;
-		pnlEffectKnobs: TPanel;
+		bMaster: TDecksPanel;
+		lTime: TLabel;
+		bDeckMenu: TDecksButton;
+		pnlGraph: TDecksPanel;
+		pb: TBGRAVirtualScreen;
+		pbZones: TBGRAVirtualScreen;
+		pbRuler: TBGRAVirtualScreen;
+		pnlZone: TPanel;
+		lBPM: TDecksValueLabel;
+		bStart: TDecksButton;
+		bStore: TDecksButton;
+		bZoneAdd: TDecksButton;
+		bZoneDel: TDecksButton;
+		SliderGraphX: ThRangeBar;
+		pnlControls: TDecksPanel;
+		bPlay: TDecksButton;
+		bBendUp: TDecksButton;
+		bBendDown: TDecksButton;
+		SliderAmp: ThKnob;
+		bSync: TDecksButton;
+		bReverse: TDecksButton;
+		pbVU: TBGRAVirtualScreen;
+		pbWave: TBGRAVirtualScreen;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -161,10 +157,6 @@ type
 		procedure TimerTimer(Sender: TObject);
 		procedure pbZonesMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
 			MousePos: TPoint; var Handled: Boolean);
-		procedure SliderTempoFracMouseWheelDown(Sender: TObject; Shift: TShiftState;
-			MousePos: TPoint; var Handled: Boolean);
-		procedure SliderTempoFracMouseWheelUp(Sender: TObject; Shift: TShiftState;
-			MousePos: TPoint; var Handled: Boolean);
 		procedure miZoneKind0Click(Sender: TObject);
 		procedure SliderFxParam0Change(Sender: TObject);
 		procedure bEffect0Click(Sender: TObject);
@@ -173,9 +165,12 @@ type
 			X, Y: Integer);
 		procedure SliderFxParam0MouseEnter(Sender: TObject);
 		procedure SliderFxParam0MouseLeave(Sender: TObject);
-		procedure pnlEffectsResize(Sender: TObject);
 		procedure miSetMasterTempoClick(Sender: TObject);
 		procedure pbRulerDblClick(Sender: TObject);
+		procedure lBPMChange(Sender: TObject);
+		procedure bZoneAddButtonClick(Sender: TObject);
+		procedure bZoneDelButtonClick(Sender: TObject);
+		procedure pnlEffectsResize(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -192,6 +187,7 @@ type
 		procedure GetPlayPosition; inline;
 		procedure SetSlider(var Slider: ThGaugeBar; Position: Integer); overload;
 		procedure SetSlider(var Slider: ThKnob; Position: Integer); overload;
+		procedure SetSlider(var Slider: TDecksValueLabel; Position: Double); overload;
 		procedure ZoomSample(Dir: Integer);
 		procedure ZoomGraph(Dir: Integer);
 		procedure UpdatePlayButton(Kind: Integer);
@@ -346,6 +342,13 @@ begin
 	Slider.OnChange := SliderTempoChange;
 end;
 
+procedure TDeckFrame.SetSlider(var Slider: TDecksValueLabel; Position: Double);
+begin
+	Slider.OnChange := nil;
+	Slider.Value := Position;
+	Slider.OnChange := lBPMChange;
+end;
+
 procedure TDeckFrame.ZoneChangedMessage(var Msg: TLMessage);
 begin
 	ZoneChanged(Msg.lParam, False, False);
@@ -416,8 +419,9 @@ begin
 	begin
 		if CurrentZone = Zone then
 		begin
-			SetSlider(SliderTempo, Trunc(Z.BPM));
-			SetSlider(SliderTempoFrac, Trunc(Frac(Z.BPM) * 1000));
+			//SetSlider(SliderTempo, Trunc(Z.BPM));
+			//SetSlider(SliderTempoFrac, Trunc(Frac(Z.BPM) * 1000));
+			SetSlider(lBPM, Z.BPM);
 		end;
 		Deck.SetBPM(MasterBPM);
 		DrawZones(True);
@@ -439,6 +443,8 @@ begin
 	Deck.Index := DeckList.Add(Deck) + 1;
 
 	lTime.Tag := -1;
+	bMaster.Tag := bMaster.Background.Color;
+	bMaster.Background.Color := lTime.Color;
 	GraphHover := Point(-1, -1);
 
 	for Dev in AudioManager.Devices do
@@ -466,7 +472,7 @@ end;
 
 procedure TDeckFrame.SliderTempoChange(Sender: TObject);
 begin
-	// fix choppiness of slider movement
+{	// fix choppiness of slider movement
 	if Assigned(Sender) then (Sender as TControl).Repaint;
 
 	SliderTempo.OnChange := nil;
@@ -474,7 +480,7 @@ begin
 	RedrawGraph;
 	DrawWaveform;
 	Deck.SetBPM(MasterBPM);
-	SliderTempo.OnChange := SliderTempoChange;
+	SliderTempo.OnChange := SliderTempoChange;}
 end;
 
 procedure TDeckFrame.GetPlayPosition;
@@ -1003,7 +1009,7 @@ begin
 	AddGUIEffect(TFxCompressor.Create, bEffect4, 100);
 	AddGUIEffect(TFxFilter.Create,     bEffect5);
 	AddGUIEffect(TFXPitchShift.Create, bEffect6, 90);
-	AddGUIEffect(nil, bEffect7); // loop controls
+	//AddGUIEffect(nil, bEffect7); // loop controls
 	//
 	// Assign gui knobs to effect parameters
 	InitGUIEffectParam(0, SliderFxParam0); InitGUIEffectParam(1, SliderFxParam1);
@@ -1086,33 +1092,14 @@ begin
 end;
 
 function TDeckFrame.ProcessKeyPress(var Key: Char): Boolean;
-var
-	Z: TZone;
 begin
 	Result := True;
 	if not Enabled then Exit;
 	case Key of
-
-		'+':
-		begin
-			Z := Deck.Graph.AddZone(Deck.Graph.GraphToBar(GraphCue.X));
-			if Z <> nil then
-			begin
-				CurrentZone := Deck.Graph.Zones.IndexOf(Z);
-				RedrawGraph;
-			end;
-		end;
-
-		'-':
-		if Deck.Graph.RemoveZone(CurrentZone) then
-		begin
-			if CurrentZone > 0 then Dec(CurrentZone);
-			ZoneChanged(CurrentZone, False, False);
-			RedrawGraph;
-		end;
-
-	else
-		Result := False;
+		'+': bZoneAddButtonClick(Self);
+		'-': bZoneDelButtonClick(Self);
+		else
+			Result := False;
 	end;
 end;
 
@@ -1330,6 +1317,43 @@ end;
 procedure TDeckFrame.pbRulerDblClick(Sender: TObject);
 begin
 	if Enabled then JumpToCue;
+end;
+
+procedure TDeckFrame.lBPMChange(Sender: TObject);
+begin
+	if Deck = nil then Exit;
+
+	Deck.Graph.ZonesChanged;
+	RedrawGraph;
+	DrawWaveform;
+	Deck.SetBPM(MasterBPM);
+end;
+
+procedure TDeckFrame.bZoneAddButtonClick(Sender: TObject);
+var
+	Z: TZone;
+begin
+	Z := Deck.Graph.AddZone(Deck.Graph.GraphToBar(GraphCue.X));
+	if Z <> nil then
+	begin
+		CurrentZone := Deck.Graph.Zones.IndexOf(Z);
+		RedrawGraph;
+	end;
+end;
+
+procedure TDeckFrame.bZoneDelButtonClick(Sender: TObject);
+begin
+	if Deck.Graph.RemoveZone(CurrentZone) then
+	begin
+		if CurrentZone > 0 then Dec(CurrentZone);
+		ZoneChanged(CurrentZone, False, False);
+		RedrawGraph;
+	end;
+end;
+
+procedure TDeckFrame.pnlEffectsResize(Sender: TObject);
+begin
+	ResizeEffectButtons;
 end;
 
 procedure TDeckFrame.pbRulerRedraw(Sender: TObject; Bitmap: TBGRABitmap);
@@ -1723,7 +1747,7 @@ var
 begin
 	if not Enabled then Exit;
 
-	BPM := SliderTempo.Position + (SliderTempoFrac.Position / 1000);
+	BPM := lBPM.Value; //SliderTempo.Position + (SliderTempoFrac.Position / 1000);
 
 	if CurrentZone = 0 then
 		Deck.OrigBPM := BPM;
@@ -1803,7 +1827,9 @@ end;
 
 procedure TDeckFrame.UpdateCaption;
 begin
-	bMaster.Caption := Format('%d: %s', [Deck.Index, ExtractFileName(Deck.Filename)]);
+	bDeckMenu.Caption := '☰ ' + Deck.Index.ToString;
+	bMaster.Caption := ExtractFileName(Deck.Filename);
+	bMaster.Hint := Deck.Filename;
 end;
 
 procedure TDeckFrame.OnDeckEvent(Kind: Integer);
@@ -1872,8 +1898,10 @@ begin
 
 			if Deck.Info.BPM > 1 then
 			begin
-				SetSlider(SliderTempo, Trunc(Deck.Info.BPM));
-				SetSlider(SliderTempoFrac, Trunc(Frac(Deck.Info.BPM) * 1000));
+				//SetSlider(SliderTempo, Trunc(Deck.Info.BPM));
+				//SetSlider(SliderTempoFrac, Trunc(Frac(Deck.Info.BPM) * 1000));
+				SetSlider(lBPM, Deck.Info.BPM);
+				Deck.OrigBPM := Deck.Info.BPM;
 			end;
 			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
 			Deck.Graph.ZonesLoaded;
@@ -1949,6 +1977,7 @@ begin
 	end;
 end;
 
+{
 procedure TDeckFrame.SliderTempoFracMouseWheelDown(Sender: TObject; Shift: TShiftState;
 	MousePos: TPoint; var Handled: Boolean);
 begin
@@ -1970,7 +1999,7 @@ begin
 		Handled := True;
 	end;
 end;
-
+}
 procedure TDeckFrame.SetZoneKind(Zone: Word; Kind: TZoneKind);
 var
 	Z: TZone;
@@ -2014,7 +2043,7 @@ var
 	B: Boolean;
 begin
 	B := MainForm.bToggleEffects.Down;
-	pnlEffects.Top := pnlControls.Top - pnlEffects.Height;
+	pnlEffects.Top := Height-2;// pnlControls.Top - pnlEffects.Height;
 	pnlEffects.Visible := B;
 end;
 
@@ -2053,7 +2082,7 @@ begin
 		Button := Effects[i].Button;
 		if B then
 		begin
-			Button.StateNormal.Background.Color := clPurple;
+			Button.StateNormal.Background.Color := clTeal;
 			if Button.HelpContext = 0 then
 			begin
 				Button.DropDownMenu := PopupEffectPresets;
@@ -2063,7 +2092,7 @@ begin
 		end
 		else
 		begin
-			Button.StateNormal.Background.Color := clTeal;
+			Button.StateNormal.Background.Color := $005F5C5A;
 			Button.DropDownMenu := nil;
 			Button.Style := bbtButton;
 			Button.DropDownArrow := False;
@@ -2074,8 +2103,8 @@ begin
 
 	Fx := Effects[SelectedEffect].Effect;
 	B := Fx <> nil;
-	pnlEffectKnobs.Visible := B;
-	pnlEffectLoop.Visible := not B;
+	//pnlEffectKnobs.Visible := B;
+	//pnlEffectLoop.Visible := not B;
 
 	if B then
 	begin
@@ -2100,11 +2129,13 @@ begin
 				Knob.FloatPosition := Param.Value;
 				Knob.Hint := Param.Name;
 				Knob.OnChange := SliderFxParam0Change;
+				Knob.Left := Trunc(i * Knob.Width * 1.3) + 5;
 				if GUIParam.NameLabel <> nil then
 				begin
 					GUIParam.NameLabel.Caption := Param.Name;
 					GUIParam.NameLabel.Hint := Param.Caption;
 					GUIParam.NameLabel.ShowHint := True;
+					GUIParam.NameLabel.SetBounds(Knob.Left-20, Knob.Top + Knob.Height + 2, Knob.Width+40-1, 18);
 				end;
 			end;
 			if GUIParam.NameLabel <> nil then
@@ -2127,41 +2158,30 @@ end;
 
 procedure TDeckFrame.ResizeEffectButtons;
 var
-	i, X, W, LW, OldW: Integer;
+	i, X, W: Integer;
 	Effect: TGUIEffect;
 	Button: TDecksButton;
 begin
 	BeginFormUpdate;
 
-	X := 8;
-	W := (pnlEffectButtons.ClientWidth - X) div 4;
-	//Min(180, (pnlEffectButtons.ClientWidth - 16 - 300) div 4);
+	X := 5;
+	W := (bLoopSong.Left - 10) div Effects.Count;
 
 	for i := 0 to Effects.Count-1 do
 	begin
 		Effect := Effects[i];
 		Button := Effect.Button;
 		if Button = nil then Continue;
-
-		OldW := Button.Width;
-		Button.Left := X;
-		Button.Width := W;
-
+		Button.SetBounds(X, 0, W, Button.Height);
 		if Effect.Effect <> nil then // adjust captions to fit
 		begin
-			LW := Effect.LabelWidth;
-			if (W <= LW) and (OldW > LW) then // long->short caption
+			if W <= Effect.LabelWidth then
 				Button.Caption := Effect.Effect.ShortName
 			else
-			if (W > LW) and (OldW <= LW) then // short->long caption
 				Button.Caption := Effect.Effect.Name;
 		end;
-
-		if (i mod 2) = 1 then Inc(X, W);
+		Inc(X, W);
 	end;
-
-	{Inc(X, 8);
-	pnlEffectParams.SetBounds(X, 3, pnlEffects.ClientWidth-X-5, pnlEffects.ClientHeight-6);}
 
 	EndFormUpdate;
 end;
@@ -2258,11 +2278,6 @@ begin
 		end;
 		Fx.Enabled := B;
 	end;
-end;
-
-procedure TDeckFrame.pnlEffectsResize(Sender: TObject);
-begin
-	ResizeEffectButtons;
 end;
 
 procedure TDeckFrame.miSetMasterTempoClick(Sender: TObject);

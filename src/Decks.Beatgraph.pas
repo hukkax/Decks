@@ -461,6 +461,7 @@ begin
 				Result.BPM := Zones[I-1].BPM
 			else
 				Result.BPM := Song.OrigBPM;
+			Result.BPM := Max(60, Result.BPM);
 		end;
 
 		if I > 0 then

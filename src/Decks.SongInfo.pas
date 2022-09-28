@@ -146,9 +146,12 @@ begin
 		if P <> '' then
 		begin
 			SplitInt(P, iL, iR);
-			Result.BPM := iL + (iR / 1000);
-			if Assigned(KeywordHandler) then
-				KeywordHandler(IKW_BPM, TInfoParams.Create(iL, iR));
+			if iL >= 60 then
+			begin
+				Result.BPM := iL + (iR / 1000);
+				if Assigned(KeywordHandler) then
+					KeywordHandler(IKW_BPM, TInfoParams.Create(iL, iR));
+			end;
 		end;
 
 		P := GetValue('amp');

@@ -172,6 +172,7 @@ begin
 
 	OrigFreq := 44100; //ChannelInfo.freq;
 	PlayFreq := OrigFreq;
+	OrigBPM := 125.000;
 
 	Loaded := True;
 	Result := Loaded;

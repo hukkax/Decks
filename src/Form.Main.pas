@@ -8,8 +8,8 @@ interface
 uses
 	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
 	Types, ShellCtrls, ComCtrls, Menus, FGL, LCLIntf, LCLType,
-	BGRABitmap, BGRABitmapTypes, BCLabel, BGRAVirtualScreen,
-	hListView, hShellTree, DecksButton, hSlider, hKnob, DecksLabel,
+	BGRABitmap, BGRABitmapTypes, BGRAVirtualScreen,
+	hListView, hShellTree, DecksButton, hSlider, hKnob, DecksLabel, DecksPanel,
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
 	Decks.SongInfo, Decks.TagScanner,
 	Frame.Deck;
@@ -73,35 +73,14 @@ type
 	end;}
 
 	TMainForm = class(TForm)
-		bMainMenu: TDecksButton;
 		miMIDIInput: TMenuItem;
-		pbBeats: TBGRAVirtualScreen;
 		PopupMenu: TPopupMenu;
-		sEQ1L: ThKnob;
-		sEQ1M: ThKnob;
-		sEQ1H: ThKnob;
-		sEQ2L: ThKnob;
-		sEQ2M: ThKnob;
-		sEQ2H: ThKnob;
-		lBPM: TDecksLabel;
-		FileList: ThListView;
 		ImageListIcons: TImageList;
-		ListDirs: ThShellTree;
 		miNewDeck: TMenuItem;
 		miSep: TMenuItem;
-		LeftPanel: TPanel;
-		MixerPanel: TPanel;
-		sBPM: ThGaugeBar;
-		sFader: ThGaugeBar;
-		sDirs: ThRangeBar;
-		RightPanel: TPanel;
-		DeckPanel: TPanel;
 		PanelTop: TPanel;
 		PopupFile: TPopupMenu;
-		sFiles: ThRangeBar;
-		shpBorder: TShape;
-		SplitterV: TSplitter;
-		SplitterH: TSplitter;
+		SplitterDecks: TSplitter;
 		Timer: TTimer;
 		miFileActions: TMenuItem;
 		miSep2: TMenuItem;
@@ -111,22 +90,44 @@ type
 		MenuItem1: TMenuItem;
 		MenuItem2: TMenuItem;
 		miAbout: TMenuItem;
-		EmbeddedImage: TImage;
+		miEnableEffects: TMenuItem;
+		PopupListHeader: TPopupMenu;
+		PanelMain: TDecksPanel;
+		lBPM: TDecksLabel;
+		sBPM: ThGaugeBar;
+		bMainMenu: TDecksButton;
 		bToggleEffects: TDecksButton;
 		bToggleMixer: TDecksButton;
-		miEnableEffects: TMenuItem;
 		bToggleLeftPane: TDecksButton;
-		PopupListHeader: TPopupMenu;
 		bToggleGraphLines: TDecksButton;
 		bToggleWaveDual: TDecksButton;
 		lCPU: TDecksLabel;
 		bToggleTracklist: TDecksButton;
-		PanelWin: TPanel;
-		shpBorder1: TShape;
+		MixerPanel: TDecksPanel;
+		sEQ1L: ThKnob;
+		sEQ1M: ThKnob;
+		sEQ1H: ThKnob;
+		sEQ2L: ThKnob;
+		sEQ2M: ThKnob;
+		sEQ2H: ThKnob;
+		sFader: ThGaugeBar;
+		pbBeats: TBGRAVirtualScreen;
+		PanelWin: TDecksPanel;
 		bWinMin: TDecksButton;
 		bWinMax: TDecksButton;
 		bWinClose: TDecksButton;
-		Panel1: TPanel;
+		BottomPanel: TDecksPanel;
+		LeftPanel: TPanel;
+		ListDirs: ThShellTree;
+		sDirs: ThRangeBar;
+		EmbeddedImage: TImage;
+		FileList: ThListView;
+		SplitterBottom: TSplitter;
+		sFiles: ThRangeBar;
+		DeckPanel: TDecksPanel;
+		miZoomIn: TMenuItem;
+		miZoomOut: TMenuItem;
+		MenuItem3: TMenuItem;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -183,6 +184,8 @@ type
 		procedure bWinMinClick(Sender: TObject);
 		procedure bWinMaxClick(Sender: TObject);
 		procedure bWinCloseClick(Sender: TObject);
+		procedure miZoomInClick(Sender: TObject);
+		procedure miZoomOutClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -201,6 +204,7 @@ type
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
 
+		procedure ScaleTo(Percent: Word);
 		procedure UpdateMixerVisibility;
 		procedure ApplyMixer(ApplyEQ: Boolean = True);
 		procedure SetMasterTempo(BPM: Single);
@@ -257,6 +261,7 @@ var
 	MasterDeck: TDeckFrame;
 	MasterDeckIndex: Integer;
 	CurrentDir: String;
+	CurrentScale: Word = 100;
 
 	procedure SetMaster(Index: Byte);
 	procedure SetMasterBPM(BPM: Single);
@@ -356,12 +361,10 @@ begin
 		begin
 			MasterDeck := Form;
 			MasterDeckIndex := Index;
-			Form.bMaster.Color := Form.bMaster.Tag;
+			Form.bMaster.Background.Color := Form.bMaster.Tag;
 		end
 		else
-		begin
-			Form.bMaster.Color := Form.lTime.Color;
-		end;
+			Form.bMaster.Background.Color := Form.lTime.Color;
 	end;
 end;
 
@@ -681,6 +684,31 @@ begin
 	Close;
 end;
 
+procedure TMainForm.ScaleTo(Percent: Word);
+var
+	BR: TRect;
+begin
+	if (Percent < 50) or (Percent > 500) then Exit;
+
+	BR := BoundsRect;
+	StartUpdate;
+	Self.ScaleBy(Percent, CurrentScale);
+	CurrentScale := Percent;
+	Config.Window.Zoom := Percent;
+	BoundsRect := BR;
+	EndUpdate;
+end;
+
+procedure TMainForm.miZoomInClick(Sender: TObject);
+begin
+	ScaleTo(CurrentScale + 10);
+end;
+
+procedure TMainForm.miZoomOutClick(Sender: TObject);
+begin
+	ScaleTo(CurrentScale - 10);
+end;
+
 procedure TMainForm.FormCreate(Sender: TObject);
 var
 	i: Integer;
@@ -720,6 +748,7 @@ begin
 	Width  := Trunc(Screen.DesktopWidth  * 0.75);
 	Height := Trunc(Screen.DesktopHeight * 0.75);
 	DeckPanel.Height := Trunc(ClientHeight * 0.3);
+	ScaleTo(Config.Window.Zoom);
 
 	// ==========================================
 	// Init list controls
@@ -879,7 +908,6 @@ end;
 
 procedure TMainForm.FormResize(Sender: TObject);
 begin
-	ListDirsScrolled(0, 0);
 	{$IFNDEF MSWINDOWS}
 	FileList.Invalidate;
 	MixerPanel.Invalidate;
@@ -1608,8 +1636,8 @@ begin
 			with DeckInFocusableControls[i,0] do
 			begin
 				Data := DF.pnlGraph;
-				Add(DF.SliderTempo);
-				Add(DF.SliderTempoFrac);
+//				Add(DF.SliderTempo);
+//				Add(DF.SliderTempoFrac);
 				Add(DF.bStart);
 				Add(DF.bStore);
 			end;
@@ -1623,7 +1651,7 @@ begin
 				Add(DF.bEffect0); Add(DF.bEffect1);
 				Add(DF.bEffect2); Add(DF.bEffect3);
 				Add(DF.bEffect4); Add(DF.bEffect5);
-				Add(DF.bEffect6); Add(DF.bEffect7);
+				Add(DF.bEffect6); //Add(DF.bEffect7);
 				Add(DF.SliderFxParam0); Add(DF.SliderFxParam1);
 				Add(DF.SliderFxParam2); Add(DF.SliderFxParam3);
 				Add(DF.SliderFxParam4); Add(DF.SliderFxParam5);
@@ -1664,6 +1692,7 @@ begin
 	Result.Form := TDeckFrame.Create(DeckPanel);
 	Result.Form.Deck := Result;
 	Result.Form.Parent := DeckPanel;
+	Result.Form.ScaleBy(CurrentScale, 100);
 	TDeckFrame(Result.Form).Init(Result);
 
 	if DeckList.Count < 2 then
@@ -1737,6 +1766,7 @@ begin
 	sDirs.Position := ListDirs.ScrollY;
 	sDirs.Increment := ListDirs.DefaultItemHeight;
 	sDirs.OnChange := sDirsChange;
+	sDirs.Visible := ListDirs.GetMaxScrollY > 0;
 	sDirs.Repaint;
 end;
 
@@ -1965,6 +1995,7 @@ end;
 
 procedure TMainForm.LeftPanelResize(Sender: TObject);
 begin
+	ListDirsScrolled(0, 0);
 	AlignEmbeddedImage;
 end;
 
@@ -1975,7 +2006,7 @@ begin
 	if Down then
 		Button.StateNormal.Background.Style := bbsColor
 	else
-		Button.StateNormal.Background.Style := bbsClear;
+		Button.StateNormal.Background.Style := bbsGradient;
 	if MenuItem <> nil then MenuItem.Checked := Down;
 end;
 
@@ -2015,7 +2046,7 @@ begin
 	UpdateToggleButtons;
 	if DeckList.Count > 0 then
 	begin
-		H := 62; // !!! pnlEffects.Height;
+		H := 53; // !!! pnlEffects.Height;
 		DeckPanel.Height := MainForm.DeckPanel.Height + IfThen(B, H, -H);
 		for Deck in DeckList do
 			TDeckFrame(Deck.Form).ShowPanel_Effects;

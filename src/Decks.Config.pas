@@ -37,6 +37,7 @@ type
 			Tracklist: record
 				Visible: Boolean;
 			end;
+			Zoom: Word;
 		end;
 
 		Directory: record
@@ -170,6 +171,7 @@ begin
 		Window.FileList.ColumnVisible[i] :=
 			Ini.ReadBool(Sect, Format('filelist.columns.%d.visible', [i]), True);
 	Window.Tracklist.Visible := Ini.ReadBool(Sect, 'tracklist.visible', False);
+	Window.Zoom := Ini.ReadInteger(Sect, 'zoom', 100);
 
 	Sect := 'audio';
 	Audio.Buffer       := Ini.ReadInteger(Sect, 'buffer', 20);
@@ -219,6 +221,7 @@ begin
 	Ini.WriteBool(Sect, 'autoupdate', Directory.AutoUpdate);
 
 	Sect := 'window';
+	Ini.WriteInteger(Sect, 'zoom', Window.Zoom);
 	Ini.WriteBool(Sect, 'dirlist.enabled', Window.DirList.Enabled);
 	for i := 0 to High(Window.FileList.ColumnVisible) do
 		Ini.WriteBool(Sect, Format('filelist.columns.%d.visible', [i]),
