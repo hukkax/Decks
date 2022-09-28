@@ -472,15 +472,15 @@ end;
 
 procedure TDeckFrame.SliderTempoChange(Sender: TObject);
 begin
-{	// fix choppiness of slider movement
+	// fix choppiness of slider movement
 	if Assigned(Sender) then (Sender as TControl).Repaint;
 
-	SliderTempo.OnChange := nil;
+	//SliderTempo.OnChange := nil;
 	Deck.Graph.ZonesChanged;
 	RedrawGraph;
 	DrawWaveform;
 	Deck.SetBPM(MasterBPM);
-	SliderTempo.OnChange := SliderTempoChange;}
+	//SliderTempo.OnChange := SliderTempoChange;
 end;
 
 procedure TDeckFrame.GetPlayPosition;
@@ -1580,7 +1580,7 @@ end;
 function TDeckFrame.DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; const Palette: TBGRAPalette): QWord;
 var
 	X, W: Cardinal;
-	Sam, FAdd, Y: Integer;
+	Sam, FAdd, HY, Y: Integer;
 	L, Sam2: QWord;
 	Sample: PByte;
 begin
@@ -1595,22 +1595,25 @@ begin
 	Pos := Min(Pos, Deck.Graph.length_audio - L);
 	Result := Pos;
 
-	Sample := @Deck.Graph.AudioData[Pos];
 	if FAdd > 0 then
-	for X := 0 to W-1 do
 	begin
-		Sam2 := 0;
-		//Sam := 0;
-		for Y := 1 to FAdd do
+		Sample := @Deck.Graph.AudioData[Pos];
+		HY := pbWave.Bitmap.Height div 2 - 1;
+		for X := 0 to W-1 do
 		begin
-			//if Sample^ > Sam then Sam := Sample^;
-			Sam2 += Sample^;
-			Inc(Sample);
+			Sam2 := 0;
+			//Sam := 0;
+			for Y := 1 to FAdd do
+			begin
+				//if Sample^ > Sam then Sam := Sample^;
+				Sam2 += Sample^;
+				Inc(Sample);
+			end;
+			Sam := Min(255, Trunc(Sam2 / FAdd * Brightness));
+			//Sam := Min(255, Trunc(Sam * Brightness));
+			Y := Trunc(Sam / 256 * HY);
+			pbWave.Bitmap.VertLine(X, HY-Y, HY+Y, Palette[Sam]);
 		end;
-		Sam := Min(255, Trunc(Sam2 / FAdd * Brightness));
-		//Sam := Min(255, Trunc(Sam * Brightness));
-		Y := Sam div 8;
-		pbWave.Bitmap.VertLine(X, 31-Y, 31+Y, Palette[Sam]);
 	end;
 end;
 
