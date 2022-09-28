@@ -95,6 +95,7 @@ type
     property DragCursor;
     property DragKind;
     property DragMode;
+	property DoubleBuffered default True;
     property Enabled;
     property FontEx: TBCFont read FFontEx write SetFontEx;
     property ParentBackground;
@@ -363,6 +364,7 @@ begin
 
     ParentColor         := True;
     UseDockManager      := True;
+	DoubleBuffered      := True;
 
     FBackground.OnChange := OnChangeProperty;
     FBorder.OnChange     := OnChangeProperty;
@@ -381,6 +383,9 @@ begin
 	FBevel.Opacity    := 255;
 	FBevel.InnerBevel := bcbNone;
 	FBevel.OuterBevel := bcbTop;
+
+	FRounding.RoundX := 0;
+	FRounding.RoundY := 0;
 
 	FFontEx.Color := $CCCCCC;
 	FFontEx.FontQuality := fqFineAntialiasing;

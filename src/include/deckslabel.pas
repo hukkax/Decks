@@ -370,6 +370,9 @@ begin
 		FBevel.Opacity      := 50;
 		FBevel.OuterBevel   := bcbBottom;
 
+		FRounding.RoundX := 0;
+		FRounding.RoundY := 0;
+
 		FFontEx.Color       := $CCCCCC;
 		FFontEx.Shadow      := True;
 		FFontEx.ShadowColor := $000000;

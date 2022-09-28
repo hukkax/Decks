@@ -1456,6 +1456,8 @@ begin
 
 		FRounding := TBCRounding.Create(Self);
 		FRounding.OnChange := OnChangeState;
+		FRounding.RoundX := 0;
+		FRounding.RoundY := 0;
 
 		FBevel := TBCBevel.Create(Self);
 		FBevel.InnerBevel := bcbTop;
@@ -1463,6 +1465,8 @@ begin
 
 		FRoundingDropDown := TBCRounding.Create(Self);
 		FRoundingDropDown.OnChange := OnChangeState;
+		FRoundingDropDown.RoundX := 0;
+		FRoundingDropDown.RoundY := 0;
 		FDropDownWidth := 30;
 
 		{ Connect bitmaps with states property for easy call and access }
