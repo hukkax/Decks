@@ -929,12 +929,16 @@ begin
 end;
 
 procedure ThListView.ChangeScale(Multiplier, Divider: Integer);
+var
+	H: ThListColumn;
 begin
 	if Multiplier <> Divider then
 	begin
 		FFont.Height  := MulDiv(GetFontData(FFont.Reference.Handle).Height, Multiplier, Divider);
 		FItemHeight   := MulDiv(ItemHeight, Multiplier, Divider);
 		FHeaderHeight := MulDiv(FHeaderHeight, Multiplier, Divider);
+		for H in Columns do
+			H.Width := MulDiv(H.Width, Multiplier, Divider);
 	end;
 	inherited ChangeScale(Multiplier, Divider);
 end;
