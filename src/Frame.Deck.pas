@@ -86,12 +86,6 @@ type
 		pb: TBGRAVirtualScreen;
 		pbZones: TBGRAVirtualScreen;
 		pbRuler: TBGRAVirtualScreen;
-		pnlZone: TPanel;
-		lBPM: TDecksValueLabel;
-		bStart: TDecksButton;
-		bStore: TDecksButton;
-		bZoneAdd: TDecksButton;
-		bZoneDel: TDecksButton;
 		SliderGraphX: ThRangeBar;
 		pnlControls: TDecksPanel;
 		bPlay: TDecksButton;
@@ -102,6 +96,12 @@ type
 		bReverse: TDecksButton;
 		pbVU: TBGRAVirtualScreen;
 		pbWave: TBGRAVirtualScreen;
+		pnlZone: TDecksPanel;
+		lBPM: TDecksValueLabel;
+		bStart: TDecksButton;
+		bStore: TDecksButton;
+		bZoneAdd: TDecksButton;
+		bZoneDel: TDecksButton;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -2076,6 +2076,7 @@ var
 begin
 	if SelectedEffect = EffectNum then Exit;
 	BeginFormUpdate;
+	DisableAutoSizing;
 
 	SelectedEffect := EffectNum;
 
@@ -2156,6 +2157,7 @@ begin
 	end;
 
 	ResizeEffectButtons;
+	EnableAutoSizing;
 	EndFormUpdate;
 end;
 
@@ -2166,6 +2168,7 @@ var
 	Button: TDecksButton;
 begin
 	BeginFormUpdate;
+	DisableAutoSizing;
 
 	X := 5;
 	W := (bLoopSong.Left - 10) div Effects.Count;
@@ -2186,6 +2189,7 @@ begin
 		Inc(X, W);
 	end;
 
+	EnableAutoSizing;
 	EndFormUpdate;
 end;
 

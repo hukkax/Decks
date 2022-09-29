@@ -13,11 +13,9 @@ object DeckFrame: TDeckFrame
   object pnlEffects: TDecksPanel
     Left = 0
     Height = 74
-    Top = 443
-    Width = 703
+    Top = 366
+    Width = 708
     Align = alBottom
-    Anchors = [akRight, akBottom]
-    BorderSpacing.Right = 5
     Background.Color = 3553082
     Background.Gradient1.StartColor = clWhite
     Background.Gradient1.EndColor = clBlack
@@ -36,13 +34,13 @@ object DeckFrame: TDeckFrame
     Background.Gradient1EndPercent = 35
     Background.Style = bbsColor
     Background.FillStyle = bsClear
-    Background.FillColor = 2105376
+    Background.FillColor = 2236962
     Bevel.Opacity = 255
-    Bevel.ColorLight = 6710886
-    Bevel.ColorDark = 2171427
+    Bevel.ColorLight = 2236962
+    Bevel.ColorDark = 2236962
     Bevel.InnerBevel = bcbNone
-    Bevel.OuterBevel = bcbNone
-    Bevel.Sides = [bcsTop, bcsBottom]
+    Bevel.OuterBevel = bcbTop
+    Bevel.Sides = [bcsBottom, bcsLeft, bcsRight]
     Border.Color = 2171427
     Border.LightWidth = 1
     Border.Style = bboNone
@@ -1144,11 +1142,11 @@ object DeckFrame: TDeckFrame
     Background.FillStyle = bsClear
     Background.FillColor = 2105376
     Bevel.Opacity = 255
-    Bevel.ColorLight = 6710886
+    Bevel.ColorLight = 2236962
     Bevel.ColorDark = 2236962
     Bevel.InnerBevel = bcbNone
     Bevel.OuterBevel = bcbTop
-    Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+    Bevel.Sides = [bcsBottom, bcsLeft, bcsRight]
     Border.Color = 2500134
     Border.Style = bboNone
     Border.Width = 5
@@ -1210,19 +1208,71 @@ object DeckFrame: TDeckFrame
       OnDblClick = pbRulerDblClick
       OnMouseDown = pbRulerMouseDown
     end
-    object pnlZone: TPanel
+    object SliderGraphX: ThRangeBar
       Left = 5
-      Height = 32
-      Top = 299
+      Height = 21
+      Top = 310
       Width = 698
       Align = alBottom
-      BevelColor = 2171427
-      BevelOuter = bvNone
-      ClientHeight = 32
-      ClientWidth = 698
-      DoubleBuffered = True
-      ParentDoubleBuffered = False
-      TabOrder = 3
+      Color = 2171427
+      BorderStyle = bsNone
+      ButtonSize = 20
+      HandleColor = 8553090
+      ButtonColor = 8553090
+      HighLightColor = 2171427
+      ShadowColor = 2171427
+      BorderColor = 8553090
+      ArrowColor = clBlack
+      LightAmount = 15
+      Range = 100
+      Window = 50
+      OnChange = SliderGraphXChange
+    end
+    object pnlZone: TDecksPanel
+      Left = 5
+      Height = 32
+      Top = 278
+      Width = 698
+      Align = alBottom
+      Background.Color = 3553082
+      Background.Gradient1.StartColor = clWhite
+      Background.Gradient1.EndColor = clBlack
+      Background.Gradient1.GradientType = gtLinear
+      Background.Gradient1.Point1XPercent = 0
+      Background.Gradient1.Point1YPercent = 0
+      Background.Gradient1.Point2XPercent = 0
+      Background.Gradient1.Point2YPercent = 100
+      Background.Gradient2.StartColor = clWhite
+      Background.Gradient2.EndColor = clBlack
+      Background.Gradient2.GradientType = gtLinear
+      Background.Gradient2.Point1XPercent = 0
+      Background.Gradient2.Point1YPercent = 0
+      Background.Gradient2.Point2XPercent = 0
+      Background.Gradient2.Point2YPercent = 100
+      Background.Gradient1EndPercent = 35
+      Background.Style = bbsColor
+      Background.FillStyle = bsBDiagonal
+      Background.FillColor = 2236962
+      Bevel.Opacity = 255
+      Bevel.ColorLight = 2236962
+      Bevel.ColorDark = 2236962
+      Bevel.InnerBevel = bcbNone
+      Bevel.OuterBevel = bcbTop
+      Bevel.Sides = [bcsLeft, bcsRight]
+      Border.Color = 2500134
+      Border.Style = bboNone
+      FontEx.Color = 13421772
+      FontEx.FontQuality = fqFineAntialiasing
+      FontEx.Shadow = False
+      FontEx.ShadowColorOpacity = 120
+      FontEx.ShadowRadius = 5
+      FontEx.ShadowOffsetX = 5
+      FontEx.ShadowOffsetY = 5
+      FontEx.Style = []
+      ParentBackground = False
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      TabOrder = 4
       object lBPM: TDecksValueLabel
         Left = 0
         Height = 29
@@ -1388,7 +1438,7 @@ object DeckFrame: TDeckFrame
         ClickOffset = True
       end
       object bZoneAdd: TDecksButton
-        Left = 147
+        Left = 488
         Height = 28
         Hint = 'Left: Move cue to song start'
         Top = 4
@@ -1442,7 +1492,7 @@ object DeckFrame: TDeckFrame
         ClickOffset = True
       end
       object bZoneDel: TDecksButton
-        Left = 191
+        Left = 532
         Height = 28
         Hint = 'Left: Move cue to song start'
         Top = 4
@@ -1496,31 +1546,11 @@ object DeckFrame: TDeckFrame
         ClickOffset = True
       end
     end
-    object SliderGraphX: ThRangeBar
-      Left = 5
-      Height = 21
-      Top = 278
-      Width = 698
-      Align = alBottom
-      Color = 2171427
-      BorderStyle = bsNone
-      ButtonSize = 20
-      HandleColor = 8553090
-      ButtonColor = 8553090
-      HighLightColor = 2171427
-      ShadowColor = 2171427
-      BorderColor = 8553090
-      ArrowColor = clBlack
-      LightAmount = 15
-      Range = 100
-      Window = 50
-      OnChange = SliderGraphXChange
-    end
   end
   object pnlControls: TDecksPanel
     Left = 0
     Height = 77
-    Top = 366
+    Top = 440
     Width = 708
     Align = alBottom
     Background.Color = 3553082
@@ -1543,11 +1573,11 @@ object DeckFrame: TDeckFrame
     Background.FillStyle = bsClear
     Background.FillColor = 2105376
     Bevel.Opacity = 255
-    Bevel.ColorLight = 6710886
-    Bevel.ColorDark = 6710886
+    Bevel.ColorLight = 2236962
+    Bevel.ColorDark = 2236962
     Bevel.InnerBevel = bcbNone
-    Bevel.OuterBevel = bcbNone
-    Bevel.Sides = [bcsTop]
+    Bevel.OuterBevel = bcbTop
+    Bevel.Sides = [bcsLeft, bcsRight]
     Border.Color = clGray
     Border.Style = bboNone
     Border.Width = 5
