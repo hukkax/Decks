@@ -18,11 +18,11 @@ type
 
 	ThListItem = class(TPersistent)
 	public
-		ImageIndex: Integer; // TODO
-		SortIndex:  Integer;
+		//ImageIndex: Integer; // TODO
+		SortIndex:  Integer; // use negative value to keep at top after sorting
 		Caption:    String;
 		Color,
-		Background: TColor;  // TODO
+		Background: TColor;
 		SubItems:   TStringList;
 		Tag:        PtrInt;
 
@@ -281,7 +281,7 @@ constructor ThListItem.Create(AOwner: ThListView);
 begin
 	inherited Create;
 
-	ImageIndex := -1;
+	//ImageIndex := -1;
 	Caption := '';
 	Color := clNone;
 	Background := clNone;
@@ -504,13 +504,18 @@ begin
 			else
 				Sl.AddObject(Item.Caption, Item);
 		end;
+
 		Sl.Sort;
 
 		for I := 0 to Sl.Count-1 do
+		begin
+			Item := ThListItem(Sl.Objects[I]);
+			if Item.SortIndex < 0 then Continue;
 			if FSortReverse then
-				ThListItem(Sl.Objects[I]).SortIndex := Sl.Count-1-I
+				Item.SortIndex := Sl.Count-1-I
 			else
-				ThListItem(Sl.Objects[I]).SortIndex := I;
+				Item.SortIndex := I;
+		end;
 
 		Items.Sort(@CompareItem);
 	finally
@@ -1056,7 +1061,10 @@ begin
 				FillRect(Bounds(1, Y, Width-3, FItemHeight), FColorHover);
 				SetLength(HintColumn, Item.SubItems.Count + 1);
 				HintColumn[0] := IR;
-			end;
+			end
+			else
+			if Item.Background <> clNone then
+				FillRect(Bounds(1, Y, Width-3, FItemHeight), Item.Background);
 		end;
 
 		Canvas.TextRect(IR,
