@@ -747,8 +747,10 @@ begin
 
 	Width  := Trunc(Screen.DesktopWidth  * 0.75);
 	Height := Trunc(Screen.DesktopHeight * 0.75);
-	DeckPanel.Height := Trunc(ClientHeight * 0.3);
 	ScaleTo(Config.Window.Zoom);
+	i := Config.Window.DeckPanelHeight;
+	if i = 0 then i := Trunc(ClientHeight * 0.3);
+	DeckPanel.Height := i;
 
 	// ==========================================
 	// Init list controls
@@ -891,6 +893,7 @@ begin
 	for i := 0 to High(Config.Window.FileList.ColumnVisible) do
 		if i < FileList.Columns.Count then
 			Config.Window.FileList.ColumnVisible[i] := FileList.Columns[i].Visible;
+	Config.Window.DeckPanelHeight := DeckPanel.Height;
 
 	Config.Save;
 	{$IFDEF USEMIDI}

@@ -37,6 +37,7 @@ type
 			Tracklist: record
 				Visible: Boolean;
 			end;
+			DeckPanelHeight: Word;
 			Zoom: Word;
 		end;
 
@@ -171,6 +172,7 @@ begin
 		Window.FileList.ColumnVisible[i] :=
 			Ini.ReadBool(Sect, Format('filelist.columns.%d.visible', [i]), True);
 	Window.Tracklist.Visible := Ini.ReadBool(Sect, 'tracklist.visible', False);
+	Window.DeckPanelHeight := Ini.ReadInteger(Sect, 'deckheight', 0);
 	Window.Zoom := Ini.ReadInteger(Sect, 'zoom', 100);
 
 	Sect := 'audio';
@@ -222,6 +224,7 @@ begin
 
 	Sect := 'window';
 	Ini.WriteInteger(Sect, 'zoom', Window.Zoom);
+	Ini.WriteInteger(Sect, 'deckheight', Window.DeckPanelHeight);
 	Ini.WriteBool(Sect, 'dirlist.enabled', Window.DirList.Enabled);
 	for i := 0 to High(Window.FileList.ColumnVisible) do
 		Ini.WriteBool(Sect, Format('filelist.columns.%d.visible', [i]),

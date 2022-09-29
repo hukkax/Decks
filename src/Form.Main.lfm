@@ -829,7 +829,6 @@ object MainForm: TMainForm
     Bevel.InnerBevel = bcbNone
     Bevel.OuterBevel = bcbTop
     Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
-    Border.Color = 5395800
     Border.Style = bboSolid
     Border.Width = 2
     Constraints.MinHeight = 280
