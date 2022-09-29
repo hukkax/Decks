@@ -1580,8 +1580,9 @@ end;
 function TDeckFrame.DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; const Palette: TBGRAPalette): QWord;
 var
 	X, W: Cardinal;
-	Sam, FAdd, HY, Y: Integer;
-	L, Sam2: QWord;
+	HY, Y: Integer;
+	FAdd, FPos: Double;
+	L, Sam: QWord;
 	Sample: PByte;
 begin
 	L := Deck.Graph.GetBarLength(True, Bar);
@@ -1589,28 +1590,27 @@ begin
 	if L < 10 then Exit(0);
 
 	W := pbWave.ClientWidth;
-	FAdd := Round(L / W);
-	WaveformStep := FAdd;
+	FAdd := (L / W);
+	WaveformStep := Round(FAdd);
 
 	Pos := Min(Pos, Deck.Graph.length_audio - L);
 	Result := Pos;
 
-	if FAdd > 0 then
+	if FAdd >= 0.1 then
 	begin
-		Sample := @Deck.Graph.AudioData[Pos];
 		HY := pbWave.Bitmap.Height div 2 - 1;
+		FPos := Pos;
 		for X := 0 to W-1 do
 		begin
-			Sam2 := 0;
-			//Sam := 0;
-			for Y := 1 to FAdd do
+			Sam := 0;
+			Sample := @Deck.Graph.AudioData[Trunc(FPos)];
+			for Y := 1 to WaveformStep do
 			begin
-				//if Sample^ > Sam then Sam := Sample^;
-				Sam2 += Sample^;
+				Sam += Sample^;
 				Inc(Sample);
 			end;
-			Sam := Min(255, Trunc(Sam2 / FAdd * Brightness));
-			//Sam := Min(255, Trunc(Sam * Brightness));
+			FPos += FAdd;
+			Sam := Min(255, Trunc(Sam / FAdd * Brightness));
 			Y := Trunc(Sam / 256 * HY);
 			pbWave.Bitmap.VertLine(X, HY-Y, HY+Y, Palette[Sam]);
 		end;
