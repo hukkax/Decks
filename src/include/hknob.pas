@@ -732,7 +732,7 @@ procedure ThKnob.MouseMove(Shift: TShiftState; X, Y: Integer);
 var
 	ii, NewPosition: Integer;
 begin
-	ii := Math.Min(Width, Height) div 2;
+	ii := Width div 2;
 	if fDragging then
 	begin
 		if fVerticalMove then
@@ -754,10 +754,10 @@ begin
 				if X < Width div 2 then
 					fMouseAngle := (fMouseAngle + 540) mod 360;
 			end;
-			if (fMouseAngle > (180+FArc)) and (fMouseAngle <= (180+30+FArc)) then
-				fMouseAngle := 180+FArc;
+			{if (fMouseAngle > (180-FArc)) and (fMouseAngle <= (180+FArc)) then
+				fMouseAngle := 180;
 			if (fMouseAngle < -FArc) then
-				fMouseAngle := -FArc;
+				fMouseAngle := -FArc;}
 			NewPosition := CalcPosition(fMouseAngle);
 		end; // not fVerticalMove
 		if fPosition <> NewPosition then
