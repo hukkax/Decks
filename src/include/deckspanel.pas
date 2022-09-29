@@ -148,6 +148,42 @@ end;
 
 { TDecksPanel }
 
+procedure TDecksPanel.Render;
+var
+	r: TRect;
+	tex: TBGRABitmap;
+begin
+	if (csCreating in ControlState) or IsUpdating then Exit;
+
+	FBGRA.NeedRender := False;
+	FBGRA.SetSize(Width, Height);
+	r := FBGRA.ClipRect;
+
+	if FBackground.FillStyle <> bsClear then
+	begin
+	    tex := FBGRA.CreateBrushTexture(FBackground.FillStyle,
+			FBackground.FillColor, FBackground.Color);
+		FBGRA.Fill(tex);
+	    tex.Free;
+	end
+	else
+	begin
+		FBGRA.Fill(BGRAPixelTransparent);
+		RenderBackgroundAndBorder(r, FBackground, TBGRABitmap(FBGRA),
+			FRounding, FBorder, FBevel, 0);
+	end;
+
+	CalculateBorderRect(FBorder, r);
+
+	if Caption <> '' then
+		RenderText(r, FFontEx, Caption, TBGRABitmap(FBGRA));
+
+	if Assigned(FOnAfterRenderBCPanel) then
+		FOnAfterRenderBCPanel(Self, FBGRA, r);
+
+	{$IFDEF INDEBUG} FRenderCount := FRenderCount + 1; {$ENDIF}
+end;
+
 procedure TDecksPanel.DrawControl;
 begin
   inherited DrawControl;
@@ -197,42 +233,6 @@ begin
   Result := 'R: '+IntToStr(FRenderCount);
 end;
 {$ENDIF}
-
-procedure TDecksPanel.Render;
-var
-	r: TRect;
-	tex: TBGRABitmap;
-begin
-	if (csCreating in ControlState) or IsUpdating then Exit;
-
-	FBGRA.NeedRender := False;
-	FBGRA.SetSize(Width, Height);
-	r := FBGRA.ClipRect;
-
-	if FBackground.FillStyle <> bsClear then
-	begin
-	    tex := FBGRA.CreateBrushTexture(FBackground.FillStyle,
-			FBackground.FillColor, FBackground.Color);
-		FBGRA.Fill(tex);
-	    tex.Free;
-	end
-	else
-	begin
-		FBGRA.Fill(BGRAPixelTransparent);
-		RenderBackgroundAndBorder(r, FBackground, TBGRABitmap(FBGRA),
-			FRounding, FBorder, FBevel, 0);
-	end;
-
-	CalculateBorderRect(FBorder, r);
-
-	if Caption <> '' then
-		RenderText(r, FFontEx, Caption, TBGRABitmap(FBGRA));
-
-	if Assigned(FOnAfterRenderBCPanel) then
-		FOnAfterRenderBCPanel(Self, FBGRA, r);
-
-	{$IFDEF INDEBUG} FRenderCount := FRenderCount + 1; {$ENDIF}
-end;
 
 procedure TDecksPanel.OnChangeProperty(Sender: TObject; AData: BGRAPtrInt);
 begin

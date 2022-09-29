@@ -113,11 +113,11 @@ object MainForm: TMainForm
         Background.Style = bbsColor
         Bevel.Opacity = 0
         Bevel.ColorDark = 6710886
-        Bevel.InnerBevel = bcbTop
-        Bevel.OuterBevel = bcbBottom
+        Bevel.InnerBevel = bcbNone
+        Bevel.OuterBevel = bcbNone
         Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
         Border.Color = 3355443
-        Border.Style = bboSolid
+        Border.Style = bboNone
         Border.Width = 0
         Caption = '125.00'
         FontEx.Color = 10922154
@@ -157,7 +157,7 @@ object MainForm: TMainForm
         Left = 10
         Height = 29
         Top = 9
-        Width = 71
+        Width = 78
         StateNormal.Background.Color = 2171427
         StateNormal.Background.Gradient1.StartColor = 2171427
         StateNormal.Background.Gradient1.EndColor = 2171427
@@ -207,7 +207,7 @@ object MainForm: TMainForm
         DropDownPosition = bdpBottom
       end
       object bToggleEffects: TDecksButton
-        Left = 88
+        Left = 94
         Height = 29
         Hint = 'Toggle effects pane'
         Top = 9
@@ -261,7 +261,7 @@ object MainForm: TMainForm
         ClickOffset = True
       end
       object bToggleMixer: TDecksButton
-        Left = 136
+        Left = 142
         Height = 29
         Hint = 'Toggle mixer pane'
         Top = 9
@@ -371,7 +371,7 @@ object MainForm: TMainForm
         ClickOffset = True
       end
       object bToggleGraphLines: TDecksButton
-        Left = 192
+        Left = 198
         Height = 29
         Hint = '≣'
         Top = 9
@@ -509,7 +509,7 @@ object MainForm: TMainForm
         Bevel.OuterBevel = bcbBottom
         Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
         Border.Color = 3355443
-        Border.Style = bboSolid
+        Border.Style = bboNone
         Border.Width = 0
         Caption = 'CPU'
         FontEx.Color = 10922154
@@ -525,7 +525,7 @@ object MainForm: TMainForm
         Rounding.RoundY = 0
       end
       object bToggleTracklist: TDecksButton
-        Left = 256
+        Left = 232
         Height = 29
         Top = 9
         Width = 48
@@ -829,6 +829,7 @@ object MainForm: TMainForm
     Bevel.InnerBevel = bcbNone
     Bevel.OuterBevel = bcbTop
     Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+    Border.Color = 2500134
     Border.Style = bboSolid
     Border.Width = 2
     Constraints.MinHeight = 280

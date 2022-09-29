@@ -95,15 +95,15 @@ procedure RenderBackgroundAndBorder(const ARect: TRect;
 var
 	w, ht, hb: Single;
 begin
-	ATargetBGRA.Canvas.FillRect(ARect);
+//	ATargetBGRA.Canvas.FillRect(ARect);
 
-	if ABorder.Style = bboNone then
-		w := AInnerMargin - 0.5
+	if (ABorder.Style <> bboNone) and (ABorder.Width > 0) then
+		w := (ABorder.Width-1) / 2 + AInnerMargin
 	else
-		w := (ABorder.Width-1) / 2 + AInnerMargin;
+		w := AInnerMargin - 0.5;
 
 	ht := 0; hb := 0;
-	if ABevel.OuterBevel in [bcbBottom, bcbBottomRight, bcbTop, bcbTopLeft] then
+	if (ABevel.Opacity > 0) and (ABevel.OuterBevel in [bcbBottom, bcbBottomRight, bcbTop, bcbTopLeft]) then
 	begin
 		if bcsTop    in ABevel.Sides then ht := 1;
 		if bcsBottom in ABevel.Sides then hb := 1;
@@ -114,7 +114,7 @@ begin
 
 	ABevel.Render(ARect, ATargetBGRA, ARounding, ABorder);
 
-	if ABorder.Style <> bboNone then
+	if (ABorder.Style <> bboNone) and (ABorder.Width > 0) then
 	begin
 		RenderBorderF(ARect.Left+w, ARect.Top+w+ht, ARect.Right-1-w, ARect.Bottom-1-w-hb,
 			ABorder, ATargetBGRA, ARounding);
