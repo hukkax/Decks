@@ -19,10 +19,16 @@ uses
 const
 	SupportedFormats = '.mp3 .ogg .wav .it .s3m .xm .mod .sid .nsf';
 
-	COLOR_FILE_DIRECTORY = $FF9966;
+	STR_SYM_PARENT = '📂 ';
+	STR_SYM_FOLDER = '🖿 ';
+
+	COLOR_FILE_PARENT    = $77EEFF;
+	COLOR_FILE_DIRECTORY = $88CCEE;
 	COLOR_FILE_DEFAULT   = $AAAAAA;
 	COLOR_FILE_HASBPM    = $DDEEFF;
 	COLOR_FILE_PLAYED    = $5EB078;
+	COLOR_BG_PARENT      = $2C3039;
+	COLOR_BG_DIRECTORY   = $1C2029;
 
 	LI_NORMAL = 0;
 	LI_HASEMBEDDEDIMAGE = 1;
@@ -1260,9 +1266,22 @@ begin
 
 		tsDirAdded:
 		begin
-			Item := FileList.AddItem('<' + ExtractFileName(Filename) + '>');
-			Item.SubItems.Add('DIR');
-			Item.Color := COLOR_FILE_DIRECTORY;
+			Item := FileList.AddItem('');
+			S := ExtractFileName(Filename);
+			if S = '..' then
+			begin
+				Item.Caption := STR_SYM_PARENT + ExtractFileName(ExtractFileDir(ExcludeTrailingPathDelimiter(CurrentDir)));
+				Item.Color := COLOR_FILE_PARENT;
+				Item.Background := COLOR_BG_PARENT;
+				Item.SortIndex := -2;
+			end
+			else
+			begin
+				Item.Caption := STR_SYM_FOLDER + S;
+				Item.Color := COLOR_FILE_DIRECTORY;
+				Item.Background := COLOR_BG_DIRECTORY;
+				Item.SortIndex := -1;
+			end;
 			Item.Tag := LI_ISDIRECTORY;
 			if FileList.ItemIndex < 0 then
 				FileList.ItemIndex := 0;
@@ -1515,7 +1534,9 @@ var
 	S: String;
 begin
 	if Item = nil then Exit;
+
 	S := Item.Caption;
+
 	if Item.Tag = LI_HASEMBEDDEDIMAGE then
 	begin
 		if ReadImageFromTags(CurrentDir + S) then
@@ -1528,13 +1549,22 @@ begin
 	begin
 		EmbeddedImage.Height := 0;
 		EmbeddedImage.Picture.Clear;
-		if Item.Tag = LI_ISDIRECTORY then
-			S := Item.Caption.Replace('<', '').Replace('>', '');
 	end;
 
-	SelectedListItem.Filename := CurrentDir + S;
 	SelectedListItem.Kind := Item.Tag;
 	SelectedListItem.ListItem := Item;
+
+	// get directory path from the list item
+	if Item.Tag = LI_ISDIRECTORY then
+	begin
+		if S.StartsWith(STR_SYM_PARENT) then
+			S := '..'
+		else
+			S := S.Replace(STR_SYM_FOLDER, '');
+		SelectedListItem.Filename := CreateAbsolutePath(S, CurrentDir);
+	end
+	else
+		SelectedListItem.Filename := CurrentDir + S;
 end;
 
 procedure TMainForm.FileListDblClick(Sender: TObject);
@@ -1551,7 +1581,7 @@ begin
 	begin
 		if SelectedListItem.Kind = LI_ISDIRECTORY then
 		begin
-			ListDirs.Path := CreateAbsolutePath(SelectedListItem.Filename, CurrentDir);
+			ListDirs.Path := SelectedListItem.Filename;
 		end
 		else
 		begin
