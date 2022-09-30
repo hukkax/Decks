@@ -37,12 +37,13 @@ type
 		Left,
 		Percentage: Integer;
 		Visible:    Boolean;
+		Alignment:  TAlignment;
 		DrawnRect:  TRect;
 		Caption:    String;
 		Tag:        PtrInt;
 		AlwaysShow: Boolean;
 
-		constructor Create(AOwner: ThListView; ACaption: String; AWidth: Integer);
+		constructor Create(AOwner: ThListView; ACaption: String; AWidth: Integer; AAlignment: TAlignment);
 		destructor  Destroy; override;
 	end;
 
@@ -96,6 +97,7 @@ type
 		FRowsVisible: Integer;
 		FFirstVisibleIndex,
 		FLastVisibleIndex: Integer;
+		FTextStyle: TTextStyle;
 
 		FPopupHeader,
 		FPopupList: TPopupMenu;
@@ -115,6 +117,7 @@ type
 	    procedure CMHintShow(var Message: TCMHintShow); message CM_HintShow;
 		procedure ShowColumnPopup(P: TPoint);
 		procedure ToggleColumnVisibilityFromMenu(Sender: TObject);
+		procedure SetTextStyle(AValue: TTextStyle);
 
 	protected
 		procedure SetEnabled(Value: Boolean); override;
@@ -152,7 +155,8 @@ type
 		destructor  Destroy; override;
 
 		function  AddItem(const Caption: String): ThListItem;
-		function  AddColumn(const ACaption: String; AWidth: Integer; AVisible: Boolean = True): ThListColumn;
+		function  AddColumn(const ACaption: String; AWidth: Integer;
+		          AAlignment: TAlignment = taLeftJustify; AVisible: Boolean = True): ThListColumn;
 		function  ColumnAt(X: Integer): Integer;
 		function  GetSubItemFor(const Item: ThListItem; var Column: Integer): String;
 		procedure SortItems;
@@ -163,6 +167,7 @@ type
 		procedure ScrollToTop;
 		procedure ScrollToBottom;
 
+		property TextStyle: TTextStyle read FTextStyle write SetTextStyle;
 		property ClickedColumn: Integer read FClickedColumn;
 		property ScrollPos: Integer read FScrollPos write SetScrollPos default 0;
 		property FirstVisibleIndex: Integer read FFirstVisibleIndex write SetFirstVisibleIndex;
@@ -250,7 +255,8 @@ end;*)
 // ThListColumn
 // ================================================================================================
 
-constructor ThListColumn.Create(AOwner: ThListView; ACaption: String; AWidth: Integer);
+constructor ThListColumn.Create(AOwner: ThListView; ACaption: String; AWidth: Integer;
+	AAlignment: TAlignment);
 begin
 	inherited Create;
 
@@ -266,6 +272,7 @@ begin
 	end;
 
 	Caption := ACaption;
+	Alignment := AAlignment;
 	Visible := True;
 end;
 
@@ -338,6 +345,20 @@ begin
 	FEnabled := True;
 	Visible := True;
 
+	FTextStyle := Canvas.TextStyle;
+	with FTextStyle do
+	begin
+		Alignment := taLeftJustify;
+		Layout    := tlCenter;
+		SingleLine := True;
+		Clipping := True;
+		ExpandTabs := False;
+		ShowPrefix := False;
+		Wordbreak := False;
+		EndEllipsis := True;
+	end;
+	Canvas.TextStyle := FTextStyle;
+
 	SetItemHeight(FHeaderHeight);
 end;
 
@@ -359,9 +380,10 @@ begin
 	UpdateScrollbar;
 end;
 
-function ThListView.AddColumn(const ACaption: String; AWidth: Integer; AVisible: Boolean = True): ThListColumn;
+function ThListView.AddColumn(const ACaption: String; AWidth: Integer;
+	AAlignment: TAlignment; AVisible: Boolean): ThListColumn;
 begin
-	Result := ThListColumn.Create(Self, ACaption, AWidth);
+	Result := ThListColumn.Create(Self, ACaption, AWidth, AAlignment);
 	Result.Visible := AVisible;
 	Columns.Add(Result);
 	Resized;
@@ -733,6 +755,13 @@ begin
 	end;
 end;
 
+procedure ThListView.SetTextStyle(AValue: TTextStyle);
+begin
+	FTextStyle := AValue;
+	Canvas.TextStyle := FTextStyle;
+	Invalidate;
+end;
+
 procedure ThListView.ShowColumnPopup(P: TPoint);
 var
 	Col: ThListColumn;
@@ -977,6 +1006,7 @@ var
 	Hovered: Boolean;
 	CR, IR: TRect;
 	Item: ThListItem;
+	Column: ThListColumn;
 begin
 	C := FColor;
 
@@ -1007,22 +1037,24 @@ begin
 			if Columns.Count > 0 then
 			for Col := 0 to Columns.Count-1 do
 			begin
-				if not (Columns[Col].Visible) then Continue;
-
-				IR := Bounds(X, 0, Columns[Col].Width-1, Y);
-				Columns[Col].DrawnRect := IR;
+				Column := Columns[Col];
+				if not (Column.Visible) then Continue;
+				IR := Bounds(X, 0, Column.Width-1, Y);
+				Column.DrawnRect := IR;
+				FTextStyle.Alignment := Column.Alignment;
+				Canvas.TextStyle := FTextStyle;
 				if Col = FSortColumn then
 				begin
 					FillRect(IR, $333333); //Gray32(40)
 					Canvas.TextRect(IR,
 						IR.Left + FTextOffset.X, FTextOffset.Y,
-						ColumnSortText[FSortReverse] + Columns[Col].Caption);
+						ColumnSortText[FSortReverse] + Column.Caption);
 				end
 				else
 					Canvas.TextRect(IR,
 						IR.Left + FTextOffset.X, FTextOffset.Y,
-						Columns[Col].Caption);
-				Inc(X, Columns[Col].Width);
+						Column.Caption);
+				Inc(X, Column.Width);
 			end;
 			Canvas.Pen.Color := clBlack;
 			Canvas.Line(0, Y-1, ClientWidth-1, Y-1);
@@ -1071,8 +1103,9 @@ begin
 				FillRect(Bounds(1, Y, Width-3, FItemHeight), Item.Background);
 		end;
 
-		Canvas.TextRect(IR,
-			IR.Left + FTextOffset.X, Y + FTextOffset.Y, Item.Caption);
+		FTextStyle.Alignment := Columns[0].Alignment;
+		Canvas.TextStyle := FTextStyle;
+		Canvas.TextRect(IR, IR.Left + FTextOffset.X, Y + FTextOffset.Y, Item.Caption);
 
 		if (Hovered) and (FHoveredColumn = 0) then
 		begin
@@ -1087,11 +1120,14 @@ begin
 			if Columns.Count > 1 then
 			for Col := 1 to Columns.Count-1 do
 			begin
-				if not (Columns[Col].Visible) then Continue;
+				Column := Columns[Col];
+				if not (Column.Visible) then Continue;
 
-				IR := Bounds(X, Y, Columns[Col].Width-1, FItemHeight);
+				IR := Bounds(X, Y, Column.Width-1, FItemHeight);
 				if Col <= Item.SubItems.Count then
 				begin
+					FTextStyle.Alignment := Column.Alignment;
+					Canvas.TextStyle := FTextStyle;
 					Canvas.TextRect(IR,
 						IR.Left + FTextOffset.X, Y + FTextOffset.Y,
 						Item.SubItems[Col-1]);
@@ -1102,7 +1138,7 @@ begin
 						Hint := Item.SubItems[Col-1];
 					end;
 				end;
-				Inc(X, Columns[Col].Width);
+				Inc(X, Column.Width);
 			end;
 		end;
 
