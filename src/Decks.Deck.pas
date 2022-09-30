@@ -95,6 +95,7 @@ type
 		procedure	EnableLoop(LoopInfo: PLoopInfo; StartPos, EndPos: QWord);
 		procedure	DisableLoop(LoopInfo: PLoopInfo);
 		procedure	SetBPM(NewBPM: Single);
+		function	GetAvgBPM: Single;
 
 		procedure	SaveInfoFile(aBPM: Double = 0.0);
 		procedure	SaveOldInfoFile;
@@ -147,7 +148,7 @@ end;
 
 function TDeck.BPMToHz(aBPM: Single; Zone: Word = 0): Cardinal;
 begin
-	if (OrigBPM < 10) or (Graph.Zones.Count < 1) then
+	if (AvgBPM < 10) or (Graph.Zones.Count < 1) then
 		Result := 0
 	else
 		Result := Round(OrigFreq / Graph.Zones[Zone].BPM * aBPM);
@@ -155,7 +156,7 @@ end;
 
 function TDeck.HzToBPM(Hz: Single; Zone: Word = 0): Single;
 begin
-	if OrigBPM < 10 then
+	if AvgBPM < 10 then
 		Result := 0
 	else
 		Result := SimpleRoundTo(Graph.Zones[Zone].BPM / OrigFreq * Hz, -3);
@@ -225,32 +226,34 @@ end;
 //
 
 procedure TDeck.InfoHandler(Keyword: TInfoKeyword; Params: TInfoParams);
-var
-	SamMul: Integer;
 begin
-	SamMul := Graph.SampleSizeMultiplier;
-
 	case Keyword of
 
 		IKW_CUE:
-		if High(Params) >= 1 then
-		begin
-			if Params[0] <= High(Cue) then
-				Cue[Params[0]] := Params[1] * SamMul;
-			if Params[0] = 0 then
-				Graph.StartPos := Params[1] * SamMul;
-		end;
+			if High(Params) >= 1 then
+			begin
+				if Params[0] <= High(Cue) then
+					Cue[Params[0]] := Params[1] * Graph.SampleSizeMultiplier;
+				if Params[0] = 0 then
+					Graph.StartPos := Params[1] * Graph.SampleSizeMultiplier;
+			end;
 
-		IKW_BPM:
-		if High(Params) >= 1 then
-		begin
-			Graph.Zones.Clear;
-			Graph.AddZone(Graph.StartPos, Params[0] + (Params[1] / 1000), True);
-		end;
+		IKW_BPM, IKW_BPM_OLD:
+			if High(Params) >= 1 then
+			begin
+				Graph.Zones.Clear;
+				if Keyword = IKW_BPM_OLD then
+					Graph.AddZone(Graph.StartPos, Params[0] + (Params[1] / 1000), True);
+			end;
 
 		IKW_ZONE, IKW_ZONE_OLD:
-		if High(Params) >= 2 then
-			Graph.AddZone(Params[2], Params[0] + (Params[1] / 1000), Keyword = IKW_ZONE_OLD);
+			if High(Params) >= 2 then
+			begin
+				if Graph.Zones.Count < 1 then
+					Graph.AddZone(Graph.StartPos, Params[0] + (Params[1] / 1000), True)
+				else
+					Graph.AddZone(Params[2], Params[0] + (Params[1] / 1000), Keyword = IKW_ZONE_OLD);
+			end;
 
 		IKW_ZONEDATA:
 			with Graph.Zones.Last do
@@ -316,6 +319,18 @@ begin
 	end;
 end;
 
+function TDeck.GetAvgBPM: Single;
+var
+	i, c: Integer;
+begin
+	c := Graph.Zones.Count;
+	AvgBPM := 0.0;
+	for i := 0 to c-1 do
+		AvgBPM += Graph.Zones[i].BPM;
+	AvgBPM := AvgBPM / c;
+	Result := AvgBPM;
+end;
+
 procedure TDeck.SetBPM(NewBPM: Single);
 begin
 	if (not Loaded) then Exit;
@@ -351,7 +366,7 @@ var
 	Z: TZone;
 	i: Integer;
 begin
-	if BPM < 0.1 then aBPM := OrigBPM;
+	if BPM < 0.1 then aBPM := AvgBPM;
 
 	S := Config.Directory.BPM + ExtractFilename(Filename) + '.bpm';
 	Ini := TIniFile.Create(S);
@@ -402,7 +417,7 @@ begin
 	try
 		Sl.Add('Decks 3.0b');
 		Sl.Add('FILENAME ' + Filename);
-		Sl.Add('BPM ' + FloatToString(OrigBPM));
+		Sl.Add('BPM ' + FloatToString(Graph.Zones.First.BPM));
 		Sl.Add('AMP ' + FloatToString(Info.Amp));
 		Sl.Add(Format('CUE 0 %d', [Graph.StartPos div Graph.SampleSizeMultiplier]));
 		for Z in Graph.Zones do

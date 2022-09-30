@@ -460,7 +460,7 @@ begin
 			if I > 0 then
 				Result.BPM := Zones[I-1].BPM
 			else
-				Result.BPM := Song.OrigBPM;
+				Result.BPM := Song.AvgBPM;
 			Result.BPM := Max(60, Result.BPM);
 		end;
 
@@ -669,7 +669,7 @@ end;
 function TBeatGraph.GetBeatLength(ForGraph: Boolean = False): Integer;
 begin
 	if Generating then Exit(0);
-	Result := Trunc(GetFreq(ForGraph) * ((60000 / Song.OrigBPM) / 1000));
+	Result := Trunc(GetFreq(ForGraph) * ((60000 / Song.AvgBPM) / 1000));
 end;
 
 function TBeatGraph.GetBarLength(ForGraph: Boolean = False; X: Integer = -1): Integer;
@@ -678,7 +678,7 @@ begin
 	if (X >= 0) and (X < High(Bars)) then
 		Result := GraphToSongBytes(Bars[X+1].Pos - Bars[X].Pos, ForGraph)
 	else
-		Result := Trunc(GetFreq(ForGraph) * ((60000 / Song.OrigBPM) / 250));
+		Result := Trunc(GetFreq(ForGraph) * ((60000 / Song.AvgBPM) / 250));
 end;
 
 procedure TBeatGraph.Clear;
@@ -924,7 +924,7 @@ begin
 	if Generating then Exit;
 	QueueDraw := False;
 
-	if (Song = nil) or (not Song.Loaded) or (Song.OrigBPM <= 1) then Exit;
+	if (Song = nil) or (not Song.Loaded) or (Song.AvgBPM <= 1) then Exit;
 	if (BitmapSize.X <= 0) or (BitmapSize.Y <= 0) then Exit;
 
 	if NeedRecalc then

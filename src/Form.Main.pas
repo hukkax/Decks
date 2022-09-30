@@ -1585,7 +1585,7 @@ begin
 	if Deck.Load(SelectedListItem.Filename) then
 	begin
 		if (HadNone) and (Config.Deck.FirstSetsMasterBPM) then
-			SetMasterTempo(Deck.OrigBPM);
+			SetMasterTempo(Deck.AvgBPM);
 	end;
 end;
 

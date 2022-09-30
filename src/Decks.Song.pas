@@ -49,7 +49,7 @@ type
 		OrigFreq,
 		PlayFreq:	Cardinal;
 		BPM,
-		OrigBPM:	Single;
+		AvgBPM:		Single;
 		ByteLength: QWord;
 		Duration:	Single;
 		Bitrate:	Word;
@@ -170,7 +170,7 @@ begin
 	BASS_Mixer_StreamAddChannel(Stream, OrigStream,
 		BASS_MIXER_DOWNMIX or (*BASS_MIXER_BUFFER or*) BASS_MIXER_NORAMPIN);
 
-	OrigBPM  := 0;
+	AvgBPM   := 0;
 	OrigFreq := 44100; //ChannelInfo.freq;
 	PlayFreq := OrigFreq;
 

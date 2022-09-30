@@ -9,7 +9,7 @@ uses
 	Classes, SysUtils;
 
 type
-	TInfoKeyword = ( IKW_BPM, IKW_CUE, IKW_ZONE, IKW_ZONEDATA, IKW_ZONE_OLD );
+	TInfoKeyword = ( IKW_BPM, IKW_CUE, IKW_ZONE, IKW_ZONEDATA, IKW_ZONE_OLD, IKW_BPM_OLD );
 	TInfoParams  = array of Int64;
 
 	TInfoKeywordHandler = procedure(Keyword: TInfoKeyword; Params: TInfoParams) of object;
@@ -304,7 +304,7 @@ begin
 				SplitInt(P, iL, iR);
 				Result.BPM := iL + (iR / 1000);
 				if Assigned(KeywordHandler) then
-					KeywordHandler(IKW_BPM, TInfoParams.Create(iL, iR));
+					KeywordHandler(IKW_BPM_OLD, TInfoParams.Create(iL, iR));
 			end;
 
 			while Assigned(KeywordHandler) do

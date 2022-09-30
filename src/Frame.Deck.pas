@@ -643,8 +643,7 @@ end;
 
 procedure TDeckFrame.bStoreClick(Sender: TObject);
 begin
-	Deck.OrigBPM := Deck.Graph.Zones.First.BPM;
-	Deck.SaveInfoFile(Deck.OrigBPM);
+	Deck.SaveInfoFile(Deck.GetAvgBPM);
 	MainForm.UpdateFileInfo(Deck.Filename);
 end;
 
@@ -1492,6 +1491,7 @@ begin
 	begin
 		H := pbZones.ClientHeight;
 		Zoner.SetSize(Deck.Graph.Width, H);
+		Zoner.FontHeight := Trunc(H * 0.8);
 		X2 := Zoner.Width-1;
 
 		Zoner.Fill(BGRABlack);
@@ -1759,14 +1759,13 @@ begin
 
 	BPM := lBPM.Value; //SliderTempo.Position + (SliderTempoFrac.Position / 1000);
 
-	if CurrentZone = 0 then
-		Deck.OrigBPM := BPM;
 	if Deck.Graph.Zones.Count > 0 then
 	begin
 		Deck.Graph.Zones[CurrentZone].BPM := BPM;
 		Deck.Graph.NeedRecalc := True;
 	end;
 
+	Deck.GetAvgBPM;
 	Deck.BPM := MasterBPM;
 	Deck.Info.Amp := SliderAmp.Position / 100;
 	Deck.Graph.Brightness := Deck.Graph.CalcBrightness * Deck.Info.Amp;
@@ -1910,11 +1909,11 @@ begin
 			begin
 				//SetSlider(SliderTempo, Trunc(Deck.Info.BPM));
 				//SetSlider(SliderTempoFrac, Trunc(Frac(Deck.Info.BPM) * 1000));
-				SetSlider(lBPM, Deck.Info.BPM);
-				Deck.OrigBPM := Deck.Info.BPM;
 			end;
+			SetSlider(lBPM, Deck.Graph.Zones.First.BPM);
 			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
 			Deck.Graph.ZonesLoaded;
+			Deck.Info.BPM := Deck.GetAvgBPM;
 			SetCue(TPoint.Zero);
 			SliderTempoChange(nil);
 			JumpToCue;
@@ -2066,7 +2065,7 @@ begin
 			if Fx.Effect <> nil then
 			begin
 				Fx.Effect.Stream := Deck.OrigStream;
-				Fx.Effect.BPM := @Deck.OrigBPM;
+				Fx.Effect.BPM := @Deck.AvgBPM;
 			end;
 end;
 
@@ -2296,7 +2295,7 @@ end;
 
 procedure TDeckFrame.miSetMasterTempoClick(Sender: TObject);
 begin
-	MainForm.SetMasterTempo(Deck.OrigBPM);
+	MainForm.SetMasterTempo(Deck.AvgBPM);
 end;
 
 
