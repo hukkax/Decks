@@ -203,6 +203,7 @@ type
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
+		QueueFileSelect: String;
 
 		procedure ResizeFrames;
 		function  FindFileListEntry(const Filename: String): ThListItem;
@@ -224,6 +225,7 @@ type
 		procedure ApplyMixer(ApplyEQ: Boolean = True);
 		procedure SetMasterTempo(BPM: Single);
 
+		procedure SelectFileInFileList(const Filename: String; AllowChangeDir: Boolean);
 		procedure SetActiveList(RightList: Boolean);
 		procedure ListBrowse(Dir: Integer);
 		procedure ListFilesInDir(const Dir: String);
@@ -1391,6 +1393,11 @@ begin
 
 			if FileList.SortColumn = 0 then
 				FileList.SortItems;
+			if not QueueFileSelect.IsEmpty then
+			begin
+				FileList.SelectedItem := FindFileListEntry(QueueFileSelect);
+				QueueFileSelect := '';
+			end;
 			bToggleLeftPane.Enabled := True;
 		end;
 
@@ -1617,6 +1624,31 @@ begin
 		if SameFileName(Item.Caption, Filename) then
 			Exit(Item);
 	Result := nil;
+end;
+
+procedure TMainForm.SelectFileInFileList(const Filename: String; AllowChangeDir: Boolean);
+var
+	LI: ThListItem;
+	Fn: String;
+begin
+	if Filename.IsEmpty then Exit;
+	Fn := ExtractFilename(Filename);
+	if Fn = Filename then Exit;
+
+	QueueFileSelect := '';
+	LI := FindFileListEntry(Fn);
+	if LI <> nil then
+		FileList.SelectedItem := LI
+	else
+	if AllowChangeDir then
+	begin
+		QueueFileSelect := Fn;
+		Fn := ExtractFileDir(Filename);
+		if not Fn.IsEmpty then
+			ListDirs.Path := Fn
+		else
+			QueueFileSelect := '';
+	end;
 end;
 
 procedure TMainForm.FileListSelectItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);

@@ -102,6 +102,7 @@ type
 		bStore: TDecksButton;
 		bZoneAdd: TDecksButton;
 		bZoneDel: TDecksButton;
+		miShowFile: TMenuItem;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -171,6 +172,7 @@ type
 		procedure bZoneAddButtonClick(Sender: TObject);
 		procedure bZoneDelButtonClick(Sender: TObject);
 		procedure pnlEffectsResize(Sender: TObject);
+		procedure miShowFileClick(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -1361,6 +1363,11 @@ end;
 procedure TDeckFrame.pnlEffectsResize(Sender: TObject);
 begin
 	ResizeEffectButtons;
+end;
+
+procedure TDeckFrame.miShowFileClick(Sender: TObject);
+begin
+	MainForm.SelectFileInFileList(Deck.Filename, True);
 end;
 
 procedure TDeckFrame.pbRulerRedraw(Sender: TObject; Bitmap: TBGRABitmap);

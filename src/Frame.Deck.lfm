@@ -1937,8 +1937,12 @@ object DeckFrame: TDeckFrame
     Left = 96
     Top = 72
     object miSetMasterTempo: TMenuItem
-      Caption = 'Set Master Tempo'
+      Caption = 'Set master tempo'
       OnClick = miSetMasterTempoClick
+    end
+    object miShowFile: TMenuItem
+      Caption = 'Select in file listing'
+      OnClick = miShowFileClick
     end
     object MenuItem2: TMenuItem
       Caption = '-'
