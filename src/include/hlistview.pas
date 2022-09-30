@@ -20,7 +20,8 @@ type
 	public
 		//ImageIndex: Integer; // TODO
 		SortIndex:  Integer; // use negative value to keep at top after sorting
-		Caption:    String;
+		Caption,
+		Hint:       String;
 		Color,
 		Background: TColor;
 		SubItems:   TStringList;
@@ -283,6 +284,7 @@ begin
 
 	//ImageIndex := -1;
 	Caption := '';
+	Hint := '';
 	Color := clNone;
 	Background := clNone;
 	SubItems := TStringList.Create;

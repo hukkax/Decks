@@ -19,8 +19,9 @@ uses
 const
 	SupportedFormats = '.mp3 .ogg .wav .it .s3m .xm .mod .sid .nsf';
 
-	STR_SYM_PARENT = '📂 ';
+	STR_SYM_PARENT = '📂';
 	STR_SYM_FOLDER = '🖿 ';
+	STR_SYM_DRIVES = '🖴';
 
 	COLOR_FILE_PARENT    = $77EEFF;
 	COLOR_FILE_DIRECTORY = $88CCEE;
@@ -29,6 +30,8 @@ const
 	COLOR_FILE_PLAYED    = $5EB078;
 	COLOR_BG_PARENT      = $2C3039;
 	COLOR_BG_DIRECTORY   = $1C2029;
+	COLOR_FILE_DRIVES    = COLOR_FILE_PARENT;
+	COLOR_BG_DRIVES      = COLOR_BG_PARENT;
 
 	LI_NORMAL = 0;
 	LI_HASEMBEDDEDIMAGE = 1;
@@ -134,6 +137,9 @@ type
 		miZoomIn: TMenuItem;
 		miZoomOut: TMenuItem;
 		MenuItem3: TMenuItem;
+		PopupDir: TPopupMenu;
+		miDirCopyFile: TMenuItem;
+		miDirMoveFile: TMenuItem;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -192,6 +198,8 @@ type
 		procedure bWinCloseClick(Sender: TObject);
 		procedure miZoomInClick(Sender: TObject);
 		procedure miZoomOutClick(Sender: TObject);
+		procedure miDirCopyFileClick(Sender: TObject);
+		procedure ListDirsMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -206,6 +214,7 @@ type
 		procedure OnFocusableControlDescend(Sender: TObject);
 		procedure OnFocusableControlEnter(Sender: TObject);
 		function  ClickButton(Ctrl: TControl; Pressed: Boolean): Boolean;
+		procedure ListDrives;
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
@@ -295,6 +304,7 @@ var
 	FocusableControls: TFocusableControls;
 	DeckInFocusableControls: array[0..2, 0..2] of TNode<TControl>;
 	FocusedDeck: Integer = 0;
+	HoveredDirectory: TTreeNode;
 
 {$WARN 5024 off : Parameter "$1" not used}
 
@@ -715,6 +725,44 @@ begin
 	ScaleTo(CurrentScale - 10);
 end;
 
+procedure TMainForm.ListDirsMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+	HoveredDirectory := ListDirs.NodeUnderCursor;
+end;
+
+procedure TMainForm.miDirCopyFileClick(Sender: TObject);
+var
+	Dir, Filename: String;
+	i: Integer;
+begin
+	if HoveredDirectory = nil then Exit;
+	Dir := ListDirs.GetPathFromNode(HoveredDirectory);
+	if Dir.IsEmpty then Exit;
+	Filename := SelectedListItem.Filename;
+	if Filename.IsEmpty then Exit;
+
+	if Sender = miDirCopyFile then
+	begin
+		if CopyFile(Filename, Dir + ExtractFilename(Filename), True) then
+			ShowMessage('File copied.')
+		else
+			ShowMessage('Error copying file!');
+	end
+	else
+	if Sender = miDirMoveFile then
+	begin
+		if RenameFile(Filename, Dir + ExtractFilename(Filename)) then
+		begin
+			ShowMessage('File moved.');
+			i := FileList.ItemIndex;
+			FileList.Items.Delete(i);
+			FileList.ItemIndex := i;
+		end
+		else
+			ShowMessage('Error moving file!');
+	end;
+end;
+
 procedure TMainForm.FormCreate(Sender: TObject);
 var
 	i: Integer;
@@ -776,12 +824,10 @@ begin
 		for i := 0 to Columns.Count-1 do
 			Columns[i].Tag := i;
 		Font.Color := COLOR_FILE_DEFAULT;
-		PopupList := PopupFile;
-		PopupHeader := PopupListHeader;
-		OnClickItem := FileListClickItem;
 	end;
 
 	ListDirs.OnScroll := ListDirsScrolled;
+	ListDirs.SelectionColor := FileList.ColorSelection;
 	ListDirs.HotTrackColor := FileList.ColorHover;
 	ListDirs.Path := CurrentDir;
 
@@ -1115,6 +1161,7 @@ begin
 
 	Col := FileList.ClickedColumn;
 	S := FileList.GetSubItemFor(Item, Col);
+
 	case Col of
 		COLUMN_FILENAME:
 			miFileRename.Click;
@@ -1266,11 +1313,27 @@ begin
 
 		tsDirAdded:
 		begin
-			Item := FileList.AddItem('');
+			Item := ThListItem.Create(FileList);
 			S := ExtractFileName(Filename);
 			if S = '..' then
 			begin
-				Item.Caption := STR_SYM_PARENT + ExtractFileName(ExtractFileDir(ExcludeTrailingPathDelimiter(CurrentDir)));
+				S := ExtractFileName(ExtractFileDir(ExcludeTrailingPathDelimiter(CurrentDir)));
+				if S = '' then
+				begin
+					{$IFDEF WINDOWS}
+					S := ExtractFileDrive(CurrentDir) + '\';
+					if S = ExtractFileDir(Filename) then
+					begin
+						// needed for network drives
+						Item.Free;
+						Exit;
+					end;
+					{$ELSE}
+					S := '/';
+					{$ENDIF}
+				end;
+				Item.Caption := STR_SYM_PARENT + '🗦' + S + '🗧';
+				Item.Hint := '..';
 				Item.Color := COLOR_FILE_PARENT;
 				Item.Background := COLOR_BG_PARENT;
 				Item.SortIndex := -2;
@@ -1278,11 +1341,13 @@ begin
 			else
 			begin
 				Item.Caption := STR_SYM_FOLDER + S;
+				Item.Hint := S;
 				Item.Color := COLOR_FILE_DIRECTORY;
 				Item.Background := COLOR_BG_DIRECTORY;
 				Item.SortIndex := -1;
 			end;
 			Item.Tag := LI_ISDIRECTORY;
+			FileList.Items.Add(Item);
 			if FileList.ItemIndex < 0 then
 				FileList.ItemIndex := 0;
 			FileList.Invalidate;
@@ -1300,7 +1365,30 @@ begin
 
 		tsFileScanFinished: // we can only sort by filename at this point
 		begin
-			if FileList.SortColumn = 0 then FileList.SortItems;
+			{$IFDEF WINDOWS}
+			// add a drive list entry if we're at a drive root
+			I := -1;
+			for Item in FileList.Items do
+			begin
+				if Item.SortIndex = -2 then
+				begin
+					I := FileList.Items.IndexOf(Item);
+					Break;
+				end;
+			end;
+			if I = -1 then
+			begin
+				Item := FileList.AddItem(STR_SYM_DRIVES + '🗦Drives🗧');
+				Item.Hint := '/';
+				Item.Tag := LI_ISDIRECTORY;
+				Item.Color := COLOR_FILE_DRIVES;
+				Item.Background := COLOR_BG_DRIVES;
+				Item.SortIndex := -2;
+			end;
+			{$ENDIF}
+
+			if FileList.SortColumn = 0 then
+				FileList.SortItems;
 			bToggleLeftPane.Enabled := True;
 		end;
 
@@ -1557,31 +1645,83 @@ begin
 	// get directory path from the list item
 	if Item.Tag = LI_ISDIRECTORY then
 	begin
-		if S.StartsWith(STR_SYM_PARENT) then
-			S := '..'
-		else
-			S := S.Replace(STR_SYM_FOLDER, '');
-		SelectedListItem.Filename := CreateAbsolutePath(S, CurrentDir);
+		S := Item.Hint;
+		{$IFDEF WINDOWS}if S <> '/' then{$ENDIF} // special item for drives list
+			S := CreateAbsolutePath(S, CurrentDir);
+		SelectedListItem.Filename := S;
 	end
 	else
 		SelectedListItem.Filename := CurrentDir + S;
 end;
 
+procedure TMainForm.ListDrives;
+var
+	Drive: Char;
+	DriveLetter: String;
+	OldMode: Word;
+
+	procedure AddDrive(const Kind: String);
+	var
+		Item: ThListItem;
+	begin
+		Item := FileList.AddItem(STR_SYM_DRIVES + ' ' + DriveLetter);
+		Item.Hint := DriveLetter;
+		Item.Color := COLOR_FILE_PARENT;
+		Item.Background := COLOR_BG_PARENT;
+		Item.SortIndex := -2;
+		Item.Tag := LI_ISDIRECTORY;
+		Item.SubItems.Add('');
+		Item.SubItems.Add(Kind);
+	end;
+
+begin
+	FileList.Items.Clear;
+	OldMode := SetErrorMode(SEM_FAILCRITICALERRORS);
+	try
+		for Drive := 'A' to 'Z' do
+		begin
+			DriveLetter := Drive + ':\';
+			case GetDriveType(PChar(DriveLetter)) of
+				DRIVE_REMOVABLE: AddDrive('Floppy');
+				DRIVE_FIXED:     AddDrive('HD');
+				DRIVE_REMOTE:    AddDrive('Network');
+				DRIVE_CDROM:     AddDrive('CD');
+				DRIVE_RAMDISK:   AddDrive('RAM');
+			end;
+		end;
+	finally
+		SetErrorMode(OldMode);
+	end;
+end;
+
 procedure TMainForm.FileListDblClick(Sender: TObject);
 var
 	I: Integer;
+	S: String;
 begin
-	if SelectedListItem.Filename.IsEmpty then
+	S := SelectedListItem.Filename;
+	if S.IsEmpty then
 	begin
 		I := FileList.ItemIndex;
 		if I >= 0 then
+		begin
 			FileListSelectItem(Self, mbLeft, [], FileList.Items[I]);
+			S := SelectedListItem.Filename;
+		end
+		else
+			Exit;
 	end;
-	if not SelectedListItem.Filename.IsEmpty then
+	if not S.IsEmpty then
 	begin
 		if SelectedListItem.Kind = LI_ISDIRECTORY then
 		begin
-			ListDirs.Path := SelectedListItem.Filename;
+			{$IFDEF WINDOWS}
+			// list drives
+			if S = '/' then
+				ListDrives
+			else
+			{$ENDIF}
+				ListDirs.Path := SelectedListItem.Filename;
 		end
 		else
 		begin
@@ -1727,6 +1867,7 @@ begin
 	Result.Form.Parent := DeckPanel;
 	Result.Form.ScaleBy(CurrentScale, 100);
 	TDeckFrame(Result.Form).Init(Result);
+	TDeckFrame(Result.Form).bMaster.Tag := FileList.ColorSelection;
 
 	if DeckList.Count < 2 then
 		SetMaster(1);
