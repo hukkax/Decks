@@ -381,19 +381,23 @@ begin
 			Ini.WriteString(Sect, 'amp',      FloatToString(Info.Amp));
 			Ini.WriteInteger(Sect, 'bitrate', Bitrate);
 			Ini.WriteString(Sect, 'duration', FloatToString(Duration));
+
+		if aBPM > 10 then
+		begin
 			Ini.WriteInteger(Sect, 'zones', Graph.Zones.Count);
 
-		Ini.WriteInt64('cue', '0', Graph.StartPos div Graph.SampleSizeMultiplier);
+			Ini.WriteInt64('cue', '0', Graph.StartPos div Graph.SampleSizeMultiplier);
 
-		for i := 0 to Graph.Zones.Count-1 do
-		begin
-			Z := Graph.Zones[i];
-			Sect := Format('zone.%d', [i]);
+			for i := 0 to Graph.Zones.Count-1 do
+			begin
+				Z := Graph.Zones[i];
+				Sect := Format('zone.%d', [i]);
 
-			Ini.WriteString(Sect, 'bpm', FloatToString(Z.BPM));
-			Ini.WriteInt64(Sect, 'bar', Z.barindex);
-			Ini.WriteString(Sect, 'kind', ZoneKindNames[Z.Kind]);
-			Ini.WriteInt64(Sect, 'data', Z.Data);
+				Ini.WriteString(Sect, 'bpm', FloatToString(Z.BPM));
+				Ini.WriteInt64(Sect, 'bar', Z.barindex);
+				Ini.WriteString(Sect, 'kind', ZoneKindNames[Z.Kind]);
+				Ini.WriteInt64(Sect, 'data', Z.Data);
+			end;
 		end;
 	finally
 		Ini.Free;

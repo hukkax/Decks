@@ -644,6 +644,7 @@ end;
 procedure TDeckFrame.bStoreClick(Sender: TObject);
 begin
 	Deck.SaveInfoFile(Deck.GetAvgBPM);
+	Deck.Info.BPM := Deck.AvgBPM;
 	MainForm.UpdateFileInfo(Deck.Filename);
 end;
 
@@ -1913,7 +1914,7 @@ begin
 			SetSlider(lBPM, Deck.Graph.Zones.First.BPM);
 			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
 			Deck.Graph.ZonesLoaded;
-			Deck.Info.BPM := Deck.GetAvgBPM;
+			Deck.GetAvgBPM;
 			SetCue(TPoint.Zero);
 			SliderTempoChange(nil);
 			JumpToCue;
