@@ -273,11 +273,8 @@ begin
 	Info := GetSongInfo(ExtractFileName(Filename), InfoHandler);
 	Result := Info.Initialized;
 	if not Result then
-	begin
 		Info := Tags.Info;
-		Result := Info.Initialized;
-	end;
-	if Result then
+	if Info.Initialized then
 	begin
 		if Info.Bitrate > 0 then
 			Bitrate := Info.Bitrate;
@@ -330,11 +327,14 @@ function TDeck.GetAvgBPM: Single;
 var
 	i, c: Integer;
 begin
-	c := Graph.Zones.Count;
 	AvgBPM := 0.0;
-	for i := 0 to c-1 do
-		AvgBPM += Graph.Zones[i].BPM;
-	AvgBPM := AvgBPM / c;
+	c := Graph.Zones.Count;
+	if c > 0 then
+	begin
+		for i := 0 to c-1 do
+			AvgBPM += Graph.Zones[i].BPM;
+		AvgBPM := AvgBPM / c;
+	end;
 	Result := AvgBPM;
 end;
 

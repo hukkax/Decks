@@ -1914,6 +1914,7 @@ begin
 				Deck.Graph.Clear;
 				Deck.Graph.AddZone(0, MasterBPM, True);
 				Deck.Info.BPM := 0.0;
+				Deck.Info.Amp := 1.0;
 			end;
 			UpdateCaption;
 			if Deck.Graph.Zones.Count > 0 then
