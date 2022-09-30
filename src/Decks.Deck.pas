@@ -357,7 +357,7 @@ procedure TDeck.SaveInfoFile(aBPM: Double = 0.0);
 
 	function FloatToString(N: Single): String;
 	begin
-		Result := Format('%d.%d', [Trunc(N), Trunc(Frac(N)*1000)]);
+		Result := Format('%d.%.3d', [Trunc(N), Trunc(Frac(N)*1000)]);
 	end;
 
 var
