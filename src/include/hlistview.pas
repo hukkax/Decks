@@ -62,6 +62,8 @@ type
 	end;
 	*)
 
+	ThListItems = TFPGObjectList<ThListItem>;
+
 	ThListView = class(TCustomControl)
 	private
 		FEnabled: Boolean;
@@ -76,8 +78,11 @@ type
 		FScrollbar: ThRangebar;
 		FMouseOver: Boolean;
 		FFont: TFont;
+		FFiltered: Boolean;
 
-		FSelectedItem: ThListItem;
+		FSelectedItem:  ThListItem;
+		FAllItems,
+		FFilteredItems: ThListItems;
 
 		//FHintData: TMyHintData;
 		FHoveredColumn,
@@ -149,7 +154,7 @@ type
 
 	public
 		Columns:  TFPGObjectList<ThListColumn>;
-		Items:    TFPGObjectList<ThListItem>;
+		Items:    ThListItems;
 		HintColumn: array of TRect;
 
 		constructor Create(AOwner: TComponent); override;
@@ -161,6 +166,7 @@ type
 		function  ColumnAt(X: Integer): Integer;
 		function  GetSubItemFor(const Item: ThListItem; var Column: Integer): String;
 		procedure SortItems;
+		procedure Filter(const Search: String);
 
 		function  GetVisibleRows: Integer;
 		procedure ScrollToView(const Item: ThListItem);
@@ -231,7 +237,7 @@ type
 implementation
 
 uses
-	Math, LCLType;
+	Math, LCLType, StrUtils;
 
 procedure Register;
 begin
@@ -317,7 +323,11 @@ begin
 	ControlStyle := ControlStyle + [csOpaque, csDoubleClicks] - [csNoFocus];
 
 	Columns := TFPGObjectList<ThListColumn>.Create;
-	Items := TFPGObjectList<ThListItem>.Create;
+
+	FAllItems := ThListItems.Create;
+	FFilteredItems := ThListItems.Create(False);
+	Items := FAllItems;
+
 	FScrollbar := nil;
 
 	FScrollPos := 0;
@@ -365,7 +375,8 @@ end;
 
 destructor ThListView.Destroy;
 begin
-	Items.Free;
+	FAllItems.Free;
+	FFilteredItems.Free;
 	Columns.Free;
 	FFont.Free;
 
@@ -376,7 +387,7 @@ function ThListView.AddItem(const Caption: String): ThListItem;
 begin
 	Result := ThListItem.Create(Self);
 	Result.Caption := Caption;
-	Items.Add(Result);
+	FAllItems.Add(Result);
 
 	UpdateScrollbar;
 end;
@@ -443,6 +454,8 @@ begin
 end;
 
 function ThListView.GetVisibleRows: Integer;
+var
+	C: Integer;
 begin
 	FRowsVisible := Trunc((ClientHeight - FHeaderHeight) / FItemHeight);
 	Result := FRowsVisible;
@@ -1006,6 +1019,30 @@ begin
 	end;
 end;
 
+procedure ThListView.Filter(const Search: String);
+var
+	Item: ThListItem;
+begin
+	FItemIndex := -1;
+	if Search = '' then
+	begin
+		FFiltered := False;
+		FFilteredItems.Clear;
+		Items := FAllItems;
+	end
+	else
+	begin
+		FFiltered := True;
+		FFilteredItems.Clear;
+		for Item in FAllItems do
+			if AnsiContainsText(Item.Caption, Search) then
+				FFilteredItems.Add(Item);
+		Items := FFilteredItems;
+	end;
+	UpdateScrollbar;
+	Invalidate;
+end;
+
 procedure ThListView.Draw(FullRedraw: Boolean = True);
 
 	procedure FillRect(R: TRect; C: TColor);
@@ -1080,6 +1117,7 @@ begin
 		if Y >= ClientHeight then Break;
 
 		Item := Items[I];
+
 		Hovered := (I = FHoveredItem);
 
 		if not FullRedraw then
