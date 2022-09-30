@@ -1838,7 +1838,15 @@ end;
 procedure TDeckFrame.UpdateCaption;
 begin
 	bDeckMenu.Caption := '☰ ' + Deck.Index.ToString;
-	bMaster.Caption := ExtractFileName(Deck.Filename);
+	if not Deck.Tags.Title.IsEmpty then
+	begin
+		if not Deck.Tags.Artist.IsEmpty then
+			bMaster.Caption := Deck.Tags.Artist + ' - ' + Deck.Tags.Title
+		else
+			bMaster.Caption := Deck.Tags.Title;
+	end
+	else
+		bMaster.Caption := ExtractFileName(Deck.Filename);
 	bMaster.Hint := Deck.Filename;
 end;
 
@@ -1894,24 +1902,15 @@ begin
 		MODE_LOAD_SUCCESS:
 		begin
 			Log('MODE_LOAD_SUCCESS');
-			UpdateCaption;
-
-			if Deck.GetInfo then
-			begin
-			end
-			else
+			if not Deck.GetInfo then
 			begin
 				Deck.Graph.Clear;
 				Deck.Graph.AddZone(0, MasterBPM, True);
 				Deck.Info.BPM := 0.0;
 			end;
-
-			if Deck.Info.BPM > 1 then
-			begin
-				//SetSlider(SliderTempo, Trunc(Deck.Info.BPM));
-				//SetSlider(SliderTempoFrac, Trunc(Frac(Deck.Info.BPM) * 1000));
-			end;
-			SetSlider(lBPM, Deck.Graph.Zones.First.BPM);
+			UpdateCaption;
+			if Deck.Graph.Zones.Count > 0 then
+				SetSlider(lBPM, Deck.Graph.Zones.First.BPM);
 			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
 			Deck.Graph.ZonesLoaded;
 			Deck.GetAvgBPM;
@@ -1920,7 +1919,6 @@ begin
 			JumpToCue;
 			SliderTempoChange(nil); // fixme: need to call this twice
 			ZoneChanged(0, False, False);
-
 			MainForm.UpdateFileInfo(Deck);
 			Deck.SaveInfoFile(Deck.Info.BPM);
 		end;

@@ -62,6 +62,7 @@ type
 		Graph: 		TBeatGraph;
 		PitchBend:	TPitchBend;
 		Info:		TSongInfo;
+		Tags:       TSongTags;
 		MenuItem:	TMenuItem;
 		QueuedSync: HSYNC;
 
@@ -111,7 +112,7 @@ implementation
 uses
 	Math, IniFiles,
 	Form.Main,
-	Decks.Config;
+	Decks.Config, Decks.TagScanner;
 
 {$WARN 5024 off : Parameter "$1" not used}
 
@@ -268,8 +269,14 @@ end;
 function TDeck.GetInfo: Boolean;
 begin
 	Graph.Zones.Clear;
+	Tags := ReadFileTags(Filename, False);
 	Info := GetSongInfo(ExtractFileName(Filename), InfoHandler);
 	Result := Info.Initialized;
+	if not Result then
+	begin
+		Info := Tags.Info;
+		Result := Info.Initialized;
+	end;
 	if Result then
 	begin
 		if Info.Bitrate > 0 then

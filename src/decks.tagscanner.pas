@@ -56,7 +56,7 @@ type
 	end;
 
 	function ReadTags(const Filename: String): TTagReader;
-	function ReadFileTags(const Filename: String): TSongTags;
+	function ReadFileTags(const Filename: String; DoGetSongInfo: Boolean = True): TSongTags;
 
 
 implementation
@@ -227,7 +227,7 @@ begin
 	end;
 end;
 
-function ReadFileTags(const Filename: String): TSongTags;
+function ReadFileTags(const Filename: String; DoGetSongInfo: Boolean = True): TSongTags;
 var
 	TagReader: TTagReader;
 	Tags: TCommonTags;
@@ -257,19 +257,23 @@ begin
 		Result.Info.Bitrate := TagReader.MediaProperty.Bitrate;
 		Result.Info.Length := Tags.Duration / 1000; // ms->s
 		Result.HasImage := Tags.HasImage;
+		Result.Info.Initialized := True;
 	finally
 		TagReader.Free;
 	end;
 
-	Info := GetSongInfo(ExtractFileName(Filename), nil);
-	if Info.Initialized then
+	if DoGetSongInfo then
 	begin
-		if Info.Length >= 1.0 then
-			Result.Info.Length  := Info.Length;
-		if Info.Bitrate > 0 then
-			Result.Info.Bitrate := Info.Bitrate;
-		Result.Info.Amp := Info.Amp;
-		Result.Info.BPM := Info.BPM;
+		Info := GetSongInfo(ExtractFileName(Filename), nil);
+		if Info.Initialized then
+		begin
+			if Info.Length >= 1.0 then
+				Result.Info.Length  := Info.Length;
+			if Info.Bitrate > 0 then
+				Result.Info.Bitrate := Info.Bitrate;
+			Result.Info.Amp := Info.Amp;
+			Result.Info.BPM := Info.BPM;
+		end;
 	end;
 end;
 
