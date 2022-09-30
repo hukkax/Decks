@@ -59,10 +59,10 @@ object DeckFrame: TDeckFrame
     TabOrder = 0
     OnResize = pnlEffectsResize
     object bEffect0: TDecksButton
-      Left = 0
+      Left = 5
       Height = 26
       Top = 0
-      Width = 74
+      Width = 80
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -116,10 +116,10 @@ object DeckFrame: TDeckFrame
     end
     object bEffect1: TDecksButton
       Tag = 1
-      Left = 320
+      Left = 67
       Height = 26
       Top = 0
-      Width = 74
+      Width = 80
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -171,10 +171,10 @@ object DeckFrame: TDeckFrame
     end
     object bEffect2: TDecksButton
       Tag = 2
-      Left = 73
+      Left = 128
       Height = 26
       Top = 0
-      Width = 74
+      Width = 80
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -225,10 +225,10 @@ object DeckFrame: TDeckFrame
     end
     object bEffect3: TDecksButton
       Tag = 3
-      Left = 394
+      Left = 192
       Height = 26
       Top = 0
-      Width = 74
+      Width = 80
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -279,10 +279,10 @@ object DeckFrame: TDeckFrame
     end
     object bEffect4: TDecksButton
       Tag = 4
-      Left = 148
+      Left = 256
       Height = 26
       Top = 0
-      Width = 86
+      Width = 80
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -334,10 +334,10 @@ object DeckFrame: TDeckFrame
     end
     object bEffect5: TDecksButton
       Tag = 5
-      Left = 468
+      Left = 320
       Height = 26
       Top = 0
-      Width = 86
+      Width = 80
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -389,10 +389,10 @@ object DeckFrame: TDeckFrame
     end
     object bEffect6: TDecksButton
       Tag = 6
-      Left = 234
+      Left = 384
       Height = 26
       Top = 0
-      Width = 86
+      Width = 80
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -608,7 +608,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBeat: TDecksButton
       Tag = 1
-      Left = 576
+      Left = 577
       Height = 24
       Hint = 'Loop 1 Beat'
       Top = 25
@@ -646,7 +646,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 1
-      Caption = '1'
+      Caption = 'Beat'
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
@@ -663,7 +663,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBeat2: TDecksButton
       Tag = 2
-      Left = 639
+      Left = 640
       Height = 24
       Hint = 'Loop 2 Beats'
       Top = 25
@@ -701,7 +701,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 1
-      Caption = '2'
+      Caption = 'x2'
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
@@ -718,7 +718,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar: TDecksButton
       Tag = 4
-      Left = 576
+      Left = 577
       Height = 24
       Hint = 'Loop 1 Bar'
       Top = 48
@@ -756,7 +756,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 1
-      Caption = '1'
+      Caption = 'Bar'
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
@@ -773,7 +773,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar2: TDecksButton
       Tag = 8
-      Left = 618
+      Left = 619
       Height = 24
       Hint = 'Loop 2 Bars'
       Top = 48
@@ -811,7 +811,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 1
-      Caption = '2'
+      Caption = 'x2'
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
@@ -828,7 +828,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar4: TDecksButton
       Tag = 16
-      Left = 660
+      Left = 661
       Height = 24
       Hint = 'Loop 4 Bars'
       Top = 48
@@ -866,7 +866,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
       StateNormal.FontEx.PaddingBottom = 1
-      Caption = '4'
+      Caption = 'x4'
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
@@ -883,7 +883,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopSong: TDecksButton
       Tag = -1
-      Left = 576
+      Left = 577
       Height = 26
       Hint = 'Loop Song'
       Top = 0
@@ -937,7 +937,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
     end
     object bLoopZone: TDecksButton
-      Left = 639
+      Left = 640
       Height = 26
       Hint = 'Loop Current Zone'
       Top = 0
@@ -998,7 +998,7 @@ object DeckFrame: TDeckFrame
     Top = 0
     Width = 708
     Align = alTop
-    Background.Color = 9994821
+    Background.Color = 8679475
     Background.Gradient1.StartColor = clWhite
     Background.Gradient1.EndColor = clBlack
     Background.Gradient1.GradientType = gtLinear
@@ -1016,7 +1016,7 @@ object DeckFrame: TDeckFrame
     Background.Gradient1EndPercent = 35
     Background.Style = bbsColor
     Background.FillStyle = bsClear
-    Background.FillColor = 8942654
+    Background.FillColor = clNone
     Bevel.Opacity = 255
     Bevel.ColorLight = 6710886
     Bevel.ColorDark = 2236962
@@ -1165,7 +1165,7 @@ object DeckFrame: TDeckFrame
     object pb: TBGRAVirtualScreen
       Cursor = crNone
       Left = 5
-      Height = 240
+      Height = 243
       Top = 17
       Width = 698
       Align = alClient
@@ -1182,7 +1182,7 @@ object DeckFrame: TDeckFrame
     object pbZones: TBGRAVirtualScreen
       Left = 5
       Height = 21
-      Top = 257
+      Top = 260
       Width = 698
       OnRedraw = pbZonesRedraw
       Align = alBottom
@@ -1211,13 +1211,13 @@ object DeckFrame: TDeckFrame
     object SliderGraphX: ThRangeBar
       Left = 5
       Height = 21
-      Top = 310
+      Top = 281
       Width = 698
       Align = alBottom
-      Color = 2171427
+      Color = 8553090
       BorderStyle = bsNone
       ButtonSize = 20
-      HandleColor = 8553090
+      HandleColor = 3553082
       ButtonColor = 8553090
       HighLightColor = 2171427
       ShadowColor = 2171427
@@ -1230,8 +1230,8 @@ object DeckFrame: TDeckFrame
     end
     object pnlZone: TDecksPanel
       Left = 5
-      Height = 32
-      Top = 278
+      Height = 29
+      Top = 302
       Width = 698
       Align = alBottom
       Background.Color = 3553082
@@ -1276,7 +1276,7 @@ object DeckFrame: TDeckFrame
       object lBPM: TDecksValueLabel
         Left = 0
         Height = 29
-        Top = 3
+        Top = 1
         Width = 112
         Background.Color = 4473924
         Background.Gradient1.StartColor = clWhite
@@ -1330,11 +1330,11 @@ object DeckFrame: TDeckFrame
         FullSideSelect = False
       end
       object bStart: TDecksButton
-        Left = 596
+        Left = 572
         Height = 28
         Hint = 'Left: Move cue to song start'#13#10'Right: Set song start position to cue'#13#10'Middle: Reset song start position'
-        Top = 4
-        Width = 52
+        Top = 1
+        Width = 64
         Anchors = [akTop, akRight]
         StateNormal.Background.Color = 6249562
         StateNormal.Background.Gradient1.StartColor = 6249562
@@ -1384,11 +1384,11 @@ object DeckFrame: TDeckFrame
         ClickOffset = True
       end
       object bStore: TDecksButton
-        Left = 648
+        Left = 635
         Height = 28
         Hint = 'Save song setup'
-        Top = 4
-        Width = 52
+        Top = 1
+        Width = 64
         Anchors = [akTop, akRight]
         StateNormal.Background.Color = 6249562
         StateNormal.Background.Gradient1.StartColor = 6249562
@@ -1414,15 +1414,15 @@ object DeckFrame: TDeckFrame
         StateNormal.Border.Style = bboSolid
         StateNormal.FontEx.Color = 11775917
         StateNormal.FontEx.FontQuality = fqSystemClearType
-        StateNormal.FontEx.Height = 20
+        StateNormal.FontEx.Height = 24
         StateNormal.FontEx.Shadow = True
         StateNormal.FontEx.ShadowColorOpacity = 160
         StateNormal.FontEx.ShadowRadius = 2
         StateNormal.FontEx.ShadowOffsetX = 1
         StateNormal.FontEx.ShadowOffsetY = 1
         StateNormal.FontEx.Style = []
-        StateNormal.FontEx.PaddingBottom = 5
-        Caption = '🖪'
+        StateNormal.FontEx.PaddingBottom = 3
+        Caption = '🖫'
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
@@ -1438,10 +1438,10 @@ object DeckFrame: TDeckFrame
         ClickOffset = True
       end
       object bZoneAdd: TDecksButton
-        Left = 488
+        Left = 460
         Height = 28
         Hint = 'Left: Move cue to song start'
-        Top = 4
+        Top = 1
         Width = 45
         Anchors = [akTop, akRight]
         StateNormal.Background.Color = 6249562
@@ -1468,7 +1468,7 @@ object DeckFrame: TDeckFrame
         StateNormal.Border.Style = bboSolid
         StateNormal.FontEx.Color = 11775917
         StateNormal.FontEx.FontQuality = fqSystemClearType
-        StateNormal.FontEx.Height = 20
+        StateNormal.FontEx.Height = 18
         StateNormal.FontEx.Shadow = True
         StateNormal.FontEx.ShadowColorOpacity = 160
         StateNormal.FontEx.ShadowRadius = 2
@@ -1492,10 +1492,10 @@ object DeckFrame: TDeckFrame
         ClickOffset = True
       end
       object bZoneDel: TDecksButton
-        Left = 532
+        Left = 504
         Height = 28
         Hint = 'Left: Move cue to song start'
-        Top = 4
+        Top = 1
         Width = 45
         Anchors = [akTop, akRight]
         StateNormal.Background.Color = 6249562
@@ -1522,7 +1522,7 @@ object DeckFrame: TDeckFrame
         StateNormal.Border.Style = bboSolid
         StateNormal.FontEx.Color = 11775917
         StateNormal.FontEx.FontQuality = fqSystemClearType
-        StateNormal.FontEx.Height = 20
+        StateNormal.FontEx.Height = 18
         StateNormal.FontEx.Shadow = True
         StateNormal.FontEx.ShadowColorOpacity = 160
         StateNormal.FontEx.ShadowRadius = 2

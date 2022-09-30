@@ -1185,14 +1185,15 @@ object MainForm: TMainForm
         HideSelection = False
         HotTrack = True
         ParentFont = False
+        PopupMenu = PopupDir
         ReadOnly = True
         RowSelect = True
         ScrollBars = ssNone
-        SelectionColor = 10188589
         TabOrder = 0
         OnChange = ListDirsChange
         OnCollapsed = ListDirsCollapsed
         OnExpanded = ListDirsCollapsed
+        OnMouseMove = ListDirsMouseMove
         Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
         ExpandSignColor = 748784
         ObjectTypes = [otFolders]
@@ -1241,7 +1242,7 @@ object MainForm: TMainForm
       Width = 741
       Align = alClient
       Color = 2171427
-      ColorSelection = 10188589
+      ColorSelection = 8679475
       ColorSelectedText = clWhite
       ColorGrid = 4473924
       ColorHover = 3355443
@@ -1254,8 +1255,11 @@ object MainForm: TMainForm
       ItemHeight = 23
       Scrollbar = sFiles
       ParentShowHint = False
+      PopupHeader = PopupListHeader
+      PopupList = PopupFile
       ShowHint = True
       OnSelectItem = FileListSelectItem
+      OnClickItem = FileListClickItem
       OnDblClick = FileListDblClick
       OnEnter = FileListEnter
       OnExit = FileListEnter
@@ -1296,8 +1300,8 @@ object MainForm: TMainForm
   object PopupFile: TPopupMenu
     Images = ImageListIcons
     OnPopup = PopupFilePopup
-    Left = 40
-    Top = 140
+    Left = 288
+    Top = 448
     object miSep: TMenuItem
       Caption = '-'
     end
@@ -1324,8 +1328,8 @@ object MainForm: TMainForm
     end
   end
   object ImageListIcons: TImageList
-    Left = 112
-    Top = 64
+    Left = 56
+    Top = 96
     Bitmap = {
       4C7A170000001000000010000000C71300000000000078DAED9C7B70175596C7
       6FD5D6D46ECD3A3B355B6E955B5BE3EE386BADD6AEBB336675747CB58E3A6A8D
@@ -1492,12 +1496,12 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 15
     OnTimer = TimerTimer
-    Left = 40
-    Top = 64
+    Left = 16
+    Top = 96
   end
   object PopupMenu: TPopupMenu
-    Left = 112
-    Top = 140
+    Left = 8
+    Top = 40
     object miZoomOut: TMenuItem
       Caption = 'Zoom Out'
       OnClick = miZoomOutClick
@@ -1533,7 +1537,19 @@ object MainForm: TMainForm
     end
   end
   object PopupListHeader: TPopupMenu
-    Left = 176
-    Top = 140
+    Left = 248
+    Top = 392
+  end
+  object PopupDir: TPopupMenu
+    Left = 32
+    Top = 408
+    object miDirCopyFile: TMenuItem
+      Caption = 'Copy file here'
+      OnClick = miDirCopyFileClick
+    end
+    object miDirMoveFile: TMenuItem
+      Caption = 'Move file here'
+      OnClick = miDirCopyFileClick
+    end
   end
 end

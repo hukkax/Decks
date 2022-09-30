@@ -78,30 +78,32 @@ end;
 procedure ThShellTree.WMVScroll(var Msg: TLMScroll);
 begin
 	inherited;
-	if Assigned(FOnScroll) then FOnScroll(Msg.ScrollCode, Msg.Pos);
+	if Assigned(FOnScroll) then
+		FOnScroll(Msg.ScrollCode, Msg.Pos);
 end;
 
 procedure ThShellTree.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
-	if Assigned(OnMouseMove) then OnMouseMove(Self, Shift, X, Y);
-  if (tvoAutoInsertMark in Options) then
-    UpdateInsertMark(X,Y);
-  UpdateTooltip(X, Y);
-  UpdateHotTrack(X, Y);
+	if Assigned(OnMouseMove) then
+		OnMouseMove(Self, Shift, X, Y);
+	if (tvoAutoInsertMark in Options) then
+		UpdateInsertMark(X,Y);
+	UpdateTooltip(X, Y);
+	UpdateHotTrack(X, Y);
 end;
 
 procedure ThShellTree.UpdateHotTrack(X, Y: Integer);
 begin
-  NodeUnderCursor := nil;
-  if not (tvoHotTrack in Options) then Exit;
-  NodeUnderCursor := GetNodeAt(X, Y);
-  Invalidate;
+	NodeUnderCursor := nil;
+	if not (tvoHotTrack in Options) then Exit;
+	NodeUnderCursor := GetNodeAt(X, Y);
+	Invalidate;
 end;
 
 procedure ThShellTree.HintMouseLeave(Sender: TObject);
 begin
-  if FindLCLControl(Mouse.CursorPos)<>Self then
-    FHintWnd.Hide;
+	if FindLCLControl(Mouse.CursorPos) <> Self then
+		FHintWnd.Hide;
 end;
 
 procedure ThShellTree.MouseLeave;
