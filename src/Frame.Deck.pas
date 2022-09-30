@@ -1491,7 +1491,7 @@ begin
 	begin
 		H := pbZones.ClientHeight;
 		Zoner.SetSize(Deck.Graph.Width, H);
-		Zoner.FontHeight := Trunc(H * 0.8);
+		Zoner.FontHeight := Trunc((H-2) * 0.8);
 		X2 := Zoner.Width-1;
 
 		Zoner.Fill(BGRABlack);
