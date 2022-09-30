@@ -815,10 +815,10 @@ begin
 	begin
 		Columns.Clear;
 		AddColumn('Filename', -54).AlwaysShow := True;
-		AddColumn(' BPM', 50).AlwaysShow := True;
-		AddColumn('Duration', 60);
-		AddColumn('Bitrate', 46);
-		AddColumn('Year', 42);
+		AddColumn(' BPM', 60, taCenter).AlwaysShow := True;
+		AddColumn('Duration', 62, taCenter);
+		AddColumn('Bitrate', 46, taCenter);
+		AddColumn('Year', 50, taCenter);
 		AddColumn('Genre', 100);
 		AddColumn('Artist', -16);
 		AddColumn('Title', -16);
