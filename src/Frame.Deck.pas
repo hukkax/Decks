@@ -643,7 +643,8 @@ end;
 
 procedure TDeckFrame.bStoreClick(Sender: TObject);
 begin
-	Deck.SaveInfoFile;
+	Deck.OrigBPM := Deck.Graph.Zones.First.BPM;
+	Deck.SaveInfoFile(Deck.OrigBPM);
 	MainForm.UpdateFileInfo(Deck.Filename);
 end;
 
