@@ -118,6 +118,7 @@ type
 		procedure ShowColumnPopup(P: TPoint);
 		procedure ToggleColumnVisibilityFromMenu(Sender: TObject);
 		procedure SetTextStyle(AValue: TTextStyle);
+		procedure SetSelectedItem(AValue: ThListItem);
 
 	protected
 		procedure SetEnabled(Value: Boolean); override;
@@ -174,7 +175,7 @@ type
 		property LastVisibleIndex:  Integer read FLastVisibleIndex  write SetLastVisibleIndex;
 		property ItemIndex: Integer read FItemIndex write SetItemIndex;
 		property HoveredItem: Integer read FHoveredItem;
-		property SelectedItem: ThListItem read FSelectedItem;
+		property SelectedItem: ThListItem read FSelectedItem write SetSelectedItem;
 
 	published
 		property Align;
@@ -760,6 +761,19 @@ begin
 	FTextStyle := AValue;
 	Canvas.TextStyle := FTextStyle;
 	Invalidate;
+end;
+
+procedure ThListView.SetSelectedItem(AValue: ThListItem);
+var
+	I: Integer;
+begin
+	if (AValue <> nil) and (FSelectedItem <> AValue) then
+	for I := 0 to Items.Count-1 do
+		if Items[I] = AValue then
+		begin
+			ItemIndex := I;
+			Exit;
+		end;
 end;
 
 procedure ThListView.ShowColumnPopup(P: TPoint);
