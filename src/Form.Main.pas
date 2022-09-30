@@ -305,6 +305,9 @@ var
 	DeckInFocusableControls: array[0..2, 0..2] of TNode<TControl>;
 	FocusedDeck: Integer = 0;
 	HoveredDirectory: TTreeNode;
+	{$IFDEF USEMIDI}
+	BeatLedState: array[1..3] of Boolean;
+	{$ENDIF}
 
 {$WARN 5024 off : Parameter "$1" not used}
 
@@ -770,7 +773,6 @@ var
 	S: String;
 	mi: TMenuItem;
 	{$ENDIF}
-
 //	FC, CC: TFocusableControl;
 //	Ctrl: TControl;
 begin
@@ -2044,6 +2046,7 @@ end;
 procedure TMainForm.TimerTimer(Sender: TObject);
 var
 	i, W, H: Integer;
+	B: Boolean;
 	Deck: TDeck;
 	Col: TBGRAPixel;
 begin
@@ -2053,6 +2056,22 @@ begin
 		Timer.Tag := 0;
 		lCPU.Caption := Format('%.1f', [BASS_GetCPU]) + '%';
 	end;
+
+	{$IFDEF USEMIDI}
+	for i := 1 to 2 do
+	begin
+		Deck := MixerDeck[i].Deck;
+		if (Deck <> nil) and (not Deck.Paused) and (not Deck.Cueing) then
+		begin
+			B := Deck.BeatFadeCounter >= 254;
+			if BeatLedState[i] <> B then
+			begin
+				MIDI.SetLed(DECK_CUE, i=2, B);
+				BeatLedState[i] := B;
+			end;
+		end;
+	end;
+	{$ENDIF}
 
 	if not Config.Mixer.Enabled then Exit;
 
