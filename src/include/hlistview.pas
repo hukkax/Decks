@@ -1024,6 +1024,8 @@ begin
 						Columns[Col].Caption);
 				Inc(X, Columns[Col].Width);
 			end;
+			Canvas.Pen.Color := clBlack;
+			Canvas.Line(0, Y-1, ClientWidth-1, Y-1);
 		end;
 	end;
 

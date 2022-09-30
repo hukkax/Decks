@@ -23,13 +23,13 @@ const
 	STR_SYM_FOLDER = '🖿 ';
 	STR_SYM_DRIVES = '🖴';
 
-	COLOR_FILE_PARENT    = $77EEFF;
+	COLOR_FILE_PARENT    = $4488FF;
 	COLOR_FILE_DIRECTORY = $88CCEE;
 	COLOR_FILE_DEFAULT   = $AAAAAA;
 	COLOR_FILE_HASBPM    = $DDEEFF;
 	COLOR_FILE_PLAYED    = $5EB078;
-	COLOR_BG_PARENT      = $2C3039;
-	COLOR_BG_DIRECTORY   = $1C2029;
+	COLOR_BG_PARENT      = $12151C;
+	COLOR_BG_DIRECTORY   = $111213;
 	COLOR_FILE_DRIVES    = COLOR_FILE_PARENT;
 	COLOR_BG_DRIVES      = COLOR_BG_PARENT;
 
@@ -1743,7 +1743,7 @@ end;
 
 procedure TMainForm.FileListEnter(Sender: TObject);
 begin
-	SetActiveList(FileList.Focused);
+//	SetActiveList(FileList.Focused);
 end;
 
 procedure TMainForm.FileListKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);

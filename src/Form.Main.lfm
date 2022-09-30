@@ -1244,8 +1244,8 @@ object MainForm: TMainForm
       Color = 2171427
       ColorSelection = 8679475
       ColorSelectedText = clWhite
-      ColorGrid = 4473924
-      ColorHover = 3355443
+      ColorGrid = 3355443
+      ColorHover = 2894892
       SortColumn = 0
       HeaderHeight = 23
       HeaderColor = 3553082
