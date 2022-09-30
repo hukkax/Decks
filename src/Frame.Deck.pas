@@ -1316,7 +1316,13 @@ end;
 
 procedure TDeckFrame.pbRulerDblClick(Sender: TObject);
 begin
-	if Enabled then JumpToCue;
+	if Enabled then
+	begin
+		if (Deck.Synced) and (not Deck.Paused) then
+			SyncToOtherDeck(False)
+		else
+			JumpToCue;
+	end;
 end;
 
 procedure TDeckFrame.lBPMChange(Sender: TObject);
