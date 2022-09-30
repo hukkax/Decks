@@ -133,10 +133,10 @@ object MainForm: TMainForm
         Rounding.RoundY = 0
       end
       object sBPM: ThGaugeBar
-        Left = 320
+        Left = 624
         Height = 29
         Top = 9
-        Width = 471
+        Width = 167
         Anchors = [akTop, akLeft, akRight]
         Color = 2171427
         BorderStyle = bsNone
@@ -481,10 +481,12 @@ object MainForm: TMainForm
         ClickOffset = True
       end
       object lCPU: TDecksLabel
-        Left = 256
+        AnchorSideRight.Control = sBPM
+        Left = 576
         Height = 29
         Top = 9
-        Width = 65
+        Width = 48
+        Anchors = [akTop, akRight]
         AutoSize = False
         Background.Color = 2171427
         Background.Gradient1.StartColor = clWhite
@@ -578,6 +580,22 @@ object MainForm: TMainForm
         TextApplyGlobalOpacity = False
         Visible = False
         ClickOffset = True
+      end
+      object eFileFilter: TListFilterEdit
+        Left = 374
+        Height = 25
+        Top = 11
+        Width = 194
+        ButtonWidth = 23
+        Flat = True
+        Color = clBlack
+        Font.Color = clWhite
+        NumGlyphs = 1
+        MaxLength = 0
+        ParentFont = False
+        Spacing = 2
+        TabOrder = 1
+        OnChange = eFileFilterChange
       end
     end
     object PanelWin: TDecksPanel

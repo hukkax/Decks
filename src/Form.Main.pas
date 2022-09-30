@@ -8,7 +8,7 @@ interface
 uses
 	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
 	Types, ShellCtrls, ComCtrls, Menus, FGL, LCLIntf, LCLType,
-	BGRABitmap, BGRABitmapTypes, BGRAVirtualScreen,
+	BGRABitmap, BGRABitmapTypes, BGRAVirtualScreen, ListFilterEdit,
 	hListView, hShellTree, DecksButton, hSlider, hKnob, DecksLabel, DecksPanel,
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
 	Decks.SongInfo, Decks.TagScanner,
@@ -140,6 +140,7 @@ type
 		PopupDir: TPopupMenu;
 		miDirCopyFile: TMenuItem;
 		miDirMoveFile: TMenuItem;
+		eFileFilter: TListFilterEdit;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -200,6 +201,7 @@ type
 		procedure miZoomOutClick(Sender: TObject);
 		procedure miDirCopyFileClick(Sender: TObject);
 		procedure ListDirsMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+		procedure eFileFilterChange(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -735,6 +737,11 @@ begin
 	HoveredDirectory := ListDirs.NodeUnderCursor;
 end;
 
+procedure TMainForm.eFileFilterChange(Sender: TObject);
+begin
+	FileList.Filter(eFileFilter.Text);
+end;
+
 procedure TMainForm.miDirCopyFileClick(Sender: TObject);
 var
 	Dir, Filename: String;
@@ -993,6 +1000,7 @@ begin
 		end;
 
 		VK_BACK:
+		if not eFileFilter.Focused then
 		begin
 			Act.Kind := UI_SELECT_EXIT;
 			Act.Param := 0;
@@ -2083,7 +2091,7 @@ var
 	Col: TBGRAPixel;
 begin
 	Timer.Tag := Timer.Tag + 1;
-	if Timer.Tag >= 20 then
+	if Timer.Tag >= 60 then
 	begin
 		Timer.Tag := 0;
 		lCPU.Caption := Format('%.1f', [BASS_GetCPU]) + '%';
@@ -2093,34 +2101,36 @@ begin
 	for i := 1 to 2 do
 	begin
 		Deck := MixerDeck[i].Deck;
-		if (Deck <> nil) and (not Deck.Paused) and (not Deck.Cueing) then
+		if Deck = nil then
+			B := False
+		else
+		if (not Deck.Paused) and (not Deck.Cueing) then
+			B := Deck.BeatFadeCounter >= 254
+		else
+			B := Deck.Cueing;
+		if BeatLedState[i] <> B then
 		begin
-			B := Deck.BeatFadeCounter >= 254;
-			if BeatLedState[i] <> B then
-			begin
-				MIDI.SetLed(DECK_CUE, i=2, B);
-				BeatLedState[i] := B;
-			end;
+			MIDI.SetLed(DECK_CUE, i=2, B);
+			BeatLedState[i] := B;
 		end;
 	end;
 	{$ENDIF}
 
-	if not Config.Mixer.Enabled then Exit;
-
-	W := pbBeats.ClientWidth div 2;
-	H := pbBeats.ClientHeight - 1;
-
-	for i := 0 to 1 do
+	if Config.Mixer.Enabled then
 	begin
-		Deck := MixerDeck[i+1].Deck;
-		if (Deck = nil) or (Deck.Paused) then
-			Col := BGRABlack
-		else
-			Col := Grays[Deck.BeatFadeCounter];
-		pbBeats.Bitmap.FillRect(Bounds(i*W, 0, W, H), Col, dmSet);
+		W := pbBeats.ClientWidth div 2;
+		H := pbBeats.ClientHeight - 1;
+		for i := 0 to 1 do
+		begin
+			Deck := MixerDeck[i+1].Deck;
+			if (Deck = nil) or (Deck.Paused) then
+				Col := BGRABlack
+			else
+				Col := Grays[Deck.BeatFadeCounter];
+			pbBeats.Bitmap.FillRect(Bounds(i*W, 0, W, H), Col, dmSet);
+		end;
+		pbBeats.Repaint;
 	end;
-
-	pbBeats.Repaint;
 end;
 
 procedure TMainForm.sDirsChange(Sender: TObject);

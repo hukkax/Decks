@@ -6,7 +6,7 @@ program Decks3;
 uses
 	{$IFDEF UNIX}cthreads, Classes,{$ENDIF}
 	Interfaces, // this includes the LCL widgetset
-	Forms, Form.Main, Frame.Deck,
+	Forms, lazcontrols, Form.Main, Frame.Deck,
 	Decks.Audio, Decks.Song, Decks.Beatgraph,
 	Decks.SongInfo, Decks.TagScanner, Decks.Effects, TextInputDialog,
 	Form.Tracklist, FocusRectangleUnit;
