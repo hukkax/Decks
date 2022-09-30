@@ -1889,7 +1889,6 @@ begin
 			Log('MODE_LOAD_SUCCESS');
 			UpdateCaption;
 
-			Deck.Info.BPM := MasterBPM;
 			if Deck.GetInfo then
 			begin
 			end
@@ -1897,6 +1896,7 @@ begin
 			begin
 				Deck.Graph.Clear;
 				Deck.Graph.AddZone(0, MasterBPM, True);
+				Deck.Info.BPM := 0.0;
 			end;
 
 			if Deck.Info.BPM > 1 then
@@ -1915,7 +1915,7 @@ begin
 			ZoneChanged(0, False, False);
 
 			MainForm.UpdateFileInfo(Deck);
-			Deck.SaveInfoFile;
+			Deck.SaveInfoFile(Deck.Info.BPM);
 		end;
 
 		MODE_LOAD_FAILURE:

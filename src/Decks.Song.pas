@@ -170,9 +170,9 @@ begin
 	BASS_Mixer_StreamAddChannel(Stream, OrigStream,
 		BASS_MIXER_DOWNMIX or (*BASS_MIXER_BUFFER or*) BASS_MIXER_NORAMPIN);
 
+	OrigBPM  := 0;
 	OrigFreq := 44100; //ChannelInfo.freq;
 	PlayFreq := OrigFreq;
-	OrigBPM := 125.000;
 
 	Loaded := True;
 	Result := Loaded;

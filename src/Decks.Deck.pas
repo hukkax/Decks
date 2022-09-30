@@ -96,7 +96,7 @@ type
 		procedure	DisableLoop(LoopInfo: PLoopInfo);
 		procedure	SetBPM(NewBPM: Single);
 
-		procedure	SaveInfoFile;
+		procedure	SaveInfoFile(aBPM: Double = 0.0);
 		procedure	SaveOldInfoFile;
 
 		procedure	UpdateMenuItem;
@@ -338,7 +338,7 @@ end;
 //
 //
 
-procedure TDeck.SaveInfoFile;
+procedure TDeck.SaveInfoFile(aBPM: Double = 0.0);
 
 	function FloatToString(N: Single): String;
 	begin
@@ -351,6 +351,8 @@ var
 	Z: TZone;
 	i: Integer;
 begin
+	if BPM < 0.1 then aBPM := OrigBPM;
+
 	S := Config.Directory.BPM + ExtractFilename(Filename) + '.bpm';
 	Ini := TIniFile.Create(S);
 	try
@@ -360,7 +362,7 @@ begin
 			Ini.WriteString(Sect, 'path', ExtractFilePath(Filename));
 			Ini.WriteString(Sect, 'file', ExtractFileName(Filename));
 
-			Ini.WriteString(Sect, 'bpm',      FloatToString(OrigBPM));
+			Ini.WriteString(Sect, 'bpm',      FloatToString(aBPM));
 			Ini.WriteString(Sect, 'amp',      FloatToString(Info.Amp));
 			Ini.WriteInteger(Sect, 'bitrate', Bitrate);
 			Ini.WriteString(Sect, 'duration', FloatToString(Duration));
