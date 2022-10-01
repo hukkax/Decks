@@ -202,6 +202,7 @@ type
 		procedure miDirCopyFileClick(Sender: TObject);
 		procedure ListDirsMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 		procedure eFileFilterChange(Sender: TObject);
+		procedure eFileFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -739,7 +740,17 @@ end;
 
 procedure TMainForm.eFileFilterChange(Sender: TObject);
 begin
-	FileList.Filter(eFileFilter.Text);
+	FileList.Filter(eFileFilter.Text, False);
+end;
+
+procedure TMainForm.eFileFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+	// ctrl-backspace to clear
+	if (Key = VK_BACK) and (Shift = [ssCtrl]) then
+	begin
+		Key := 0;
+		eFileFilter.Text := '';
+	end;
 end;
 
 procedure TMainForm.miDirCopyFileClick(Sender: TObject);
@@ -1612,7 +1623,14 @@ end;
 procedure TMainForm.PopupFilePopup(Sender: TObject);
 var
 	Deck: TDeck;
+	LI: ThListItem;
 begin
+	LI := FileList.SelectedItem;
+	if (LI = nil) or (LI.Tag = LI_ISDIRECTORY) then
+	begin
+		Abort;
+		Exit;
+	end;
 	miSep.Visible := (DeckList.Count > 0);
 	for Deck in DeckList do
 		Deck.UpdateMenuItem;

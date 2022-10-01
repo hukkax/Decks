@@ -583,19 +583,22 @@ object MainForm: TMainForm
       end
       object eFileFilter: TListFilterEdit
         Left = 374
-        Height = 25
-        Top = 11
+        Height = 29
+        Top = 9
         Width = 194
         ButtonWidth = 23
         Flat = True
+        AutoSize = False
         Color = clBlack
         Font.Color = clWhite
+        Font.Height = 20
         NumGlyphs = 1
         MaxLength = 0
         ParentFont = False
         Spacing = 2
         TabOrder = 1
         OnChange = eFileFilterChange
+        OnKeyDown = eFileFilterKeyDown
       end
     end
     object PanelWin: TDecksPanel
