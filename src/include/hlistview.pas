@@ -166,7 +166,7 @@ type
 		function  ColumnAt(X: Integer): Integer;
 		function  GetSubItemFor(const Item: ThListItem; var Column: Integer): String;
 		procedure SortItems;
-		procedure Filter(const Search: String);
+		procedure Filter(const Search: String; CaptionOnly: Boolean);
 
 		function  GetVisibleRows: Integer;
 		procedure ScrollToView(const Item: ThListItem);
@@ -182,6 +182,7 @@ type
 		property ItemIndex: Integer read FItemIndex write SetItemIndex;
 		property HoveredItem: Integer read FHoveredItem;
 		property SelectedItem: ThListItem read FSelectedItem write SetSelectedItem;
+		property Filtered: Boolean read FFiltered;
 
 	published
 		property Align;
@@ -478,6 +479,7 @@ begin
 	if (I >= 0) and (I < Items.Count) then
 	begin
 		FItemIndex := I;
+		FSelectedItem := Items[I];
 		ScrollToView(Items[I]);
 	end
 	else
@@ -840,22 +842,20 @@ begin
 	end
 	else
 	begin
-		SetItemIndex(Y div FItemHeight + FFirstVisibleIndex);
-		if FItemIndex >= 0 then
+		I := Y div FItemHeight + FFirstVisibleIndex;
+		if (I >= 0) and (I < Items.Count) then
 		begin
+			SetItemIndex(I);
 			Item := Items[FItemIndex]; // else Item := nil;
 			if FItemIndex <> I then
 				if Assigned(FOnSelectItem) then
 					FOnSelectItem(Self, Button, Shift, Item);
 			if Assigned(FOnClickItem) then
 				FOnClickItem(Self, Button, Shift, Item);
-		end
-		else
-			SetItemIndex(I); // select previously selected
-
-		if Button = mbRight then
-			if FPopupList <> nil then
-				FPopupList.PopUp(P.X, P.Y);
+			if Button = mbRight then
+				if FPopupList <> nil then
+					FPopupList.PopUp(P.X, P.Y);
+		end;
 	end;
 
 	inherited MouseDown(Button, Shift, X, Y);
@@ -1019,9 +1019,10 @@ begin
 	end;
 end;
 
-procedure ThListView.Filter(const Search: String);
+procedure ThListView.Filter(const Search: String; CaptionOnly: Boolean);
 var
 	Item: ThListItem;
+	Col: Integer;
 begin
 	FItemIndex := -1;
 	if Search = '' then
@@ -1035,8 +1036,20 @@ begin
 		FFiltered := True;
 		FFilteredItems.Clear;
 		for Item in FAllItems do
+		begin
 			if AnsiContainsText(Item.Caption, Search) then
-				FFilteredItems.Add(Item);
+				FFilteredItems.Add(Item)
+			else
+				if not CaptionOnly then
+				begin
+					for Col := 0 to Item.SubItems.Count-1 do
+						if AnsiContainsText(Item.SubItems[Col], Search) then
+						begin
+							FFilteredItems.Add(Item);
+							Break;
+						end;
+				end;
+		end;
 		Items := FFilteredItems;
 	end;
 	UpdateScrollbar;
