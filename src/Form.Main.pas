@@ -7,7 +7,7 @@ interface
 
 uses
 	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-	Types, ShellCtrls, ComCtrls, Menus, FGL, LCLIntf, LCLType,
+	Types, ShellCtrls, ComCtrls, Menus, FGL, LCLIntf, LCLType, EditBtn,
 	BGRABitmap, BGRABitmapTypes, BGRAVirtualScreen, ListFilterEdit,
 	hListView, hShellTree, DecksButton, hSlider, hKnob, DecksLabel, DecksPanel,
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
@@ -140,7 +140,16 @@ type
 		PopupDir: TPopupMenu;
 		miDirCopyFile: TMenuItem;
 		miDirMoveFile: TMenuItem;
-		eFileFilter: TListFilterEdit;
+		eFileFilter: TEdit;
+		shpFileFilter: TShape;
+		DecksPanel1: TDecksPanel;
+		DecksPanel2: TDecksPanel;
+		bLoadDeckNew: TDecksButton;
+		bLoadDeck1: TDecksButton;
+		bLoadDeck2: TDecksButton;
+		bLoadDeck3: TDecksButton;
+		bFileRename: TDecksButton;
+		bFileDelete: TDecksButton;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -219,6 +228,7 @@ type
 		procedure OnFocusableControlEnter(Sender: TObject);
 		function  ClickButton(Ctrl: TControl; Pressed: Boolean): Boolean;
 		procedure ListDrives;
+		procedure UpdateFilelistToolbar(IsDir: Boolean);
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
@@ -741,6 +751,17 @@ end;
 procedure TMainForm.eFileFilterChange(Sender: TObject);
 begin
 	FileList.Filter(eFileFilter.Text, False);
+
+	if FileList.Filtered then
+	begin
+		eFileFilter.Font.Color := $A6A8AA;
+		shpFileFilter.Pen.Style := psSolid;
+	end
+	else
+	begin
+		eFileFilter.Font.Color := $555555;
+		shpFileFilter.Pen.Style := psClear;
+	end;
 end;
 
 procedure TMainForm.eFileFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -941,6 +962,8 @@ begin
 			Memo1.Lines.Add(Format('    %d children', [CC.Count]));
 		Inc(i);
 	end;}
+
+	eFileFilterChange(Self);
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -1572,7 +1595,7 @@ end;
 
 procedure TMainForm.miLoadFileClick(Sender: TObject);
 begin
-	LoadDeck((Sender as TMenuItem).Tag);
+	LoadDeck((Sender as TControl).Tag);
 end;
 
 function TMainForm.FindDeckForm(Index: Integer): TDeckFrame;
@@ -1602,6 +1625,8 @@ var
 	Deck: TDeck;
 	HadNone: Boolean;
 begin
+	if (SelectedListItem.ListItem = nil) or (SelectedListItem.Kind = LI_ISDIRECTORY) then Exit;
+
 	HadNone := DeckList.Count = 0;
 	Deck := FindDeck(Index);
 	if Deck = nil then
@@ -1677,9 +1702,20 @@ begin
 	end;
 end;
 
+procedure TMainForm.UpdateFilelistToolbar(IsDir: Boolean);
+begin
+	bLoadDeck1.Enabled := (not IsDir) and (DeckList.Count >= 1);
+	bLoadDeck2.Enabled := (not IsDir) and (DeckList.Count >= 2);
+	bLoadDeck3.Enabled := (not IsDir) and (DeckList.Count >= 3);
+	bLoadDeckNew.Enabled := not IsDir;
+	bFileRename.Enabled  := not IsDir;
+	bFileDelete.Enabled  := not IsDir;
+end;
+
 procedure TMainForm.FileListSelectItem(Sender: TObject; Button: TMouseButton; Shift: TShiftState; Item: ThListItem);
 var
 	S: String;
+	IsDir: Boolean;
 begin
 	if Item = nil then Exit;
 
@@ -1701,9 +1737,12 @@ begin
 
 	SelectedListItem.Kind := Item.Tag;
 	SelectedListItem.ListItem := Item;
+	IsDir := Item.Tag = LI_ISDIRECTORY;
+
+	UpdateFilelistToolbar(IsDir);
 
 	// get directory path from the list item
-	if Item.Tag = LI_ISDIRECTORY then
+	if IsDir then
 	begin
 		S := Item.Hint;
 		{$IFDEF WINDOWS}if S <> '/' then{$ENDIF} // special item for drives list
@@ -1852,6 +1891,8 @@ var
 	Deck: TDeck;
 	DF: TDeckFrame;
 begin
+	UpdateFilelistToolbar(False);
+
 	for i := 0 to DeckList.Count-1 do
 	begin
 		Deck := DeckList[i];
