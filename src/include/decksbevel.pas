@@ -103,7 +103,8 @@ begin
 		w := AInnerMargin - 0.5;
 
 	ht := 0; hb := 0;
-	if (ABevel.Opacity > 0) and (ABevel.OuterBevel in [bcbBottom, bcbBottomRight, bcbTop, bcbTopLeft]) then
+	if (ABevel <> nil) and (ABevel.Opacity > 0) and
+		(ABevel.OuterBevel in [bcbBottom, bcbBottomRight, bcbTop, bcbTopLeft]) then
 	begin
 		if bcsTop    in ABevel.Sides then ht := 1;
 		if bcsBottom in ABevel.Sides then hb := 1;
@@ -112,7 +113,8 @@ begin
 	RenderBackgroundF(ARect.Left+w, ARect.Top+w, ARect.Right-1-w, ARect.Bottom-1-w,
 		ABackground, ATargetBGRA, ARounding);
 
-	ABevel.Render(ARect, ATargetBGRA, ARounding, ABorder);
+	if ABevel <> nil then
+		ABevel.Render(ARect, ATargetBGRA, ARounding, ABorder);
 
 	if (ABorder.Style <> bboNone) and (ABorder.Width > 0) then
 	begin

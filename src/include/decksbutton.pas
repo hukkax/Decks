@@ -66,7 +66,7 @@ type
 		AutoSizeExtraY: integer;
 		AutoSizeExtraX: integer;
 		FLastBorderWidth: integer;
-		FBevel:	TBCBevel;
+		FBevel: TBCBevel;
 		// MORA
 		FClickOffset: boolean;
 		FDropDownArrow: boolean;
@@ -400,10 +400,10 @@ end;
 
 procedure TDecksButton.SetBevel(Value: TBCBevel);
 begin
-	   if FBevel = Value then Exit;
-	   FBevel.Assign(Value);
-	   RenderControl;
-	   Invalidate;
+	if FBevel = Value then Exit;
+	FBevel.Assign(Value);
+	RenderControl;
+	Invalidate;
 end;
 
 function TDecksButton.GetDropDownRect(AFull: boolean): TRect;
@@ -547,8 +547,12 @@ end;
 procedure TDecksButton.RenderState(ABGRA: TBGRABitmapEx;
 	AState: TBCButtonState; const ARect: TRect; ARounding: TBCRounding);
 begin
-	RenderBackgroundAndBorder(ARect, AState.Background, TBGRABitmap(ABGRA),
-		ARounding, AState.Border, FBevel, FInnerMargin);
+	if Enabled then
+		RenderBackgroundAndBorder(ARect, AState.Background, TBGRABitmap(ABGRA),
+			ARounding, AState.Border, FBevel, FInnerMargin)
+	else
+		RenderBackgroundAndBorder(ARect, AState.Background, TBGRABitmap(ABGRA),
+			ARounding, AState.Border, nil, FInnerMargin);
 end;
 
 procedure TDecksButton.OnChangeGlyph(Sender: TObject);
