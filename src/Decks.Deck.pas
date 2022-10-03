@@ -476,7 +476,7 @@ function TDeck.GetCurrentBar: Word;
 var
 	P: Int64;
 begin
-	P := GetPlayPosition; //Max(0, BASS_ChannelGetPosition(OrigStream, BASS_POS_BYTE));// - Graph.StartPos);
+	P := GetPlayPosition(False); //Max(0, BASS_ChannelGetPosition(OrigStream, BASS_POS_BYTE));// - Graph.StartPos);
 	Result := Max(0, Graph.PosToBar(P));
 end;
 
@@ -537,17 +537,25 @@ var
 	Bar: Word;
 	StartPos, EndPos: QWord;
 	LoopInfo: PLoopInfo;
+	Pt: TPoint;
 begin
 	case LoopType of
 
 		LOOP_BEATS, LOOP_BARS:
 		begin
 			LoopInfo := @LoopInfo_Misc;
+
 			Bar := GetCurrentBar;
 			StartPos := Graph.GraphToSongBytes(Graph.Bars[Bar].Pos);
 			EndPos := Graph.GetBarLength(False, Bar);
 			if LoopType = LOOP_BEATS then
-				EndPos := Trunc(EndPos / 4 * LoopLength)
+			begin
+				Pt := Graph.PosToGraph(GetPlayPosition);
+				Pt.Y := Trunc(Pt.Y / Graph.Height * 4); // quadrant
+				if Pt.Y > 0 then
+					StartPos += Trunc(EndPos * Pt.Y / 4);
+				EndPos := Trunc(EndPos / 4 * LoopLength);
+			end
 			else
 				EndPos := EndPos * LoopLength;
 			EndPos += StartPos;

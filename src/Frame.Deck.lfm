@@ -650,7 +650,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bLoopBeatClick
+      OnMouseDown = bLoopBeatMouseDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -705,7 +705,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bLoopBeatClick
+      OnMouseDown = bLoopBeatMouseDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -760,7 +760,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bLoopBeatClick
+      OnMouseDown = bLoopBeatMouseDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -777,7 +777,7 @@ object DeckFrame: TDeckFrame
       Height = 24
       Hint = 'Loop 2 Bars'
       Top = 48
-      Width = 43
+      Width = 42
       Anchors = [akRight, akBottom]
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
@@ -815,7 +815,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bLoopBeatClick
+      OnMouseDown = bLoopBeatMouseDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -828,7 +828,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar4: TDecksButton
       Tag = 16
-      Left = 661
+      Left = 660
       Height = 24
       Hint = 'Loop 4 Bars'
       Top = 48
@@ -870,7 +870,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bLoopBeatClick
+      OnMouseDown = bLoopBeatMouseDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -925,7 +925,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bLoopBeatClick
+      OnMouseDown = bLoopBeatMouseDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -979,7 +979,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnClick = bLoopBeatClick
+      OnMouseDown = bLoopBeatMouseDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -1214,15 +1214,15 @@ object DeckFrame: TDeckFrame
       Top = 281
       Width = 698
       Align = alBottom
-      Color = 8553090
+      Color = 3553082
       BorderStyle = bsNone
       ButtonSize = 20
-      HandleColor = 3553082
-      ButtonColor = 8553090
+      HandleColor = 8553090
+      ButtonColor = 3553082
       HighLightColor = 2171427
       ShadowColor = 2171427
-      BorderColor = 8553090
-      ArrowColor = clBlack
+      BorderColor = 3553082
+      ArrowColor = 8553090
       LightAmount = 15
       Range = 100
       Window = 50
@@ -1254,11 +1254,11 @@ object DeckFrame: TDeckFrame
       Background.FillStyle = bsBDiagonal
       Background.FillColor = 2236962
       Bevel.Opacity = 255
-      Bevel.ColorLight = 2236962
+      Bevel.ColorLight = 8553090
       Bevel.ColorDark = 2236962
       Bevel.InnerBevel = bcbNone
       Bevel.OuterBevel = bcbTop
-      Bevel.Sides = [bcsLeft, bcsRight]
+      Bevel.Sides = [bcsTop, bcsLeft, bcsRight]
       Border.Color = 2500134
       Border.Style = bboNone
       FontEx.Color = 13421772
@@ -1387,7 +1387,7 @@ object DeckFrame: TDeckFrame
         Left = 635
         Height = 28
         Hint = 'Save song setup'
-        Top = 0
+        Top = 1
         Width = 64
         Anchors = [akTop, akRight]
         StateNormal.Background.Color = 6249562

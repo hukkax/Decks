@@ -107,7 +107,6 @@ type
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
-		procedure bLoopBeatClick(Sender: TObject);
 		procedure bMasterMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bReverseMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
@@ -173,6 +172,8 @@ type
 		procedure bZoneDelButtonClick(Sender: TObject);
 		procedure pnlEffectsResize(Sender: TObject);
 		procedure miShowFileClick(Sender: TObject);
+		procedure bLoopBeatMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -594,31 +595,6 @@ procedure TDeckFrame.bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
 	Deck.BendStop;
-end;
-
-procedure TDeckFrame.bLoopBeatClick(Sender: TObject);
-var
-	K, L: Integer;
-	Btn: TDecksButton;
-begin
-	Btn := (Sender as TDecksButton);
-	L := Btn.Tag;
-	Btn.Down := not Btn.Down;
-	Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
-
-	case Btn.Tag of
-		1..3: K := LOOP_BEATS;
-		4..999: begin K := LOOP_BARS; L := Btn.Tag div 4; end;
-		   0: begin K := LOOP_ZONE; L := 1; end;
-		  -1: begin K := LOOP_SONG; L := 1; end;
-		else
-			Exit;
-	end;
-
-	if Btn.Down then
-		Deck.SetLoop(K, L)
-	else
-		Deck.SetLoop(K, LOOP_OFF);
 end;
 
 procedure TDeckFrame.bMasterMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1370,6 +1346,30 @@ begin
 	MainForm.SelectFileInFileList(Deck.Filename, True);
 end;
 
+procedure TDeckFrame.bLoopBeatMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+	K, L: Integer;
+	Btn: TDecksButton;
+begin
+	Btn := (Sender as TDecksButton);
+	L := Btn.Tag;
+	Btn.Down := not Btn.Down;
+	Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
+
+	case Btn.Tag of
+		  1..3:       K := LOOP_BEATS;
+		4..999: begin K := LOOP_BARS; L := Btn.Tag div 4; end;
+		     0: begin K := LOOP_ZONE; L := 1; end;
+		    -1: begin K := LOOP_SONG; L := 1; end;
+		else    Exit;
+	end;
+
+	if Btn.Down then
+		Deck.SetLoop(K, L)
+	else
+		Deck.SetLoop(K, LOOP_OFF);
+end;
+
 procedure TDeckFrame.pbRulerRedraw(Sender: TObject; Bitmap: TBGRABitmap);
 begin
 	DrawRuler;
@@ -1693,6 +1693,15 @@ begin
 	R.BottomRight := Point(X+Z + CueSize, Y + CUESIZE_Y + 1);
 	pb.Bitmap.FillRect(R, BGRA(130, 255, 30, 200), dmLinearBlend);
 
+	// loop range indicator
+	//
+	if Deck.LoopInfo_Misc.Enabled then
+	begin
+		Deck.Graph.ColorizeArea(pb.Bitmap,
+			Deck.LoopInfo_Misc.StartPos, Deck.LoopInfo_Misc.EndPos,
+			BGRA(255, 255, 255, 130)); //BGRA(100,200,0,200)
+	end;
+
 	// playback position indicator
 	//
 	P := Deck.Graph.PosToGraph(PlayPosition, False);
@@ -1710,15 +1719,6 @@ begin
 	R.BottomRight := Point(X+Z, H);
 	pb.Bitmap.FillRect(R, BGRA(255, 100, 30, 130), dmLinearBlend);
 	pb.Bitmap.HorizLine(X, Y, X+Z-1, ColorToBGRA(clYellow));
-
-	// loop range indicator
-	//
-	if Deck.LoopInfo_Misc.Enabled then
-	begin
-		Deck.Graph.ColorizeArea(pb.Bitmap,
-			Deck.LoopInfo_Misc.StartPos, Deck.LoopInfo_Misc.EndPos,
-			BGRA(255, 255, 255, 130));
-	end;
 
 	if Config.Deck.BeatGraph.ShowHorizontalLines then
 	begin

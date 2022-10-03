@@ -833,20 +833,52 @@ begin
 end;
 
 procedure TBeatGraph.ColorizeArea(Buffer: TBGRABitmap; P1, P2: QWord; Color: TBGRAPixel);
+
+	function FixX(X: Integer): Integer; inline;
+	begin
+		Result := X * Zoom - Scroll.X;
+	end;
+
 var
 	PS, PE: TPoint;
 	R: TRect;
+	I, W: Integer;
 begin
-	PS := PosToGraph(P1 - StartPos, False);
+	PS := PosToGraph(P1 - StartPos, False); // get pixel coords from song byte position
 	PE := PosToGraph(P2 - StartPos, False);
-	PS.X := PS.X - Scroll.X;
-	PE.X := PE.X - Scroll.X;
-	R.TopLeft := Point(PS.X, PS.Y);
-	if PE.Y > 0 then
-		R.BottomRight := Point(PE.X+Zoom, PE.Y)
+	PS.X := PS.X div Zoom;
+	PE.X := PE.X div Zoom;
+	if PE.Y < 1 then
+	begin
+		PE.X := PE.X - 1;
+		PE.Y := Height;
+	end;
+	W := PE.X - PS.X;
+//	PS.X := PS.X - Scroll.X; // start pixel coords
+//	PE.X := PE.X - Scroll.X; // end pixel coords
+	PS.X := FixX(PS.X);
+
+	if W <= 0 then
+	begin
+		R := Rect(PS.X, PS.Y, PS.X + Zoom, PE.Y);
+		Buffer.FillRect(R, Color, dmLinearBlend);
+	end
 	else
-		R.BottomRight := Point(PE.X, Height);
-	Buffer.FillRect(R, Color, dmLinearBlend);
+	begin
+		PE.X := FixX(PE.X);
+
+		R := Rect(PS.X, PS.Y, PS.X + Zoom, Height);
+		Buffer.FillRect(R, Color, dmLinearBlend);
+
+		if W > 2 then
+		begin
+			R := Rect(PS.X+Zoom, 0, PE.X, Height);
+			Buffer.FillRect(R, Color, dmLinearBlend);
+		end;
+
+		R := Bounds(PE.X, 0, Zoom, PE.Y);
+		Buffer.FillRect(R, Color, dmLinearBlend);
+	end;
 end;
 
 procedure TBeatGraph.Draw(AWidth: Word = 0; AHeight: Word = 0);
