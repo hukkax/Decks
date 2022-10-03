@@ -1662,7 +1662,7 @@ var
 	X, Y, W, H, Z, ScrollX: Integer;
 	CueSize: Byte;
 	R: TRect;
-	P, PE: TPoint;
+	P: TPoint;
 	C: TBGRAPixel;
 begin
 	if not Enabled then Exit;
@@ -1715,16 +1715,9 @@ begin
 	//
 	if Deck.LoopInfo_Misc.Enabled then
 	begin
-		P  := Deck.Graph.PosToGraph(Deck.LoopInfo_Misc.StartPos - Deck.Graph.StartPos, False);
-		PE := Deck.Graph.PosToGraph(Deck.LoopInfo_Misc.EndPos   - Deck.Graph.StartPos, False);
-		P.X := P.X - ScrollX;
-		PE.X := PE.X - ScrollX;
-		R.TopLeft := Point(P.X, P.Y);
-		if PE.Y > 0 then
-			R.BottomRight := Point(PE.X+Z, PE.Y)
-		else
-			R.BottomRight := Point(P.X+Z, H);
-		pb.Bitmap.FillRect(R, BGRA(255, 255, 255, 130), dmLinearBlend);
+		Deck.Graph.ColorizeArea(pb.Bitmap,
+			Deck.LoopInfo_Misc.StartPos, Deck.LoopInfo_Misc.EndPos,
+			BGRA(255, 255, 255, 130));
 	end;
 
 	if Config.Deck.BeatGraph.ShowHorizontalLines then

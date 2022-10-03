@@ -128,6 +128,7 @@ type
 
 		procedure	Clear;
 		procedure	Generate;
+		procedure	ColorizeArea(Buffer: TBGRABitmap; P1, P2: QWord; Color: TBGRAPixel);
 		procedure	Draw(AWidth: Word = 0; AHeight: Word = 0);
 		procedure	DoDraw;
 
@@ -829,6 +830,23 @@ begin
 		@Audio_Callback_ZoneSync_MixTime, @EndSyncEvent);
 
 	Generating := False;
+end;
+
+procedure TBeatGraph.ColorizeArea(Buffer: TBGRABitmap; P1, P2: QWord; Color: TBGRAPixel);
+var
+	PS, PE: TPoint;
+	R: TRect;
+begin
+	PS := PosToGraph(P1 - StartPos, False);
+	PE := PosToGraph(P2 - StartPos, False);
+	PS.X := PS.X - Scroll.X;
+	PE.X := PE.X - Scroll.X;
+	R.TopLeft := Point(PS.X, PS.Y);
+	if PE.Y > 0 then
+		R.BottomRight := Point(PE.X+Zoom, PE.Y)
+	else
+		R.BottomRight := Point(PE.X, Height);
+	Buffer.FillRect(R, Color, dmLinearBlend);
 end;
 
 procedure TBeatGraph.Draw(AWidth: Word = 0; AHeight: Word = 0);
