@@ -795,9 +795,14 @@ begin
 	begin
 		if Deck.QueuedSync = 0 then
 		begin
-			B := OtherDeck.GetCurrentBar+1;
-			P := OtherDeck.Graph.Bars[B].Pos;
-			P := OtherDeck.Graph.GraphToSongBytes(P);
+			if OtherDeck.LoopInfo_Misc.Enabled then
+				P := OtherDeck.LoopInfo_Misc.StartPos
+			else
+			begin
+				B := OtherDeck.GetCurrentBar+1;
+				P := OtherDeck.Graph.Bars[B].Pos;
+				P := OtherDeck.Graph.GraphToSongBytes(P);
+			end;
 			if Deck.Paused then JumpToCue;
 
 			bPlay.StateNormal.Border.LightColor := $0022AAFF;
