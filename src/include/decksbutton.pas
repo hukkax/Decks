@@ -1233,16 +1233,20 @@ procedure TDecksButton.MouseLeave;
 begin
 	if csDesigning in ComponentState then Exit;
 
-	if FDown then
+	if not (FButtonState = msClicked) then
 	begin
-		FButtonState := msClicked;
-		FActiveButt := bbtButton;
-	end
-	else
-		FButtonState := msNone;
+		if FDown then
+		begin
+			FButtonState := msClicked;
+			FActiveButt := bbtButton;
+		end
+		else
+			FButtonState := msNone;
 
-	FDownButtonState := msNone;
-	Invalidate;
+		FDownButtonState := msNone;
+		Invalidate;
+	end;
+
 	inherited MouseLeave;
 end;
 
@@ -1586,6 +1590,7 @@ begin
 		FPreserveGlyphOnAssign := True;
 	finally
 		Exclude(FControlState, csCreating);
+		CaptureMouseButtons := [mbLeft, mbRight];
 		EnableAutoSizing;
 		EndUpdate;
 	end;
