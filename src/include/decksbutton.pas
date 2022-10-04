@@ -32,87 +32,95 @@ interface
 
 uses
 	Classes, SysUtils, Graphics, Controls, ExtCtrls, Menus, ImgList,
-	LCLType, LResources,
+	LCLType, LResources, FGL,
 	BGRABitmap, BGRABitmapTypes, BCTypes, BCTools, BCBasectrls, BCButton,
 	DecksBevel;
 
 type
+	TDecksButton = class;
+
+	TDecksButtonList = TFPGObjectList<TDecksButton>;
+
 	TDecksButton = class(TBCStyleGraphicControl)
 	private
-		FDropDownArrowSize: integer;
-		FDropDownWidth: integer;
-		FFlipArrow: boolean;
+		FDropDownArrowSize: Integer;
+		FDropDownWidth: Integer;
+		FFlipArrow: Boolean;
 		FActiveButt: TBCButtonStyle;
 		FBGRANormal, FBGRAHover, FBGRAClick: TBGRABitmapEx;
 		FGlyphAlignment: TBCAlignment;
-		FGlyphOldPlacement: boolean;
-		FInnerMargin: single;
+		FGlyphOldPlacement: Boolean;
+		FInnerMargin: Single;
 		FPreserveGlyphOnAssign: Boolean;
 		FRounding: TBCRounding;
 		FRoundingDropDown: TBCRounding;
-		FStateClicked, FStateHover, FStateNormal: TBCButtonState;
-		FDown:	 boolean;
-		FGlyph:	TBitmap;
-		FGlyphMargin: integer;
+		FStateNormal, FStateClicked, FStateHover: TBCButtonState;
+		FDown: Boolean;
+		FGlyph: TBitmap;
+		FGlyphMargin: Integer;
 		FButtonState: TBCMouseState;
 		FDownButtonState: TBCMouseState;
 		FPrevButtonState: TBCMouseState;
 		FOnAfterRenderBCButton: TOnAfterRenderBCButton;
 		FOnButtonClick: TNotifyEvent;
+		FOnSetDown: TNotifyEvent;
 		FStaticButton: Boolean;
 		FStyle:	TBCButtonStyle;
-		FGlobalOpacity: byte;
-		FTextApplyGlobalOpacity: boolean;
-		AutoSizeExtraY: integer;
-		AutoSizeExtraX: integer;
-		FLastBorderWidth: integer;
+		FGlobalOpacity: Byte;
+		FTextApplyGlobalOpacity: Boolean;
+		AutoSizeExtraY: Integer;
+		AutoSizeExtraX: Integer;
+		FLastBorderWidth: Integer;
 		FBevel: TBCBevel;
 		// MORA
-		FClickOffset: boolean;
-		FDropDownArrow: boolean;
+		FClickOffset: Boolean;
+		FDropDownArrow: Boolean;
 		FDropDownMenu: TPopupMenu;
-		FDropDownMenuVisible: boolean;
+		FDropDownMenuVisible: Boolean;
 		FDropDownClosingTime: TDateTime;
 		FDropDownPosition: TBCButtonDropDownPosition;
 		FDropDownStyle: TBCButtonDropDownStyle;
 		FImageChangeLink: TChangeLink;
-		FImageIndex: integer;
-		FImages:   TCustomImageList;
+		FImageIndex: Integer;
+		FImages: TCustomImageList;
 		FSaveDropDownClosed: TNotifyEvent;
-		FShowCaption: boolean;
+		FShowCaption: Boolean;
+		FAllowAllUp: Boolean;
+		FGroupIndex: Integer;
+		FAutoToggle: Boolean;
 
 		function GetButtonRect: TRect;
-		function GetDropDownWidth(AFull: boolean = True): integer;
-		function GetDropDownRect(AFull: boolean = True): TRect;
+		function GetDropDownWidth(AFull: Boolean = True): Integer;
+		function GetDropDownRect(AFull: Boolean = True): TRect;
 		function GetGlyph: TBitmap;
 		procedure AssignDefaultStyle;
-		procedure CalculateGlyphSize(out NeededWidth, NeededHeight: integer);
+		procedure CalculateGlyphSize(out NeededWidth, NeededHeight: Integer);
 		procedure DropDownClosed(Sender: TObject);
-		procedure RenderAll(ANow: boolean = False);
+		procedure RenderAll(ANow: Boolean = False);
 		procedure SetBCButtonStateClicked(const AValue: TBCButtonState);
 		procedure SetBCButtonStateHover(const AValue: TBCButtonState);
 		procedure SetBCButtonStateNormal(const AValue: TBCButtonState);
-		procedure SetClickOffset(AValue: boolean);
-		procedure SetDown(AValue: boolean);
-		procedure SetDropDownArrow(AValue: boolean);
-		procedure SetDropDownArrowSize(AValue: integer);
+		procedure SetClickOffset(AValue: Boolean);
+		procedure SetDown(AValue: Boolean);
+		procedure SetDropDownArrow(AValue: Boolean);
+		procedure SetDropDownArrowSize(AValue: Integer);
 		procedure SetDropDownPosition(AValue: TBCButtonDropDownPosition);
-		procedure SetDropDownWidth(AValue: integer);
-		procedure SetFlipArrow(AValue: boolean);
+		procedure SetDropDownWidth(AValue: Integer);
+		procedure SetFlipArrow(AValue: Boolean);
 		procedure SetGlyph(const AValue: TBitmap);
 		procedure SetGlyphAlignment(AValue: TBCAlignment);
-		procedure SetGlyphMargin(const AValue: integer);
-		procedure SetGlyphOldPlacement(AValue: boolean);
-		procedure SetImageIndex(AValue: integer);
+		procedure SetGlyphMargin(const AValue: Integer);
+		procedure SetGlyphOldPlacement(AValue: Boolean);
+		procedure SetImageIndex(AValue: Integer);
 		procedure SetImages(AValue: TCustomImageList);
-		procedure SetInnerMargin(AValue: single);
+		procedure SetInnerMargin(AValue: Single);
 		procedure SetRounding(AValue: TBCRounding);
 		procedure SetRoundingDropDown(AValue: TBCRounding);
-		procedure SetShowCaption(AValue: boolean);
-		procedure SetStaticButton(const AValue: boolean);
+		procedure SetShowCaption(AValue: Boolean);
+		procedure SetStaticButton(const AValue: Boolean);
 		procedure SetStyle(const AValue: TBCButtonStyle);
-		procedure SetGlobalOpacity(const AValue: byte);
-		procedure SetTextApplyGlobalOpacity(const AValue: boolean);
+		procedure SetGlobalOpacity(const AValue: Byte);
+		procedure SetTextApplyGlobalOpacity(const AValue: Boolean);
 		procedure UpdateSize;
 		procedure OnChangeGlyph({%H-}Sender: TObject);
 		procedure OnChangeState({%H-}Sender: TObject; AData: PtrInt);
@@ -122,16 +130,16 @@ type
 		class function GetControlClassDefaultSize: TSize; override;
 
 		procedure ChangeScale(Multiplier, Divider: Integer); override;
-		procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer; {%H-}WithThemeSpace: boolean); override;
+		procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: Integer; {%H-}WithThemeSpace: Boolean); override;
 		procedure Click; override;
 		procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: integer); override;
 		procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: integer); override;
 		procedure MouseEnter; override;
 		procedure MouseLeave; override;
 		procedure MouseMove(Shift: TShiftState; X, Y: integer); override;
-		procedure SetEnabled(Value: boolean); override;
+		procedure SetEnabled(Value: Boolean); override;
 		procedure TextChanged; override;
-		procedure ActionChange(Sender: TObject; CheckDefaults: boolean); override;
+		procedure ActionChange(Sender: TObject; CheckDefaults: Boolean); override;
 		procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 		procedure Render(ABGRA: TBGRABitmapEx; AState: TBCButtonState); virtual;
 		procedure RenderState(ABGRA: TBGRABitmapEx; AState: TBCButtonState; const ARect: TRect; ARounding: TBCRounding); virtual;
@@ -149,7 +157,7 @@ type
 
 		procedure Assign(Source: TPersistent); override;
 		{ Set dropdown size and autosize extra padding }
-		procedure SetSizeVariables(newDropDownWidth, newDropDownArrowSize, newAutoSizeExtraVertical, newAutoSizeExtraHorizontal: integer);
+		procedure SetSizeVariables(newDropDownWidth, newDropDownArrowSize, newAutoSizeExtraVertical, newAutoSizeExtraHorizontal: Integer);
 		{ Called by EndUpdate }
 		procedure UpdateControl; override;
 		{ Load and assign all published settings from file }
@@ -162,6 +170,8 @@ type
 		procedure OnFindClass({%H-}Reader: TReader; const AClassName: string; var ComponentClass: TComponentClass);
 
 		procedure SetMouseDown(Button: TMouseButton; ButtonDown: Boolean; InvokeCallback: Boolean = True);
+
+		function  GetButtonsInGroup(IncludeSelf: Boolean = False): TDecksButtonList;
 	published
 		property Action;
 		property Align;
@@ -169,6 +179,8 @@ type
 		{ Click to edit the style. Available when editing only. If you want to stream the style from a file at runtime please use LoadFromFile and SaveToFile methods. }
 		property AssignStyle;
 		property AutoSize;
+		property AllowAllUp: Boolean read FAllowAllUp write FAllowAllUp default False;
+		property AutoToggle: Boolean read FAutoToggle write FAutoToggle default False;
 		property StateNormal: TBCButtonState read FStateNormal write SeTBCButtonStateNormal;
 		//property StateHover:   TBCButtonState read FStateHover   write SetBCButtonStateHover;
 		//property StateClicked: TBCButtonState read FStateClicked write SetBCButtonStateClicked;
@@ -177,7 +189,7 @@ type
 		//property Color;
 		property Constraints;
 		{ Set to True to change the button to always show a StateClicked style that will not change when button is clicked or hovered. }
-		property Down: boolean read FDown write SetDown default False;
+		property Down: Boolean read FDown write SetDown default False;
 		{ The width of the dropdown arrow area. }
 		property DropDownWidth: integer read FDropDownWidth write SetDropDownWidth;
 		{ The size of the dropdown arrow. }
@@ -187,6 +199,7 @@ type
 		property FlipArrow: boolean read FFlipArrow write SetFlipArrow default False;
 		{ Set the opacity that will be applied to the whole button. Default: 255. }
 		property GlobalOpacity: Byte read FGlobalOpacity write SetGlobalOpacity;
+		property GroupIndex: Integer read FGroupIndex write FGroupIndex;
 		{ The glyph icon. }
 		property Glyph: TBitmap read GetGlyph write SetGlyph;
 		property GlyphAlignment: TBCAlignment read FGlyphAlignment write SetGlyphAlignment default bcaCenter;
@@ -210,6 +223,7 @@ type
 		property OnMouseWheel;
 		property OnMouseWheelDown;
 		property OnMouseWheelUp;
+		property OnSetDown: TNotifyEvent read FOnSetDown write FOnSetDown;
 		//property ParentColor;
 		property PopupMenu;
 		{ Change the style of the rounded corners of the button. }
@@ -227,7 +241,7 @@ type
 		property TextApplyGlobalOpacity: Boolean read FTextApplyGlobalOpacity write SetTextApplyGlobalOpacity;
 		property Visible;
 		{  }
-		property ClickOffset: boolean read FClickOffset write SetClickOffset default False;
+		property ClickOffset: Boolean read FClickOffset write SetClickOffset default False;
 		{ Show the dropdown arrow. }
 		property DropDownArrow: Boolean read FDropDownArrow write SetDropDownArrow default False;
 		{ The dropdown menu that will be displayed when the button is pressed. }
@@ -337,7 +351,7 @@ begin
 	SetBCButtonStateClicked(FStateNormal);
 end;
 
-procedure TDecksButton.CalculateGlyphSize(out NeededWidth, NeededHeight: integer);
+procedure TDecksButton.CalculateGlyphSize(out NeededWidth, NeededHeight: Integer);
 begin
 	if Assigned(FGlyph) and not FGlyph.Empty then
 	begin
@@ -357,7 +371,7 @@ begin
 	end;
 end;
 
-procedure TDecksButton.RenderAll(ANow: boolean);
+procedure TDecksButton.RenderAll(ANow: Boolean);
 begin
 	if (csCreating in ControlState) or IsUpdating or (FBGRANormal = nil) then Exit;
 
@@ -369,7 +383,7 @@ begin
 	end
 	else
 	begin
-		FBGRANormal.NeedRender := True;
+		FBGRANormal.NeedRender:= True;
 		FBGRAHover.NeedRender := True;
 		FBGRAClick.NeedRender := True;
 	end;
@@ -388,7 +402,7 @@ begin
 		end;
 end;
 
-function TDecksButton.GetDropDownWidth(AFull: boolean): integer;
+function TDecksButton.GetDropDownWidth(AFull: Boolean): Integer;
 begin
 	Result := FDropDownWidth + (ifthen(AFull, 2, 1) * FStateNormal.Border.Width);
 end;
@@ -406,7 +420,7 @@ begin
 	Invalidate;
 end;
 
-function TDecksButton.GetDropDownRect(AFull: boolean): TRect;
+function TDecksButton.GetDropDownRect(AFull: Boolean): TRect;
 begin
 	Result := GetClientRect;
 	case FDropDownPosition of
@@ -619,7 +633,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetClickOffset(AValue: boolean);
+procedure TDecksButton.SetClickOffset(AValue: Boolean);
 begin
 	if FClickOffset = AValue then
 		Exit;
@@ -627,19 +641,83 @@ begin
 	RenderControl;
 end;
 
-procedure TDecksButton.SetDown(AValue: boolean);
+function TDecksButton.GetButtonsInGroup(IncludeSelf: Boolean = False): TDecksButtonList;
+var
+	i: Integer;
+	Ctrl: TControl;
+	Btn: TDecksButton;
 begin
-	if FDown = AValue then Exit;
-	FDown := AValue;
-	if FDown then
-		FButtonState := msClicked
-	else
-		FButtonState := msNone;
-	RenderControl;
-	Invalidate;
+	Result := nil;
+
+	if (FGroupIndex > 0) and (Assigned(Parent)) then
+	begin
+		Result := TDecksButtonList.Create(False);
+		for i := 0 to Parent.ControlCount-1 do
+		begin
+			Ctrl := Parent.Controls[i];
+			if (Ctrl is TDecksButton) then
+			begin
+				Btn := TDecksButton(Ctrl);
+				if Btn.GroupIndex > 0 then
+					if (IncludeSelf) or (Btn <> Self) then
+						Result.Add(Btn);
+			end;
+		end;
+	end;
 end;
 
-procedure TDecksButton.SetDropDownArrow(AValue: boolean);
+procedure TDecksButton.SetDown(AValue: Boolean);
+var
+	BL: TDecksButtonList;
+	B: TDecksButton;
+	D: Boolean;
+begin
+	if FDown = AValue then Exit;
+	try
+		if FGroupIndex > 0 then
+		begin
+			BL := GetButtonsInGroup;
+
+			// only allow Down := False if it satisfies AllowAllUp
+			if (AValue = False) and (FAllowAllUp = False) and (BL <> nil) then
+			begin
+				D := False;
+				for B in BL do
+					if B.Down then
+					begin
+						D := True;
+						Break;
+					end;
+				if not D then Exit; // disallow
+			end;
+		end
+		else
+			BL := nil;
+
+		FDown := AValue;
+
+		if FDown then
+			FButtonState := msClicked
+		else
+			FButtonState := msNone;
+
+		if (FDown) and (BL <> nil) then
+		begin
+			for B in BL do
+				if B.Down then
+					B.Down := False;
+		end;
+
+	finally
+		if BL <> nil then BL.Free;
+	end;
+
+	RenderControl;
+	Invalidate;
+	if Assigned(FOnSetDown) then FOnSetDown(Self);
+end;
+
+procedure TDecksButton.SetDropDownArrow(AValue: Boolean);
 begin
 	if FDropDownArrow = AValue then Exit;
 	FDropDownArrow := AValue;
@@ -647,7 +725,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetDropDownArrowSize(AValue: integer);
+procedure TDecksButton.SetDropDownArrowSize(AValue: Integer);
 begin
 	if FDropDownArrowSize = AValue then Exit;
 	FDropDownArrowSize := AValue;
@@ -669,7 +747,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetDropDownWidth(AValue: integer);
+procedure TDecksButton.SetDropDownWidth(AValue: Integer);
 begin
 	if FDropDownWidth = AValue then Exit;
 	FDropDownWidth := AValue;
@@ -679,7 +757,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetFlipArrow(AValue: boolean);
+procedure TDecksButton.SetFlipArrow(AValue: Boolean);
 begin
 	if FFlipArrow = AValue then Exit;
 	FFlipArrow := AValue;
@@ -708,7 +786,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetGlyphMargin(const AValue: integer);
+procedure TDecksButton.SetGlyphMargin(const AValue: Integer);
 begin
 	if FGlyphMargin = AValue then Exit;
 	FGlyphMargin := AValue;
@@ -718,7 +796,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetGlyphOldPlacement(AValue: boolean);
+procedure TDecksButton.SetGlyphOldPlacement(AValue: Boolean);
 begin
 	if FGlyphOldPlacement = AValue then Exit;
 	FGlyphOldPlacement := AValue;
@@ -728,7 +806,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetImageIndex(AValue: integer);
+procedure TDecksButton.SetImageIndex(AValue: Integer);
 begin
 	if FImageIndex = AValue then Exit;
 	FImageIndex := AValue;
@@ -747,7 +825,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetInnerMargin(AValue: single);
+procedure TDecksButton.SetInnerMargin(AValue: Single);
 begin
 	if FInnerMargin = AValue then Exit;
 	FInnerMargin := AValue;
@@ -775,7 +853,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetShowCaption(AValue: boolean);
+procedure TDecksButton.SetShowCaption(AValue: Boolean);
 begin
 	if FShowCaption = AValue then Exit;
 	FShowCaption := AValue;
@@ -785,7 +863,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.SetStaticButton(const AValue: boolean);
+procedure TDecksButton.SetStaticButton(const AValue: Boolean);
 begin
 	if FStaticButton = AValue then Exit;
 	FStaticButton := AValue;
@@ -812,8 +890,8 @@ begin
 	SetBCButtonStateClicked(FStateNormal);
 end;
 
-procedure TDecksButton.CalculatePreferredSize(
-	var PreferredWidth, PreferredHeight: integer; WithThemeSpace: boolean);
+procedure TDecksButton.CalculatePreferredSize(var PreferredWidth, PreferredHeight: Integer;
+	WithThemeSpace: Boolean);
 var
 	//  AWidth: integer;
 	gh, gw: integer;
@@ -1010,7 +1088,11 @@ begin
 	begin
 		case FActiveButt of
 			bbtButton:
-					  SetMouseDown(Button, True, False);
+			begin
+				SetMouseDown(Button, True, False);
+				if FAutoToggle then
+					Down := not FDown;
+			end;
 			bbtDropDown:
 				if not (FDownButtonState = msClicked) then
 				begin
@@ -1082,7 +1164,7 @@ begin
 	begin
 		case FActiveButt of
 			bbtButton:
-					  SetMouseDown(Button, False, False);
+				SetMouseDown(Button, False, False);
 			bbtDropDown:
 				if FDownButtonState = msClicked then
 				begin
@@ -1216,7 +1298,7 @@ begin
 	end;
 end;
 
-procedure TDecksButton.SetEnabled(Value: boolean);
+procedure TDecksButton.SetEnabled(Value: Boolean);
 begin
 	inherited SetEnabled(Value);
 
@@ -1232,7 +1314,7 @@ begin
 	Invalidate;
 end;
 
-procedure TDecksButton.ActionChange(Sender: TObject; CheckDefaults: boolean);
+procedure TDecksButton.ActionChange(Sender: TObject; CheckDefaults: Boolean);
 var
 	NewAction: TCustomAction;
 begin
@@ -1309,9 +1391,10 @@ begin
 end;
 
 procedure TDecksButton.OnFindClass(Reader: TReader; const AClassName: string;
-	   var ComponentClass: TComponentClass);
+	var ComponentClass: TComponentClass);
 begin
-	   if CompareText(AClassName, 'TDecksButton') = 0 then ComponentClass := TDecksButton;
+	if CompareText(AClassName, 'TDecksButton') = 0 then
+		ComponentClass := TDecksButton;
 end;
 
 procedure TDecksButton.DrawControl;
@@ -1406,22 +1489,18 @@ begin
 	RenderAll;
 end;
 
-procedure TDecksButton.SetGlobalOpacity(const AValue: byte);
+procedure TDecksButton.SetGlobalOpacity(const AValue: Byte);
 begin
-	if FGlobalOpacity = AValue then
-		exit;
+	if FGlobalOpacity = AValue then Exit;
 	FGlobalOpacity := AValue;
-
 	RenderControl;
 	Invalidate;
 end;
 
-procedure TDecksButton.SetTextApplyGlobalOpacity(const AValue: boolean);
+procedure TDecksButton.SetTextApplyGlobalOpacity(const AValue: Boolean);
 begin
-	if FTextApplyGlobalOpacity = AValue then
-		exit;
+	if FTextApplyGlobalOpacity = AValue then Exit;
 	FTextApplyGlobalOpacity := AValue;
-
 	RenderControl;
 	Invalidate;
 end;
@@ -1494,6 +1573,7 @@ begin
 		FTextApplyGlobalOpacity := False;
 		//FStates := [];
 		FDown := False;
+		FAutoToggle := False;
 
 		{ Default style }
 		AssignDefaultStyle;
@@ -1572,7 +1652,7 @@ begin
 		inherited Assign(Source);
 end;
 
-procedure TDecksButton.SetSizeVariables(newDropDownWidth, newDropDownArrowSize, newAutoSizeExtraVertical, newAutoSizeExtraHorizontal: integer);
+procedure TDecksButton.SetSizeVariables(newDropDownWidth, newDropDownArrowSize, newAutoSizeExtraVertical, newAutoSizeExtraHorizontal: Integer);
 begin
 	FDropDownArrowSize := newDropDownArrowSize;
 	FDropDownWidth := newDropDownWidth;
