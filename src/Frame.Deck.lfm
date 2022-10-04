@@ -63,6 +63,8 @@ object DeckFrame: TDeckFrame
       Height = 26
       Top = 0
       Width = 80
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -99,6 +101,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 24
       DropDownArrowSize = 9
       GlobalOpacity = 255
+      GroupIndex = 0
       OnButtonClick = bEffect0Click
       OnMouseDown = bEffect0MouseDown
       Rounding.RoundX = 0
@@ -120,6 +123,8 @@ object DeckFrame: TDeckFrame
       Height = 26
       Top = 0
       Width = 80
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -156,6 +161,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 24
       DropDownArrowSize = 9
       GlobalOpacity = 255
+      GroupIndex = 0
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       Rounding.RoundOptions = [rrTopLeftSquare, rrTopRightSquare, rrBottomRightSquare]
@@ -175,6 +181,8 @@ object DeckFrame: TDeckFrame
       Height = 26
       Top = 0
       Width = 80
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -211,6 +219,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 24
       DropDownArrowSize = 9
       GlobalOpacity = 255
+      GroupIndex = 0
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -229,6 +238,8 @@ object DeckFrame: TDeckFrame
       Height = 26
       Top = 0
       Width = 80
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -265,6 +276,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 24
       DropDownArrowSize = 9
       GlobalOpacity = 255
+      GroupIndex = 0
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -283,6 +295,8 @@ object DeckFrame: TDeckFrame
       Height = 26
       Top = 0
       Width = 80
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -319,6 +333,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 24
       DropDownArrowSize = 9
       GlobalOpacity = 255
+      GroupIndex = 0
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       Rounding.RoundOptions = [rrTopLeftSquare, rrBottomRightSquare, rrBottomLeftSquare]
@@ -338,6 +353,8 @@ object DeckFrame: TDeckFrame
       Height = 26
       Top = 0
       Width = 80
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -374,6 +391,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 24
       DropDownArrowSize = 9
       GlobalOpacity = 255
+      GroupIndex = 0
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       Rounding.RoundOptions = [rrTopLeftSquare, rrBottomRightSquare, rrBottomLeftSquare]
@@ -393,6 +411,8 @@ object DeckFrame: TDeckFrame
       Height = 26
       Top = 0
       Width = 80
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = clTeal
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -429,6 +449,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 24
       DropDownArrowSize = 9
       GlobalOpacity = 255
+      GroupIndex = 0
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       Rounding.RoundOptions = [rrTopLeftSquare, rrBottomRightSquare, rrBottomLeftSquare]
@@ -614,6 +635,8 @@ object DeckFrame: TDeckFrame
       Top = 25
       Width = 64
       Anchors = [akRight, akBottom]
+      AllowAllUp = True
+      AutoToggle = True
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -650,7 +673,8 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnMouseDown = bLoopBeatMouseDown
+      GroupIndex = 1
+      OnSetDown = bLoopBeatSetDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -669,6 +693,8 @@ object DeckFrame: TDeckFrame
       Top = 25
       Width = 64
       Anchors = [akRight, akBottom]
+      AllowAllUp = True
+      AutoToggle = True
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -705,7 +731,8 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnMouseDown = bLoopBeatMouseDown
+      GroupIndex = 1
+      OnSetDown = bLoopBeatSetDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -724,6 +751,8 @@ object DeckFrame: TDeckFrame
       Top = 48
       Width = 43
       Anchors = [akRight, akBottom]
+      AllowAllUp = True
+      AutoToggle = True
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -760,7 +789,8 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnMouseDown = bLoopBeatMouseDown
+      GroupIndex = 1
+      OnSetDown = bLoopBeatSetDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -779,6 +809,8 @@ object DeckFrame: TDeckFrame
       Top = 48
       Width = 42
       Anchors = [akRight, akBottom]
+      AllowAllUp = True
+      AutoToggle = True
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -815,7 +847,8 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnMouseDown = bLoopBeatMouseDown
+      GroupIndex = 1
+      OnSetDown = bLoopBeatSetDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -834,6 +867,8 @@ object DeckFrame: TDeckFrame
       Top = 48
       Width = 43
       Anchors = [akRight, akBottom]
+      AllowAllUp = True
+      AutoToggle = True
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -870,7 +905,8 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnMouseDown = bLoopBeatMouseDown
+      GroupIndex = 1
+      OnSetDown = bLoopBeatSetDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -883,12 +919,14 @@ object DeckFrame: TDeckFrame
     end
     object bLoopSong: TDecksButton
       Tag = -1
-      Left = 577
+      Left = 576
       Height = 26
       Hint = 'Loop Song'
       Top = 0
       Width = 64
       Anchors = [akRight, akBottom]
+      AllowAllUp = True
+      AutoToggle = True
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -925,7 +963,8 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnMouseDown = bLoopBeatMouseDown
+      GroupIndex = 0
+      OnSetDown = bLoopBeatSetDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -943,6 +982,8 @@ object DeckFrame: TDeckFrame
       Top = 0
       Width = 64
       Anchors = [akRight, akBottom]
+      AllowAllUp = True
+      AutoToggle = True
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -979,7 +1020,8 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
-      OnMouseDown = bLoopBeatMouseDown
+      GroupIndex = 0
+      OnSetDown = bLoopBeatSetDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -1067,6 +1109,8 @@ object DeckFrame: TDeckFrame
       Top = 4
       Width = 40
       Align = alLeft
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = 2171427
       StateNormal.Background.Gradient1.StartColor = 2171427
       StateNormal.Background.Gradient1.EndColor = 2171427
@@ -1103,6 +1147,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
+      GroupIndex = 0
       Rounding.RoundX = 0
       Rounding.RoundY = 0
       RoundingDropDown.RoundX = 0
@@ -1336,6 +1381,8 @@ object DeckFrame: TDeckFrame
         Top = 1
         Width = 64
         Anchors = [akTop, akRight]
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 6249562
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1372,6 +1419,7 @@ object DeckFrame: TDeckFrame
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnMouseDown = bStartMouseDown
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -1390,6 +1438,8 @@ object DeckFrame: TDeckFrame
         Top = 1
         Width = 64
         Anchors = [akTop, akRight]
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 6249562
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1426,6 +1476,7 @@ object DeckFrame: TDeckFrame
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnClick = bStoreClick
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -1444,6 +1495,8 @@ object DeckFrame: TDeckFrame
         Top = 1
         Width = 45
         Anchors = [akTop, akRight]
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 6249562
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1480,6 +1533,7 @@ object DeckFrame: TDeckFrame
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnButtonClick = bZoneAddButtonClick
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -1498,6 +1552,8 @@ object DeckFrame: TDeckFrame
         Top = 1
         Width = 45
         Anchors = [akTop, akRight]
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 6249562
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1534,6 +1590,7 @@ object DeckFrame: TDeckFrame
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnButtonClick = bZoneDelButtonClick
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -1601,6 +1658,8 @@ object DeckFrame: TDeckFrame
       Width = 64
       HelpType = htKeyword
       HelpKeyword = 'play.png'
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1638,6 +1697,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
+      GroupIndex = 0
       OnClick = bPlayClick
       OnMouseDown = bPlayMouseDown
       OnMouseUp = bPlayMouseUp
@@ -1658,6 +1718,8 @@ object DeckFrame: TDeckFrame
       Width = 45
       HelpType = htKeyword
       HelpKeyword = 'bend_up.png'
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1694,6 +1756,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
+      GroupIndex = 0
       OnMouseDown = bBendUpMouseDown
       OnMouseUp = bBendUpMouseUp
       Rounding.RoundX = 0
@@ -1713,6 +1776,8 @@ object DeckFrame: TDeckFrame
       Width = 45
       HelpType = htKeyword
       HelpKeyword = 'bend_down.png'
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1749,6 +1814,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
+      GroupIndex = 0
       OnMouseDown = bBendUpMouseDown
       OnMouseUp = bBendUpMouseUp
       Rounding.RoundX = 0
@@ -1794,6 +1860,8 @@ object DeckFrame: TDeckFrame
       Hint = 'Left: Toggle autosynced playback'#13#10'Right: Manually sync to playing deck'
       Top = 4
       Width = 58
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1830,6 +1898,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
+      GroupIndex = 0
       OnMouseDown = bSyncMouseDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0
@@ -1847,6 +1916,8 @@ object DeckFrame: TDeckFrame
       Hint = 'Left: Play backwards temporarily keeping sync'#13#10'Right: Play backwards temporarily without keeping sync'
       Top = 30
       Width = 58
+      AllowAllUp = False
+      AutoToggle = False
       StateNormal.Background.Color = 6249562
       StateNormal.Background.Gradient1.StartColor = 6249562
       StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1883,6 +1954,7 @@ object DeckFrame: TDeckFrame
       DropDownWidth = 16
       DropDownArrowSize = 8
       GlobalOpacity = 255
+      GroupIndex = 0
       OnMouseDown = bReverseMouseDown
       OnMouseUp = bReverseMouseUp
       Rounding.RoundX = 0

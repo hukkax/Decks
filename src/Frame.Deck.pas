@@ -172,8 +172,7 @@ type
 		procedure bZoneDelButtonClick(Sender: TObject);
 		procedure pnlEffectsResize(Sender: TObject);
 		procedure miShowFileClick(Sender: TObject);
-		procedure bLoopBeatMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
-			X, Y: Integer);
+		procedure bLoopBeatSetDown(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -997,6 +996,7 @@ begin
 
 	SelectEffect(Effects.Count-1);
 	ShowPanel_Effects;
+
 	Enabled := False;
 end;
 
@@ -1346,28 +1346,27 @@ begin
 	MainForm.SelectFileInFileList(Deck.Filename, True);
 end;
 
-procedure TDeckFrame.bLoopBeatMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TDeckFrame.bLoopBeatSetDown(Sender: TObject);
 var
-	K, L: Integer;
 	Btn: TDecksButton;
+	K, L: Integer;
 begin
-	Btn := (Sender as TDecksButton);
-	L := Btn.Tag;
-	Btn.Down := not Btn.Down;
-	Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
-
-	case Btn.Tag of
-		  1..3:       K := LOOP_BEATS;
-		4..999: begin K := LOOP_BARS; L := Btn.Tag div 4; end;
-		     0: begin K := LOOP_ZONE; L := 1; end;
-		    -1: begin K := LOOP_SONG; L := 1; end;
-		else    Exit;
+	if (Sender <> nil) and (Sender is TDecksButton) then
+	begin
+		Btn := TDecksButton(Sender);
+		Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
+		case Btn.Tag of
+			  1..3: begin K := LOOP_BEATS; L := Btn.Tag; end;
+			4..999: begin K := LOOP_BARS;  L := Btn.Tag div 4; end;
+			     0: begin K := LOOP_ZONE;  L := 1; end;
+			    -1: begin K := LOOP_SONG;  L := 1; end;
+			else    Exit;
+		end;
+		if Btn.Down then
+			Deck.SetLoop(K, L)
+		else
+			Deck.SetLoop(K, LOOP_OFF);
 	end;
-
-	if Btn.Down then
-		Deck.SetLoop(K, L)
-	else
-		Deck.SetLoop(K, LOOP_OFF);
 end;
 
 procedure TDeckFrame.pbRulerRedraw(Sender: TObject; Bitmap: TBGRABitmap);
