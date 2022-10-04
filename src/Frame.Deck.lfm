@@ -102,7 +102,6 @@ object DeckFrame: TDeckFrame
       DropDownArrowSize = 9
       GlobalOpacity = 255
       GroupIndex = 0
-      OnButtonClick = bEffect0Click
       OnMouseDown = bEffect0MouseDown
       Rounding.RoundX = 0
       Rounding.RoundY = 0

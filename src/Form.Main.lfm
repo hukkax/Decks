@@ -92,6 +92,8 @@ object MainForm: TMainForm
         Height = 29
         Top = 9
         Width = 48
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 10773183
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -129,6 +131,7 @@ object MainForm: TMainForm
         DropDownArrowSize = 8
         Enabled = False
         GlobalOpacity = 255
+        GroupIndex = 0
         OnMouseDown = bToggleGraphLinesMouseDown
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -213,6 +216,8 @@ object MainForm: TMainForm
         Height = 29
         Top = 9
         Width = 78
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 2171427
         StateNormal.Background.Gradient1.StartColor = 2171427
         StateNormal.Background.Gradient1.EndColor = 2171427
@@ -249,6 +254,7 @@ object MainForm: TMainForm
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         Rounding.RoundX = 0
         Rounding.RoundY = 0
         RoundingDropDown.RoundX = 1
@@ -267,6 +273,8 @@ object MainForm: TMainForm
         Hint = 'Toggle effects pane'
         Top = 9
         Width = 48
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 6270042
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -303,6 +311,7 @@ object MainForm: TMainForm
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnMouseDown = bToggleEffectsMouseDown
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -321,6 +330,8 @@ object MainForm: TMainForm
         Hint = 'Toggle mixer pane'
         Top = 9
         Width = 48
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 13348950
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -357,6 +368,7 @@ object MainForm: TMainForm
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnMouseDown = bToggleMixerMouseDown
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -375,6 +387,8 @@ object MainForm: TMainForm
         Hint = 'Toggle directory listing'
         Top = 9
         Width = 48
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 6794157
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -412,6 +426,7 @@ object MainForm: TMainForm
         DropDownArrowSize = 8
         Enabled = False
         GlobalOpacity = 255
+        GroupIndex = 0
         OnMouseDown = bToggleLeftPaneMouseDown
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -431,6 +446,8 @@ object MainForm: TMainForm
         Hint = '⚌⏦'
         Top = 9
         Width = 48
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 10773183
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -468,6 +485,7 @@ object MainForm: TMainForm
         DropDownArrowSize = 8
         Enabled = False
         GlobalOpacity = 255
+        GroupIndex = 0
         OnMouseDown = bToggleGraphLinesMouseDown
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -533,6 +551,8 @@ object MainForm: TMainForm
         Hint = 'Show horizontal gridlines in beat graphs'
         Top = 9
         Width = 48
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 10773183
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -569,6 +589,7 @@ object MainForm: TMainForm
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnMouseDown = bToggleGraphLinesMouseDown
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -634,6 +655,8 @@ object MainForm: TMainForm
         Hint = 'Minimize'
         Top = 9
         Width = 42
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 5460819
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -671,6 +694,7 @@ object MainForm: TMainForm
         DropDownWidth = 30
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnClick = bWinMinClick
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -689,6 +713,8 @@ object MainForm: TMainForm
         Hint = 'Maximize'
         Top = 9
         Width = 41
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 5460819
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -726,6 +752,7 @@ object MainForm: TMainForm
         DropDownWidth = 30
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnClick = bWinMaxClick
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -744,6 +771,8 @@ object MainForm: TMainForm
         Hint = 'Close'
         Top = 9
         Width = 40
+        AllowAllUp = False
+        AutoToggle = False
         StateNormal.Background.Color = 3223974
         StateNormal.Background.Gradient1.StartColor = 3223974
         StateNormal.Background.Gradient1.EndColor = 2500228
@@ -781,6 +810,7 @@ object MainForm: TMainForm
         DropDownWidth = 30
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         OnClick = bWinCloseClick
         Rounding.RoundX = 0
         Rounding.RoundY = 0
@@ -1424,6 +1454,8 @@ object MainForm: TMainForm
           Hint = 'Create new deck from selected file'
           Top = 1
           Width = 105
+          AllowAllUp = False
+          AutoToggle = False
           StateNormal.Background.Color = clTeal
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1458,6 +1490,7 @@ object MainForm: TMainForm
           DropDownWidth = 30
           DropDownArrowSize = 8
           GlobalOpacity = 255
+          GroupIndex = 0
           OnClick = miLoadFileClick
           Rounding.RoundX = 0
           Rounding.RoundY = 0
@@ -1476,6 +1509,8 @@ object MainForm: TMainForm
           Height = 29
           Top = 1
           Width = 94
+          AllowAllUp = False
+          AutoToggle = False
           StateNormal.Background.Color = 9530428
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1510,6 +1545,7 @@ object MainForm: TMainForm
           DropDownWidth = 30
           DropDownArrowSize = 8
           GlobalOpacity = 255
+          GroupIndex = 0
           OnClick = miLoadFileClick
           Rounding.RoundX = 0
           Rounding.RoundY = 0
@@ -1527,6 +1563,8 @@ object MainForm: TMainForm
           Height = 29
           Top = 1
           Width = 94
+          AllowAllUp = False
+          AutoToggle = False
           StateNormal.Background.Color = 9530428
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1561,6 +1599,7 @@ object MainForm: TMainForm
           DropDownWidth = 30
           DropDownArrowSize = 8
           GlobalOpacity = 255
+          GroupIndex = 0
           OnClick = miLoadFileClick
           Rounding.RoundX = 0
           Rounding.RoundY = 0
@@ -1578,6 +1617,8 @@ object MainForm: TMainForm
           Height = 29
           Top = 1
           Width = 94
+          AllowAllUp = False
+          AutoToggle = False
           StateNormal.Background.Color = 9530428
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1612,6 +1653,7 @@ object MainForm: TMainForm
           DropDownWidth = 30
           DropDownArrowSize = 8
           GlobalOpacity = 255
+          GroupIndex = 0
           OnClick = miLoadFileClick
           Rounding.RoundX = 0
           Rounding.RoundY = 0
@@ -1629,6 +1671,8 @@ object MainForm: TMainForm
           Hint = 'Rename selected file'
           Top = 1
           Width = 83
+          AllowAllUp = False
+          AutoToggle = False
           StateNormal.Background.Color = clPurple
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1663,6 +1707,7 @@ object MainForm: TMainForm
           DropDownWidth = 30
           DropDownArrowSize = 8
           GlobalOpacity = 255
+          GroupIndex = 0
           OnClick = miFileRenameClick
           Rounding.RoundX = 0
           Rounding.RoundY = 0
@@ -1681,6 +1726,8 @@ object MainForm: TMainForm
           Hint = 'Delete selected file'
           Top = 1
           Width = 83
+          AllowAllUp = False
+          AutoToggle = False
           StateNormal.Background.Color = clMaroon
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1715,6 +1762,7 @@ object MainForm: TMainForm
           DropDownWidth = 30
           DropDownArrowSize = 8
           GlobalOpacity = 255
+          GroupIndex = 0
           OnClick = miFileDeleteClick
           Rounding.RoundX = 0
           Rounding.RoundY = 0

@@ -610,12 +610,10 @@ end;
 
 procedure TDeckFrame.bReverseMouseUp(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
-var
-	B: Boolean;
 begin
-	B := Button = mbLeft;
 	Deck.SetReverse(False, True);
-	if B then SyncToOtherDeck(True);
+	if Button = mbLeft then
+		SyncToOtherDeck(True);
 end;
 
 procedure TDeckFrame.bStoreClick(Sender: TObject);
@@ -2268,8 +2266,7 @@ begin
 	end;
 end;
 
-procedure TDeckFrame.bEffect0MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
-	X, Y: Integer);
+procedure TDeckFrame.bEffect0MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
 	Fx: TBaseEffect;
 	B: Boolean;
