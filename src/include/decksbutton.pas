@@ -152,6 +152,9 @@ type
 		property AutoSizeExtraVertical:   integer read AutoSizeExtraY;
 		property AutoSizeExtraHorizontal: integer read AutoSizeExtraX;
 	public
+		class var
+			DropDownReopenDelay: Integer;
+			HoverLight: Integer;
 		constructor Create(AOwner: TComponent); override;
 		destructor  Destroy; override;
 
@@ -267,10 +270,6 @@ implementation
 
 uses
 	Math, ActnList;
-
-const
-	DropDownReopenDelay = 0.2 / (24 * 60 * 60);
-	HoverLight = 1500;
 
 
 // stupid, but TBCFont.Assign is missing these assignments and I wasn't
@@ -1676,6 +1675,11 @@ begin
 	Result := 'decksbtn';
 end;
 
+
+initialization
+
+	TDecksButton.DropDownReopenDelay := Trunc(0.2 / (24 * 60 * 60));
+	TDecksButton.HoverLight := 2000;
 
 end.
 
