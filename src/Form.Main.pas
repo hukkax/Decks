@@ -1595,7 +1595,7 @@ end;
 
 procedure TMainForm.miLoadFileClick(Sender: TObject);
 begin
-	LoadDeck((Sender as TControl).Tag);
+	LoadDeck((Sender as TComponent).Tag);
 end;
 
 function TMainForm.FindDeckForm(Index: Integer): TDeckFrame;
