@@ -249,7 +249,7 @@ type
 		procedure DrawZones(Recalc: Boolean = True);
 		procedure DrawRuler(Recalc: Boolean = True);
 		procedure DrawGraph;
-		procedure RedrawGraph;
+		procedure RedrawGraph(Recalc: Boolean = False);
 		procedure UpdateCaption;
 
 		procedure ShowPanel_Effects;
@@ -365,6 +365,7 @@ end;
 procedure TDeckFrame.ZoneChanged(Zone: Integer; FromCallback, MixTime: Boolean);
 var
 	Z: TZone;
+	DoLoopZone: Boolean;
 begin
 	{$IFDEF DEBUG}
 	Log(Format('ZoneChanged %d  CB=%s  MT=%s', [Zone, FromCallback.ToString, MixTime.ToString]));
@@ -397,7 +398,9 @@ begin
 		Deck.PlayingZone := Zone;
 		if MixTime then
 		begin
-			if Z.Kind <> zkLoop then
+			DoLoopZone := (Z.Kind = zkLoop) or
+				((Deck.LoopInfo_Zone.Enabled) and (Deck.LoopInfo_Zone.Zone >= 0));
+			if not DoLoopZone then
 				Deck.UnloopZone;
 			case Z.Kind of
 				// no special processing
@@ -409,8 +412,10 @@ begin
 				// marks the end of song
 				zkEnd:	ZoneChanged(ZONECHANGE_STOPPED, False, True);
 				// loop current zone indefinitely
-				zkLoop:	Deck.LoopZone(Zone);
+				zkLoop:	;
 			end;
+			if DoLoopZone then
+				Deck.LoopZone(Zone);
 			Deck.SetBPM(MasterBPM);
 		end
 		else
@@ -479,7 +484,7 @@ begin
 
 	//SliderTempo.OnChange := nil;
 	Deck.Graph.ZonesChanged;
-	RedrawGraph;
+	RedrawGraph(True);
 	DrawWaveform;
 	Deck.SetBPM(MasterBPM);
 	//SliderTempo.OnChange := SliderTempoChange;
@@ -492,7 +497,7 @@ end;
 
 procedure TDeckFrame.ShowPosition;
 var
-	time_e, time_r, tm, ts, X, W, H: Integer;
+	time_e, time_r, tm, ts, X, Y, W, H: Integer;
 	se, sr: String;
 	Vol: DWord = 0;
 begin
@@ -546,21 +551,21 @@ begin
 			Vol := BASS_ChannelGetLevel(Deck.Stream);
 		if Vol > 0 then
 		begin
-			{ // vertical
-			W := 2;
+			// vertical
+			W := W div 2;
 			Y := H - Trunc((H * ((Vol and $FFFF) / 32767)));
 			Bitmap.FillRect(Bounds(0, Y, W, H), BGRAWhite, dmSet);
 
 			Y := H - Trunc((H * ((Vol shr 16) / 32767)));
 			Bitmap.FillRect(Bounds(W, Y, W+2, H), BGRAWhite, dmSet);
-			}
+
 			// horizontal
-			H := H div 2;
+			{H := H div 2;
 			X := Trunc((W * ((Vol and $FFFF) / 32767)));
 			Bitmap.FillRect(Bounds(0, 0, X, H), BGRAWhite, dmSet);
 
 			X := Trunc((W * ((Vol shr 16) / 32767)));
-			Bitmap.FillRect(Bounds(0, H, X, H+H), BGRAWhite, dmSet);
+			Bitmap.FillRect(Bounds(0, H, X, H+H), BGRAWhite, dmSet);}
 		end;
 
 		Repaint;
@@ -605,15 +610,20 @@ end;
 procedure TDeckFrame.bReverseMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
-	Deck.SetReverse(True, Button = mbLeft);
+	if not Deck.Paused then
+		Deck.SetReverse(True, Deck.Synced or (Button = mbLeft));
 end;
 
 procedure TDeckFrame.bReverseMouseUp(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
+var
+	B: Boolean;
 begin
-	Deck.SetReverse(False, True);
-	if Button = mbLeft then
-		SyncToOtherDeck(True);
+	B := Button = mbLeft;
+	Deck.SetReverse(False, B);
+	if (B) or (Deck.Synced) then
+		if Deck.IsOtherDeckPlaying then
+			SyncToOtherDeck(True);
 end;
 
 procedure TDeckFrame.bStoreClick(Sender: TObject);
@@ -669,6 +679,7 @@ begin
 		Deck.Graph.WantedZoom := Max(1,  Deck.Graph.WantedZoom-1);
 
 	SliderGraphX.Position := 0;
+	Deck.Graph.ZoomChanged := True;
 	RedrawGraph;
 
 	if Dir <> 0 then
@@ -768,12 +779,12 @@ var
 begin
 	if not Enabled then Exit;
 
-	OtherDeck := Deck.GetOtherOrCurrentDeck;
+	OtherDeck := Deck.GetOtherOrCurrentDeck(Immediate);
 	if OtherDeck = nil then Exit;
 
-	if OtherDeck.Paused then
+	if (OtherDeck.Paused) and (Deck.Paused) then
 	begin
-		Deck.Pause;
+		Deck.Play;
 	end
 	else
 	if Immediate then
@@ -793,6 +804,9 @@ begin
 	end
 	else
 	begin
+		if (OtherDeck.Paused) then
+			OtherDeck := Self.Deck;
+
 		if Deck.QueuedSync = 0 then
 		begin
 			if OtherDeck.LoopInfo_Misc.Enabled then
@@ -855,7 +869,7 @@ end;
 procedure TDeckFrame.FormResize(Sender: TObject);
 begin
 	if not Enabled then Exit;
-	RedrawGraph;
+	RedrawGraph(True);
 	DrawWaveform;
 end;
 
@@ -1253,7 +1267,7 @@ begin
 			Z.BPM := Z.BPM - Step;
 
 		ZoneChanged(I, False, False);
-		RedrawGraph;
+		RedrawGraph(True);
 
 		CanCreateNewZone := False;
 	end
@@ -1272,7 +1286,7 @@ begin
 			Deck.Graph.StartPos := Max(0, Deck.Graph.StartPos - I);
 
 		Deck.Graph.ZonesLoaded;
-		RedrawGraph;
+		RedrawGraph(True);
 		SetCue(GraphCue);
 	end
 	else
@@ -1312,7 +1326,7 @@ begin
 	if Deck = nil then Exit;
 
 	Deck.Graph.ZonesChanged;
-	RedrawGraph;
+	RedrawGraph(True);
 	DrawWaveform;
 	Deck.SetBPM(MasterBPM);
 end;
@@ -1325,7 +1339,7 @@ begin
 	if Z <> nil then
 	begin
 		CurrentZone := Deck.Graph.Zones.IndexOf(Z);
-		RedrawGraph;
+		RedrawGraph(True);
 	end;
 end;
 
@@ -1335,7 +1349,7 @@ begin
 	begin
 		if CurrentZone > 0 then Dec(CurrentZone);
 		ZoneChanged(CurrentZone, False, False);
-		RedrawGraph;
+		RedrawGraph(True);
 	end;
 end;
 
@@ -1754,7 +1768,7 @@ begin
 	pb.Repaint;
 end;
 
-procedure TDeckFrame.RedrawGraph;
+procedure TDeckFrame.RedrawGraph(Recalc: Boolean);
 var
 	BPM: Single;
 begin
@@ -1765,19 +1779,28 @@ begin
 	if Deck.Graph.Zones.Count > 0 then
 	begin
 		Deck.Graph.Zones[CurrentZone].BPM := BPM;
-		Deck.Graph.NeedRecalc := True;
+		if Recalc then
+			Deck.Graph.NeedRecalc := True;
 	end;
 
-	Deck.GetAvgBPM;
-	Deck.BPM := MasterBPM;
-	Deck.Info.Amp := SliderAmp.Position / 100;
-	Deck.Graph.Brightness := Deck.Graph.CalcBrightness * Deck.Info.Amp;
-	Deck.SetVolume(-1); // update volume
+	Recalc := Deck.Graph.NeedRecalc;
+
+	if Recalc then
+	begin
+		Deck.GetAvgBPM;
+		Deck.BPM := MasterBPM;
+		Deck.Info.Amp := SliderAmp.Position / 100;
+		Deck.Graph.Brightness := Deck.Graph.CalcBrightness * Deck.Info.Amp;
+		Deck.SetVolume(-1); // update volume
+	end;
 
 	Deck.Graph.Draw(pb.ClientWidth-1, pb.ClientHeight-1);
 	DrawRuler;
 	DrawZones;
 	DrawGraph;
+
+	if Recalc then
+		Deck.ReapplyLoops;
 
 	with SliderGraphX do
 	begin
@@ -1878,7 +1901,7 @@ begin
 		MODE_LOAD_FINISH:
 		begin
 			Log('MODE_LOAD_FINISH');
-			RedrawGraph;
+			RedrawGraph(True);
 			SetCue(TPoint.Zero);
 			DrawWaveform;
 			SliderGraphX.Position := 0;
@@ -1984,7 +2007,7 @@ begin
 			Z.BPM := Z.BPM - Step;
 
 		ZoneChanged(CurrentZone, False, False);
-		RedrawGraph;
+		RedrawGraph(True);
 	end;
 end;
 
@@ -2179,7 +2202,7 @@ begin
 	DisableAutoSizing;
 
 	X := 5;
-	W := (bLoopSong.Left - 10) div Effects.Count;
+	W := ({bLoopSong.Left}ClientWidth - 4) div Effects.Count;
 
 	for i := 0 to Effects.Count-1 do
 	begin

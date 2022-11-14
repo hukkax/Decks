@@ -75,7 +75,8 @@ type
 		function	BPMToHz(aBPM: Single; Zone: Word = 0): Cardinal;
 		function	HzToBPM(Hz: Single; Zone: Word = 0): Single;
 
-		function	GetOtherOrCurrentDeck: TDeck;
+		function	GetOtherOrCurrentDeck(ForSync: Boolean): TDeck;
+		function	IsOtherDeckPlaying: Boolean;
 
 		function 	Load(const AFilename: String): Boolean; override;
 		function	GetInfo: Boolean;
@@ -93,6 +94,8 @@ type
 		procedure	LoopZone(ZoneIndex: Word);
 		procedure	UnloopZone;
 		procedure	SetLoop(LoopType, LoopLength: Integer);
+		procedure	ApplyLoop(LoopInfo: PLoopInfo);
+		procedure	ReapplyLoops;
 		procedure	EnableLoop(LoopInfo: PLoopInfo; StartPos, EndPos: QWord);
 		procedure	DisableLoop(LoopInfo: PLoopInfo);
 		procedure	SetBPM(NewBPM: Single);
@@ -163,11 +166,23 @@ begin
 		Result := SimpleRoundTo(Graph.Zones[Zone].BPM / OrigFreq * Hz, -3);
 end;
 
-function TDeck.GetOtherOrCurrentDeck: TDeck;
+function TDeck.GetOtherOrCurrentDeck(ForSync: Boolean): TDeck;
 begin
 	Result := OtherDeck;
+
 	if Result = nil then
-		Result := Self;
+		Result := Self
+	else
+	if ForSync then
+	begin
+		if Result.Paused then
+			Result := Self;
+	end;
+end;
+
+function TDeck.IsOtherDeckPlaying: Boolean;
+begin
+	Result := (OtherDeck <> nil) and (not OtherDeck.Paused);
 end;
 
 constructor TDeck.Create;
@@ -494,15 +509,25 @@ begin
 		BASS_ChannelSetPosition(channel, Info.StartPos, BASS_POS_BYTE);
 end;
 
+procedure TDeck.ApplyLoop(LoopInfo: PLoopInfo);
+begin
+	if LoopInfo^.Enabled then
+	begin
+		LoopInfo^.Stream := OrigStream;
+		if LoopInfo^.Sync <> 0 then
+			BASS_ChannelRemoveSync(OrigStream, LoopInfo^.Sync);
+		LoopInfo^.Sync := BASS_ChannelSetSync(OrigStream,
+			BASS_SYNC_POS or BASS_SYNC_MIXTIME, LoopInfo^.EndPos,
+			@Audio_Callback_LoopSync, LoopInfo);
+	end;
+end;
+
 procedure TDeck.EnableLoop(LoopInfo: PLoopInfo; StartPos, EndPos: QWord);
 begin
 	LoopInfo^.StartPos := StartPos;
 	LoopInfo^.EndPos := EndPos;
-	LoopInfo^.Stream := OrigStream;
 	LoopInfo^.Enabled := True;
-	LoopInfo^.Sync := BASS_ChannelSetSync(OrigStream,
-		BASS_SYNC_POS or BASS_SYNC_MIXTIME, EndPos,
-		@Audio_Callback_LoopSync, LoopInfo);
+	ApplyLoop(LoopInfo);
 end;
 
 procedure TDeck.DisableLoop(LoopInfo: PLoopInfo);
@@ -511,7 +536,16 @@ begin
 	begin
 		LoopInfo^.Enabled := False;
 		BASS_ChannelRemoveSync(OrigStream, LoopInfo^.Sync);
+		LoopInfo^.Sync := 0;
 	end;
+end;
+
+procedure TDeck.ReapplyLoops;
+begin
+	ApplyLoop(@LoopInfo_Song);
+	ApplyLoop(@LoopInfo_Misc);
+	if (LoopInfo_Zone.Enabled) and (LoopInfo_Zone.Zone >= 0) then
+		LoopZone(LoopInfo_Zone.Zone);
 end;
 
 procedure TDeck.UnloopZone;
@@ -544,7 +578,6 @@ begin
 		LOOP_BEATS, LOOP_BARS:
 		begin
 			LoopInfo := @LoopInfo_Misc;
-
 			Bar := GetCurrentBar;
 			StartPos := Graph.GraphToSongBytes(Graph.Bars[Bar].Pos);
 			EndPos := Graph.GetBarLength(False, Bar);
@@ -563,7 +596,10 @@ begin
 
 		LOOP_ZONE:
 		begin
-			LoopZone(Graph.GetZoneIndexAt(Graph.SongToGraphBytes(GetPlayPosition)));
+			if LoopLength = LOOP_OFF then
+				UnloopZone
+			else
+				LoopZone(Graph.GetZoneIndexAt(Graph.SongToGraphBytes(GetPlayPosition)));
 			Exit;
 		end;
 

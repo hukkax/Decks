@@ -97,6 +97,7 @@ type
 		StartPos:			QWord; // song pos
 		LoadChunkSize:		DWord;
 		NeedRecalc,
+		ZoomChanged,
 		QueueDraw,
 		Drawing:			Boolean;
 
@@ -977,10 +978,13 @@ begin
 	if (Song = nil) or (not Song.Loaded) or (Song.AvgBPM <= 1) then Exit;
 	if (BitmapSize.X <= 0) or (BitmapSize.Y <= 0) then Exit;
 
-	if NeedRecalc then
+	if (NeedRecalc) or (ZoomChanged) then
 	begin
-		ZonesChanged;
-		NeedRecalc := False;
+		if NeedRecalc then
+		begin
+			ZonesChanged;
+			NeedRecalc := False;
+		end;
 
 		Zoom := 1;
 		if amount_bars < 1 then Exit;
@@ -989,7 +993,10 @@ begin
 		Inc(Zoom, WantedZoom-1);
 
 		Width := amount_bars * Zoom;
+		Height := BitmapSize.Y;
 		Bitmap.SetSize(Width, Height);
+
+		ZoomChanged := False;
 	end;
 
 	Bitmap.Fill(BGRABlack);
