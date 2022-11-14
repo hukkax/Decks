@@ -142,8 +142,8 @@ type
 		miDirMoveFile: TMenuItem;
 		eFileFilter: TEdit;
 		shpFileFilter: TShape;
-		DecksPanel1: TDecksPanel;
-		DecksPanel2: TDecksPanel;
+		FilesPanel: TDecksPanel;
+		FilesToolbarPanel: TDecksPanel;
 		bLoadDeckNew: TDecksButton;
 		bLoadDeck1: TDecksButton;
 		bLoadDeck2: TDecksButton;
@@ -766,8 +766,13 @@ end;
 
 procedure TMainForm.eFileFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-	// ctrl-backspace to clear
-	if (Key = VK_BACK) and (Shift = [ssCtrl]) then
+	if Key in [VK_ESCAPE, VK_RETURN] then // unfocus
+	begin
+		FocusControl(eFileFilter.Parent);
+		FocusableControls.Ascend;
+	end
+	else
+	if (Key = VK_BACK) and (Shift = [ssCtrl]) then // ctrl-backspace to clear
 	begin
 		Key := 0;
 		eFileFilter.Text := '';
@@ -922,17 +927,17 @@ begin
 	FocusableControls := TFocusableControls.Create;
 	with FocusableControls do
 	begin
-		with Root.Add(PanelTop) do
+		with Root.Add(PanelMain) do
 		begin
-			Add(bToggleLeftPane);
+//			Add(bToggleLeftPane);
 			Add(bToggleEffects);
 			Add(bToggleMixer);
 			Add(bToggleGraphLines);
-			Add(bToggleTracklist);
+//			Add(bToggleTracklist);
 //			Add(bToggleWaveDual);
 			Add(sBPM);
 		end;
-		Root.Add(ListDirs); // Root.Add(LeftPanel);
+
 		//with Root.Add(DeckPanel) do
 		begin
 			for i := 0 to High(DeckInFocusableControls) do
@@ -942,11 +947,26 @@ begin
 				DeckInFocusableControls[i,2] := Root.Add(nil); // controls
 			end;
 		end;
+
 		with Root.Add(MixerPanel) do begin
 			Add(sEQ1L); Add(sEQ1M); Add(sEQ1H);
 			Add(sFader);
 			Add(sEQ2L); Add(sEQ2M); Add(sEQ2H);
 		end;
+
+		Root.Add(ListDirs);
+
+		with Root.Add(FilesToolbarPanel) do
+		begin
+			Add(bLoadDeckNew);
+			Add(bLoadDeck1);
+			Add(bLoadDeck2);
+			Add(bLoadDeck3);
+			Add(bFileRename);
+			Add(bFileDelete);
+			Add(eFileFilter);
+		end;
+
 		Root.Add(FileList);
 
 		OnDescend := OnFocusableControlDescend;
@@ -964,6 +984,27 @@ begin
 	end;}
 
 	eFileFilterChange(Self);
+
+	{COLOR_FILE_PARENT    = $4488FF;
+	COLOR_FILE_DIRECTORY = $88CCEE;
+	COLOR_FILE_DEFAULT   = $AAAAAA;
+	COLOR_FILE_HASBPM    = $DDEEFF;
+	COLOR_FILE_PLAYED    = $5EB078;
+	COLOR_BG_PARENT      = $12151C;
+	COLOR_BG_DIRECTORY   = $111213;
+	COLOR_FILE_DRIVES    = COLOR_FILE_PARENT;
+	COLOR_BG_DRIVES      = COLOR_BG_PARENT;
+
+	Config.Theme.Strings.FileList.Directory := STR_SYM_FOLDER;
+	Config.Theme.Strings.FileList.ParentDirectory := STR_SYM_PARENT;
+	Config.Theme.Strings.FileList.Drives := STR_SYM_DRIVES;
+
+	with Config.Theme.Colors.FileList do
+	begin
+		//FileItem.FgPlayed := ;
+	end;
+	}
+
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);

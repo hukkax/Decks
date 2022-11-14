@@ -1,15 +1,15 @@
 object MainForm: TMainForm
   Left = 0
-  Height = 663
+  Height = 700
   Top = 0
-  Width = 1000
+  Width = 1200
   BorderStyle = bsSingle
   Caption = 'MainForm'
-  ClientHeight = 663
-  ClientWidth = 1000
+  ClientHeight = 700
+  ClientWidth = 1200
   Color = 2171427
-  Constraints.MinHeight = 600
-  Constraints.MinWidth = 1000
+  Constraints.MinHeight = 700
+  Constraints.MinWidth = 1200
   DoubleBuffered = False
   Font.Color = clSilver
   KeyPreview = True
@@ -28,11 +28,11 @@ object MainForm: TMainForm
     Left = 0
     Height = 45
     Top = 0
-    Width = 1000
+    Width = 1200
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 45
-    ClientWidth = 1000
+    ClientWidth = 1200
     Color = 3553082
     DoubleBuffered = True
     FullRepaint = False
@@ -45,7 +45,7 @@ object MainForm: TMainForm
       Left = 0
       Height = 45
       Top = 0
-      Width = 858
+      Width = 1058
       Align = alClient
       Background.Color = 3553082
       Background.Gradient1.StartColor = clWhite
@@ -92,8 +92,6 @@ object MainForm: TMainForm
         Height = 29
         Top = 9
         Width = 48
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 10773183
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -146,7 +144,7 @@ object MainForm: TMainForm
         ClickOffset = True
       end
       object lBPM: TDecksLabel
-        Left = 790
+        Left = 990
         Height = 29
         Top = 9
         Width = 65
@@ -194,7 +192,7 @@ object MainForm: TMainForm
         Left = 304
         Height = 29
         Top = 9
-        Width = 487
+        Width = 687
         Anchors = [akTop, akLeft, akRight]
         Color = 2171427
         BorderStyle = bsNone
@@ -216,8 +214,6 @@ object MainForm: TMainForm
         Height = 29
         Top = 9
         Width = 78
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 2171427
         StateNormal.Background.Gradient1.StartColor = 2171427
         StateNormal.Background.Gradient1.EndColor = 2171427
@@ -273,8 +269,6 @@ object MainForm: TMainForm
         Hint = 'Toggle effects pane'
         Top = 9
         Width = 48
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 6270042
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -330,8 +324,6 @@ object MainForm: TMainForm
         Hint = 'Toggle mixer pane'
         Top = 9
         Width = 48
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 13348950
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -387,8 +379,6 @@ object MainForm: TMainForm
         Hint = 'Toggle directory listing'
         Top = 9
         Width = 48
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 6794157
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -446,8 +436,6 @@ object MainForm: TMainForm
         Hint = '⚌⏦'
         Top = 9
         Width = 48
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 10773183
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -551,8 +539,6 @@ object MainForm: TMainForm
         Hint = 'Show horizontal gridlines in beat graphs'
         Top = 9
         Width = 48
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 10773183
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -604,7 +590,7 @@ object MainForm: TMainForm
       end
     end
     object PanelWin: TDecksPanel
-      Left = 858
+      Left = 1058
       Height = 45
       Top = 0
       Width = 142
@@ -655,8 +641,6 @@ object MainForm: TMainForm
         Hint = 'Minimize'
         Top = 9
         Width = 42
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 5460819
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -713,8 +697,6 @@ object MainForm: TMainForm
         Hint = 'Maximize'
         Top = 9
         Width = 41
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 5460819
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -771,8 +753,6 @@ object MainForm: TMainForm
         Hint = 'Close'
         Top = 9
         Width = 40
-        AllowAllUp = False
-        AutoToggle = False
         StateNormal.Background.Color = 3223974
         StateNormal.Background.Gradient1.StartColor = 3223974
         StateNormal.Background.Gradient1.EndColor = 2500228
@@ -827,9 +807,9 @@ object MainForm: TMainForm
   end
   object DeckPanel: TDecksPanel
     Left = 0
-    Height = 280
+    Height = 320
     Top = 45
-    Width = 1000
+    Width = 1200
     Align = alTop
     ChildSizing.EnlargeHorizontal = crsScaleChilds
     ChildSizing.EnlargeVertical = crsScaleChilds
@@ -864,7 +844,7 @@ object MainForm: TMainForm
     Border.Color = 2500134
     Border.Style = bboSolid
     Border.Width = 2
-    Constraints.MinHeight = 280
+    Constraints.MinHeight = 320
     FontEx.Color = 13421772
     FontEx.FontQuality = fqFineAntialiasing
     FontEx.Shadow = False
@@ -884,8 +864,8 @@ object MainForm: TMainForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 325
-    Width = 1000
+    Top = 365
+    Width = 1200
     Align = alTop
     Color = 5395800
     ParentColor = False
@@ -895,8 +875,8 @@ object MainForm: TMainForm
   object MixerPanel: TDecksPanel
     Left = 0
     Height = 50
-    Top = 331
-    Width = 1000
+    Top = 371
+    Width = 1200
     Align = alTop
     Background.Color = 2171427
     Background.Gradient1.StartColor = clWhite
@@ -1019,7 +999,7 @@ object MainForm: TMainForm
       OnMouseDown = sEQ1LMouseDown
     end
     object sEQ2L: ThKnob
-      Left = 867
+      Left = 1067
       Height = 40
       Top = 6
       Width = 40
@@ -1047,7 +1027,7 @@ object MainForm: TMainForm
     end
     object sEQ2M: ThKnob
       Tag = 1
-      Left = 908
+      Left = 1108
       Height = 40
       Top = 6
       Width = 40
@@ -1075,7 +1055,7 @@ object MainForm: TMainForm
     end
     object sEQ2H: ThKnob
       Tag = 2
-      Left = 949
+      Left = 1149
       Height = 40
       Top = 6
       Width = 40
@@ -1105,7 +1085,7 @@ object MainForm: TMainForm
       Left = 239
       Height = 29
       Top = 12
-      Width = 521
+      Width = 721
       Anchors = [akTop, akLeft, akRight]
       Color = 3553082
       BorderStyle = bsNone
@@ -1129,7 +1109,7 @@ object MainForm: TMainForm
       Left = 268
       Height = 5
       Top = 6
-      Width = 463
+      Width = 663
       Alignment = taLeftJustify
       Anchors = [akTop, akLeft, akRight]
       Color = clBlack
@@ -1139,9 +1119,9 @@ object MainForm: TMainForm
   end
   object BottomPanel: TDecksPanel
     Left = 0
-    Height = 282
-    Top = 381
-    Width = 1000
+    Height = 279
+    Top = 421
+    Width = 1200
     Align = alClient
     Background.Color = 5592405
     Background.Gradient1.StartColor = clWhite
@@ -1186,12 +1166,12 @@ object MainForm: TMainForm
     TabOrder = 4
     object LeftPanel: TPanel
       Left = 2
-      Height = 278
+      Height = 275
       Top = 2
       Width = 230
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 278
+      ClientHeight = 275
       ClientWidth = 230
       Color = 2171427
       Constraints.MinWidth = 220
@@ -1201,7 +1181,7 @@ object MainForm: TMainForm
       OnResize = LeftPanelResize
       object ListDirs: ThShellTree
         Left = 0
-        Height = 277
+        Height = 274
         Top = 0
         Width = 210
         Align = alClient
@@ -1235,7 +1215,7 @@ object MainForm: TMainForm
       end
       object sDirs: ThRangeBar
         Left = 210
-        Height = 277
+        Height = 274
         Top = 0
         Width = 20
         Align = alRight
@@ -1257,7 +1237,7 @@ object MainForm: TMainForm
       object EmbeddedImage: TImage
         Left = 0
         Height = 1
-        Top = 277
+        Top = 274
         Width = 230
         AntialiasingMode = amOn
         Align = alBottom
@@ -1269,18 +1249,18 @@ object MainForm: TMainForm
     end
     object SplitterBottom: TSplitter
       Left = 232
-      Height = 278
+      Height = 275
       Top = 2
       Width = 5
       Color = 5395800
       ParentColor = False
       ResizeStyle = rsLine
     end
-    object DecksPanel1: TDecksPanel
+    object FilesPanel: TDecksPanel
       Left = 237
-      Height = 278
+      Height = 275
       Top = 2
-      Width = 761
+      Width = 961
       Align = alClient
       Background.Color = 5592405
       Background.Gradient1.StartColor = clWhite
@@ -1309,7 +1289,7 @@ object MainForm: TMainForm
       Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
       Border.Color = 2500134
       Border.Style = bboNone
-      Caption = 'DecksPanel1'
+      Caption = 'FilesPanel'
       FontEx.Color = 13421772
       FontEx.FontQuality = fqFineAntialiasing
       FontEx.Shadow = False
@@ -1324,9 +1304,9 @@ object MainForm: TMainForm
       TabOrder = 2
       object FileList: ThListView
         Left = 1
-        Height = 245
+        Height = 242
         Top = 32
-        Width = 739
+        Width = 939
         Align = alClient
         Color = 2171427
         ColorSelection = 8679475
@@ -1357,8 +1337,8 @@ object MainForm: TMainForm
         TabStop = True
       end
       object sFiles: ThRangeBar
-        Left = 740
-        Height = 245
+        Left = 940
+        Height = 242
         Top = 32
         Width = 20
         Align = alRight
@@ -1374,11 +1354,11 @@ object MainForm: TMainForm
         Kind = sbVertical
         Window = 9
       end
-      object DecksPanel2: TDecksPanel
+      object FilesToolbarPanel: TDecksPanel
         Left = 1
         Height = 31
         Top = 1
-        Width = 759
+        Width = 959
         Align = alTop
         Background.Color = 2171427
         Background.Gradient1.StartColor = clWhite
@@ -1423,7 +1403,7 @@ object MainForm: TMainForm
           Left = 548
           Height = 29
           Top = 1
-          Width = 213
+          Width = 413
           Anchors = [akTop, akLeft, akRight]
           Brush.Color = 3224115
           Enabled = False
@@ -1434,7 +1414,7 @@ object MainForm: TMainForm
           Left = 551
           Height = 22
           Top = 5
-          Width = 207
+          Width = 407
           Anchors = [akTop, akLeft, akRight]
           AutoSize = False
           BorderStyle = bsNone
@@ -1454,8 +1434,6 @@ object MainForm: TMainForm
           Hint = 'Create new deck from selected file'
           Top = 1
           Width = 105
-          AllowAllUp = False
-          AutoToggle = False
           StateNormal.Background.Color = clTeal
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1509,8 +1487,6 @@ object MainForm: TMainForm
           Height = 29
           Top = 1
           Width = 94
-          AllowAllUp = False
-          AutoToggle = False
           StateNormal.Background.Color = 9530428
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1563,8 +1539,6 @@ object MainForm: TMainForm
           Height = 29
           Top = 1
           Width = 94
-          AllowAllUp = False
-          AutoToggle = False
           StateNormal.Background.Color = 9530428
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1617,8 +1591,6 @@ object MainForm: TMainForm
           Height = 29
           Top = 1
           Width = 94
-          AllowAllUp = False
-          AutoToggle = False
           StateNormal.Background.Color = 9530428
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1671,8 +1643,6 @@ object MainForm: TMainForm
           Hint = 'Rename selected file'
           Top = 1
           Width = 83
-          AllowAllUp = False
-          AutoToggle = False
           StateNormal.Background.Color = clPurple
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1726,8 +1696,6 @@ object MainForm: TMainForm
           Hint = 'Delete selected file'
           Top = 1
           Width = 83
-          AllowAllUp = False
-          AutoToggle = False
           StateNormal.Background.Color = clMaroon
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494

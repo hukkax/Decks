@@ -5,7 +5,7 @@ unit Decks.Config;
 interface
 
 uses
-	Classes, SysUtils, Forms;
+	Classes, SysUtils, Forms, Graphics;
 
 const
 	AppName = 'Decks 3';
@@ -19,6 +19,40 @@ const
 	WHEEL_PBZONES = 11;
 
 type
+	TDecksColor = TColor;
+	//TDecksColorPair = array[Boolean] of TDecksColor;
+
+	TDecksVisualTheme = record
+
+		Strings: record
+			FileList: record
+				Directory,
+				ParentDirectory,
+				Drives: String;
+			end;
+		end;
+
+		Colors: record
+			FileList: record
+				Background: TDecksColor;
+				FileItem: record
+					FgDefault,
+					FgHasBPM,
+					FgPlayed: TDecksColor;
+				end;
+				DirectoryItem: record
+					FgParent,
+					BgParent,
+					FgDirectory,
+					BgDirectory,
+					FgDrive,
+					BgDrive: TDecksColor;
+				end;
+			end;
+		end;
+
+	end;
+
 	TDecksConfig = record
 		Filename,
 		AppPath,
@@ -85,6 +119,8 @@ type
 			FirstSetsMasterBPM: Boolean;
 		end;
 
+		Theme: TDecksVisualTheme;
+
 		function  GetConfigFilePath: String;
 		function  GetAppPath: String;
 		function  GetPath: String;
@@ -95,6 +131,9 @@ type
 		procedure Save;
 	end;
 
+	{function ColorToString(C: TColor): String;
+	function StringToColor(const S: String): TColor;}
+
 var
 	Config: TDecksConfig;
 
@@ -102,6 +141,23 @@ implementation
 
 uses
 	IniFiles;
+
+{function ColorToString(C: TColor): String;
+var
+	N: LongInt;
+begin
+	N := ColorToRGB(C);
+	Result := '$' + Format('%.2x%.2x%.2x', [ Red(N), Green(N), Blue(N) ]);
+end;
+
+function StringToColor(const S: String): TColor;
+var
+	C: Cardinal;
+begin
+	if S.IsEmpty then Exit(clNone);
+	C := Abs(S.ToInteger);
+	Result := RGBToColor(C shr 16 and $FF, C shr 8 and $FF, C and $FF);
+end;}
 
 { TDecksConfig }
 
@@ -205,6 +261,41 @@ begin
 
 	Deck.FirstSetsMasterBPM := Ini.ReadBool(Sect, 'setmasterbpm', True);
 
+	Sect := 'theme.strings';
+	with Theme.Strings.FileList do
+	begin
+		Directory := Ini.ReadString(Sect, 'filelist.directory', '');
+		ParentDirectory := Ini.ReadString(Sect, 'filelist.parent', '');
+		Drives := Ini.ReadString(Sect, 'filelist.drives', '');
+	end;
+
+	Sect := 'theme.colors';
+	with Theme.Colors.FileList do
+	begin
+		Background := StringToColor(
+			Ini.ReadString(Sect, 'filelist.background', '0'));
+
+		FileItem.FgDefault := StringToColor(
+			Ini.ReadString(Sect, 'filelist.fg', '0'));
+		FileItem.FgHasBPM := StringToColor(
+			Ini.ReadString(Sect, 'filelist.fg.hasbpm', '0'));
+		FileItem.FgPlayed := StringToColor(
+			Ini.ReadString(Sect, 'filelist.fg.played', '0'));
+
+		DirectoryItem.FgParent := StringToColor(
+			Ini.ReadString(Sect, 'filelist.fg.parent', '0'));
+		DirectoryItem.BgParent := StringToColor(
+			Ini.ReadString(Sect, 'filelist.bg.parent', '0'));
+		DirectoryItem.FgDirectory := StringToColor(
+			Ini.ReadString(Sect, 'filelist.fg.dir', '0'));
+		DirectoryItem.BgDirectory := StringToColor(
+			Ini.ReadString(Sect, 'filelist.bg.dir', '0'));
+		DirectoryItem.FgDrive := StringToColor(
+			Ini.ReadString(Sect, 'filelist.fg.drive', '0'));
+		DirectoryItem.BgDrive := StringToColor(
+			Ini.ReadString(Sect, 'filelist.bg.drive', '0'));
+	end;
+
 	Ini.Free;
 	Result := True;
 end;
@@ -244,10 +335,44 @@ begin
 	Ini.WriteBool(Sect, 'enabled', Effects.Enabled);
 
 	Sect := 'deck';
-
 	Ini.WriteBool(Sect, 'graph.horizontallines', Deck.BeatGraph.ShowHorizontalLines);
 	Ini.WriteBool(Sect, 'wave.showdual', Deck.Waveform.ShowDual);
 	Ini.WriteBool(Sect, 'setmasterbpm', Deck.FirstSetsMasterBPM);
+
+	Sect := 'theme.strings';
+	with Theme.Strings.FileList do
+	begin
+		Ini.WriteString(Sect, 'filelist.directory', Directory);
+		Ini.WriteString(Sect, 'filelist.parent', ParentDirectory);
+		Ini.WriteString(Sect, 'filelist.drives', Drives);
+	end;
+
+	Sect := 'theme.colors';
+	with Theme.Colors.FileList do
+	begin
+		Ini.WriteString(Sect, 'filelist.background',
+			ColorToString(Background));
+
+		Ini.WriteString(Sect, 'filelist.fg',
+			ColorToString(FileItem.FgDefault));
+		Ini.WriteString(Sect, 'filelist.fg.hasbpm',
+			ColorToString(FileItem.FgHasBPM));
+		Ini.WriteString(Sect, 'filelist.fg.played',
+			ColorToString(FileItem.FgPlayed));
+
+		Ini.WriteString(Sect, 'filelist.fg.parent',
+			ColorToString(DirectoryItem.FgParent));
+		Ini.WriteString(Sect, 'filelist.bg.parent',
+			ColorToString(DirectoryItem.BgParent));
+		Ini.WriteString(Sect, 'filelist.fg.dir',
+			ColorToString(DirectoryItem.FgDirectory));
+		Ini.WriteString(Sect, 'filelist.bg.dir',
+			ColorToString(DirectoryItem.BgDirectory));
+		Ini.WriteString(Sect, 'filelist.fg.drive',
+			ColorToString(DirectoryItem.FgDrive));
+		Ini.WriteString(Sect, 'filelist.bg.drive',
+			ColorToString(DirectoryItem.BgDrive));
+	end;
 
 	Ini.Free;
 end;
