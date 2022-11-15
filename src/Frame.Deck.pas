@@ -201,6 +201,7 @@ type
 		procedure OnLoadProgress(Percentage: Integer);
 		procedure ApplyEffects;
 		procedure ShowEffectValue(Knob: ThKnob);
+		procedure UnloopAll;
 	public
 		GraphHover,
 		GraphCue:   TPoint;
@@ -813,7 +814,7 @@ begin
 				P := OtherDeck.LoopInfo_Misc.StartPos
 			else
 			begin
-				B := OtherDeck.GetCurrentBar+1;
+				B := Min(OtherDeck.GetCurrentBar+1, High(OtherDeck.Graph.Bars));
 				P := OtherDeck.Graph.Bars[B].Pos;
 				P := OtherDeck.Graph.GraphToSongBytes(P);
 			end;
@@ -1846,7 +1847,7 @@ procedure TDeckFrame.OnLoadProgress(Percentage: Integer);
 var
 	X, W, H: Integer;
 begin
-	with pbVU do
+	with pbZones do
 	begin
 		W := ClientWidth; H := ClientHeight;
 		Bitmap.FillRect(Bounds(0, 0, W, H), BGRABlack, dmSet);
@@ -1875,6 +1876,19 @@ begin
 	bMaster.Hint := Deck.Filename;
 end;
 
+procedure TDeckFrame.UnloopAll;
+begin
+	if Deck <> nil then
+		Deck.UnloopAll;
+	bLoopSong.Down := False;
+	bLoopZone.Down := False;
+	bLoopBeat.Down := False;
+	bLoopBeat2.Down := False;
+	bLoopBar.Down  := False;
+	bLoopBar2.Down := False;
+	bLoopBar4.Down := False;
+end;
+
 procedure TDeckFrame.OnDeckEvent(Kind: Integer);
 var
 	S: String;
@@ -1887,12 +1901,12 @@ begin
 			Log('MODE_LOAD_START');
 			BASS_SetDevice(CurrentDevice);
 			CurrentZone := 0;
+			UnloopAll;
 			Deck.Graph.Zones.Clear;
 			Deck.Graph.Scroll.X := 0;
 			Deck.Graph.Zoom := 1;
 			Timer.Enabled := False;
-			bMaster.Caption := 'Loading';
-			//Screen.Cursor := crHourGlass;
+			bMaster.Caption := Deck.Filename;
 			Invalidate;
 			Application.ProcessMessages;
 			Enabled := False;
@@ -1905,12 +1919,9 @@ begin
 			SetCue(TPoint.Zero);
 			DrawWaveform;
 			SliderGraphX.Position := 0;
-
-			//Screen.Cursor := crDefault;
 			lTime.Tag := -1;
 			Invalidate;
 			Timer.Enabled := True;
-
 			MainForm.ApplyMixer;
 			ApplyEffects;
 		end;
@@ -1952,19 +1963,20 @@ begin
 		MODE_LOAD_FAILURE:
 		begin
 			Log('MODE_LOAD_FAILURE');
-			bMaster.Caption := '';
-			S := '';
 			case BASS_ErrorGetCode of
-				BASS_ERROR_FILEOPEN:	S := 'The file could not be opened.';
-				BASS_ERROR_FILEFORM:	S := 'File format not recognised/supported.';
-				BASS_ERROR_NOTAUDIO:	S := 'The file does not contain audio.';
-				BASS_ERROR_CODEC:		S := 'Codec not available/supported.';
-				BASS_ERROR_FORMAT:		S := 'Sample format not supported.';
-				BASS_ERROR_MEM:			S := 'Insufficient memory.';
-				BASS_ERROR_UNKNOWN:		S := 'Mystery problem!';
+				BASS_ERROR_FILEOPEN:	S := 'Error opening file';
+				BASS_ERROR_FILEFORM:	S := 'File format not recognised/supported';
+				BASS_ERROR_NOTAUDIO:	S := 'Not an audio file';
+				BASS_ERROR_CODEC:		S := 'Codec not available/supported';
+				BASS_ERROR_FORMAT:		S := 'Sample format not supported';
+				BASS_ERROR_MEM:			S := 'Insufficient memory';
+				BASS_ERROR_UNKNOWN:		S := 'Unknown error';
+				else S := '';
 			end;
-			ErrorMessage('Load error: ' + S);
 			Log(S);
+			//ErrorMessage('Load error: ' + S);
+			bMaster.Caption := S;
+			bMaster.Background.Color := clMaroon;
 		end;
 
 		MODE_PLAY_START, MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:

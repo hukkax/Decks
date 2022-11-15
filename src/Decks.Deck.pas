@@ -93,11 +93,13 @@ type
 
 		procedure	LoopZone(ZoneIndex: Word);
 		procedure	UnloopZone;
+		procedure	UnloopAll;
 		procedure	SetLoop(LoopType, LoopLength: Integer);
 		procedure	ApplyLoop(LoopInfo: PLoopInfo);
 		procedure	ReapplyLoops;
 		procedure	EnableLoop(LoopInfo: PLoopInfo; StartPos, EndPos: QWord);
 		procedure	DisableLoop(LoopInfo: PLoopInfo);
+
 		procedure	SetBPM(NewBPM: Single);
 		function	GetAvgBPM: Single;
 
@@ -564,6 +566,13 @@ begin
 	StartPos := Graph.GraphToSongBytes(Z.Pos);
 	EndPos := StartPos + Graph.GraphToSongBytes(Z.length);
 	EnableLoop(@LoopInfo_Zone, StartPos, EndPos);
+end;
+
+procedure TDeck.UnloopAll;
+begin
+	DisableLoop(@LoopInfo_Song);
+	DisableLoop(@LoopInfo_Misc);
+	UnloopZone;
 end;
 
 procedure TDeck.SetLoop(LoopType, LoopLength: Integer);
