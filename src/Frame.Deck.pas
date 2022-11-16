@@ -1941,13 +1941,13 @@ begin
 			if not Deck.GetInfo then
 			begin
 				Deck.Graph.Clear;
-				Deck.Graph.AddZone(0, MasterBPM, True);
 				Deck.Info.BPM := 0.0;
 				Deck.Info.Amp := 1.0;
 			end;
+			if Deck.Graph.Zones.Count < 1 then
+				Deck.Graph.AddZone(0, IfThen(Deck.Info.BPM >= 60, Deck.Info.BPM, MasterBPM), True);
 			UpdateCaption;
-			if Deck.Graph.Zones.Count > 0 then
-				SetSlider(lBPM, Deck.Graph.Zones.First.BPM);
+			SetSlider(lBPM, Deck.Graph.Zones.First.BPM);
 			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
 			Deck.Graph.ZonesLoaded;
 			Deck.GetAvgBPM;

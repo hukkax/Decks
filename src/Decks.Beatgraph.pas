@@ -584,7 +584,7 @@ function TBeatGraph.GraphToPos(P: TPoint; ForGraph: Boolean = False): QWord;
 var
 	Z: TZone;
 begin
-	if (Generating) or (Zoom < 1) then Exit(0);
+	if (Generating) or (Zoom < 1) or (Zones.Count < 1) then Exit(0);
 	Result := Bars[GraphToBar(P.X)].Pos;
 
 	if P.Y > 0 then
