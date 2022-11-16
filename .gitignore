@@ -47,6 +47,7 @@ Temporary Items
 .apdisk
 
 # Custom
+src/include/tests/TDecksButton/
 backup
 lib
 temp
@@ -60,6 +61,7 @@ basszxtune.dll
 libbasszxtune.so
 decks.ini
 Form.Deck.*
+tracklist*.txt
 *.bpm
 *-debug.exe
 *.dbg
@@ -75,5 +77,4 @@ Form.Deck.*
 *.tar\.gz
 *.sh
 *.0
-
 *.chm
