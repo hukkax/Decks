@@ -1,0 +1,8 @@
+Active:
+- ZONE: major slowdown (pause) playing a deck with many zones (after creating new zones?)
+- SYNC: at some point (after closing a deck?) a deck may refuse to sync its tempo
+
+Fixed:
+- LOAD: crash on .bpm files with no zones defined
+- LOOP: zone loop syncs could be lost after graph zoom changed
+- SYNC: jumping to cue stops playing song if both decks autosynced and other deck stopped
