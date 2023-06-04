@@ -57,7 +57,7 @@ type
 	TRBZone = (zNone, zBtnPrev, zTrackPrev, zHandle, zTrackNext, zBtnNext);
 	TRBGetSizeEvent = procedure(Sender: TObject; var Size: Integer) of object;
 
-	ThArrowBar = class(TCustomControl)
+	TDecksSlider = class(TCustomControl)
 	private
 		FBorderStyle: TBorderStyle;
 		FButtonSize: Integer;
@@ -150,7 +150,7 @@ type
 		property OnUserChange: TNotifyEvent read FOnUserChange write FOnUserChange;
 	end;
 
-	TCustomRangeBar = class(ThArrowBar)
+	TCustomRangeBar = class(TDecksSlider)
 	private
 		FCentered: Boolean;
 		FEffectiveWindow: Integer;
@@ -184,7 +184,7 @@ type
 		property Window: Integer read FWindow write SetWindow default 0;
 	end;
 
-	ThRangeBar = class(TCustomRangeBar)
+	TDecksRangeBar = class(TCustomRangeBar)
 	published
 		property Align;
 		property Anchors;
@@ -224,7 +224,7 @@ type
 		property OnUserChange;
 	end;
 
-	TCustomGaugeBar = class(ThArrowBar)
+	TCustomGaugeBar = class(TDecksSlider)
 	private
 		FHandleSize: Integer;
 		FLargeChange: Integer;
@@ -259,7 +259,7 @@ type
 		property OnUserChange;
 	end;
 
-	ThGaugeBar = class(TCustomGaugeBar)
+	TDecksGaugeBar = class(TCustomGaugeBar)
 	published
 		property Align;
 		property Anchors;
@@ -316,7 +316,7 @@ const
 
 procedure Register;
 begin
-	RegisterComponents('Custom', [ThRangeBar, ThGaugeBar]);
+	RegisterComponents('Decks', [TDecksRangeBar, TDecksGaugeBar]);
 end;
 
 function ClrLighten(C: TColor; Amount: Integer): TColor;
@@ -491,12 +491,12 @@ const
   HOTTRACK_INTERVAL = 150;
   MIN_SIZE = 17;
 
-{ ThArrowBar }
+{ TDecksSlider }
 
 {$IFDEF FPC}
-procedure ThArrowBar.CMEnabledChanged(var Message: TLMessage);
+procedure TDecksSlider.CMEnabledChanged(var Message: TLMessage);
 {$ELSE}
-procedure ThArrowBar.CMEnabledChanged(var Message: TMessage);
+procedure TDecksSlider.CMEnabledChanged(var Message: TMessage);
 {$ENDIF}
 begin
   inherited;
@@ -504,16 +504,16 @@ begin
 end;
 
 {$IFDEF FPC}
-procedure ThArrowBar.CMMouseLeave(var Message: TLMessage);
+procedure TDecksSlider.CMMouseLeave(var Message: TLMessage);
 {$ELSE}
-procedure ThArrowBar.CMMouseLeave(var Message: TMessage);
+procedure TDecksSlider.CMMouseLeave(var Message: TMessage);
 {$ENDIF}
 begin
   MouseLeft;
   inherited;
 end;
 
-constructor ThArrowBar.Create(AOwner: TComponent);
+constructor TDecksSlider.Create(AOwner: TComponent);
 begin
 	inherited;
 	ControlStyle := ControlStyle - [csAcceptsControls, csDoubleClicks] + [csOpaque];
@@ -535,13 +535,13 @@ begin
 	FLightAmount := 12;
 end;
 
-procedure ThArrowBar.DoChange;
+procedure TDecksSlider.DoChange;
 begin
 	if Assigned(FOnChange) then FOnChange(Self);
 	if FGenChange and Assigned(FOnUserChange) then FOnUserChange(Self);
 end;
 
-procedure ThArrowBar.DoDrawButton(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean);
+procedure TDecksSlider.DoDrawButton(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean);
 var
 	Edges: TRBDirections;
 begin
@@ -583,7 +583,7 @@ begin
 	end;
 end;
 
-procedure ThArrowBar.DoDrawHandle(R: TRect; Horz, Pushed, Hot: Boolean);
+procedure TDecksSlider.DoDrawHandle(R: TRect; Horz, Pushed, Hot: Boolean);
 var
 	C: TColor;
 begin
@@ -608,7 +608,7 @@ begin
 end;
 
 
-procedure ThArrowBar.DoDrawTrack(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean);
+procedure TDecksSlider.DoDrawTrack(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean);
 var
 	C: TColor;
 	Edges: set of TRBDirection;
@@ -668,19 +668,19 @@ begin
 	end; // with
 end;
 
-function ThArrowBar.DrawEnabled: Boolean;
+function TDecksSlider.DrawEnabled: Boolean;
 begin
   Result := Enabled;
 end;
 
-function ThArrowBar.GetBorderSize: Integer;
+function TDecksSlider.GetBorderSize: Integer;
 const
   CSize: array [Boolean] of Integer = (0, 1);
 begin
   Result := CSize[BorderStyle = bsSingle];
 end;
 
-function ThArrowBar.GetButtonSize: Integer;
+function TDecksSlider.GetButtonSize: Integer;
 var
   W, H: Integer;
 begin
@@ -705,19 +705,19 @@ begin
   end;
 end;
 
-function ThArrowBar.GetHandleRect: TRect;
+function TDecksSlider.GetHandleRect: TRect;
 begin
   Result := Rect(0, 0, 0, 0);
 end;
 
-function ThArrowBar.GetTrackBoundary: TRect;
+function TDecksSlider.GetTrackBoundary: TRect;
 begin
   Result := ClientRect;
   if Kind = sbHorizontal then Result.Inflate(-GetButtonSize, 0)
   else Result.Inflate(0, -GetButtonSize);
 end;
 
-function ThArrowBar.GetZone(X, Y: Integer): TRBZone;
+function TDecksSlider.GetZone(X, Y: Integer): TRBZone;
 var
   P: TPoint;
   R, R1: TRect;
@@ -775,7 +775,7 @@ begin
   end;
 end;
 
-function ThArrowBar.GetZoneRect(Zone: TRBZone): TRect;
+function TDecksSlider.GetZoneRect(Zone: TRBZone): TRect;
 const
   CEmptyRect: TRect = (Left: 0; Top: 0; Right: 0; Bottom: 0);
 var
@@ -824,7 +824,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TDecksSlider.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
 	inherited;
 	if Button = mbLeft then
@@ -837,12 +837,12 @@ begin
 	end;
 end;
 
-procedure ThArrowBar.MouseLeft;
+procedure TDecksSlider.MouseLeft;
 begin
   StopHotTracking;
 end;
 
-procedure ThArrowBar.MouseMove(Shift: TShiftState; X, Y: Integer);
+procedure TDecksSlider.MouseMove(Shift: TShiftState; X, Y: Integer);
 var
   NewHotZone: TRBZone;
 begin
@@ -859,7 +859,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TDecksSlider.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
 	inherited;
 	FDragZone := zNone;
@@ -869,7 +869,7 @@ begin
 		OnMouseUp(Self, Button, Shift, X, Y);
 end;
 
-procedure ThArrowBar.Paint;
+procedure TDecksSlider.Paint;
 const
   CPrevDirs: array [Boolean] of TRBDirection = (drUp, drLeft);
   CNextDirs: array [Boolean] of TRBDirection = (drDown, drRight);
@@ -907,7 +907,7 @@ begin
   if ShowHandle then DoDrawHandle(HandleRect, Horz, FDragZone = zHandle, FHotZone = zHandle);
 end;
 
-procedure ThArrowBar.SetBorderStyle(Value: TBorderStyle);
+procedure TDecksSlider.SetBorderStyle(Value: TBorderStyle);
 begin
   if Value <> FBorderStyle then
   begin
@@ -920,7 +920,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.SetFlat(Value: Boolean);
+procedure TDecksSlider.SetFlat(Value: Boolean);
 begin
   if Value <> FFlat then
   begin
@@ -929,7 +929,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.SetButtonSize(Value: Integer);
+procedure TDecksSlider.SetButtonSize(Value: Integer);
 begin
   if Value <> FButtonSize then
   begin
@@ -938,7 +938,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.SetHandleColor(Value: TColor);
+procedure TDecksSlider.SetHandleColor(Value: TColor);
 begin
   if Value <> FHandleColor then
   begin
@@ -947,7 +947,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.SetHighLightColor(Value: TColor);
+procedure TDecksSlider.SetHighLightColor(Value: TColor);
 begin
   if Value <> FHighLightColor then
   begin
@@ -956,7 +956,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.SetButtonColor(Value: TColor);
+procedure TDecksSlider.SetButtonColor(Value: TColor);
 begin
   if Value <> FButtonColor then
   begin
@@ -965,7 +965,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.SetBorderColor(Value: TColor);
+procedure TDecksSlider.SetBorderColor(Value: TColor);
 begin
   if Value <> FBorderColor then
   begin
@@ -974,7 +974,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.SetShadowColor(Value: TColor);
+procedure TDecksSlider.SetShadowColor(Value: TColor);
 begin
   if Value <> FShadowColor then
   begin
@@ -983,7 +983,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.SetArrowColor(Value: TColor);
+procedure TDecksSlider.SetArrowColor(Value: TColor);
 begin
 	if Value <> FArrowColor then
 	begin
@@ -992,7 +992,7 @@ begin
 	end;
 end;
 
-procedure ThArrowBar.SetLightAmount(Value: Integer);
+procedure TDecksSlider.SetLightAmount(Value: Integer);
 begin
 	if Value <> FLightAmount then
 	begin
@@ -1001,7 +1001,7 @@ begin
 	end;
 end;
 
-procedure ThArrowBar.SetKind(Value: TScrollBarKind);
+procedure TDecksSlider.SetKind(Value: TScrollBarKind);
 var
   Tmp: Integer;
 begin
@@ -1018,7 +1018,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.SetShowArrows(Value: Boolean);
+procedure TDecksSlider.SetShowArrows(Value: Boolean);
 begin
   if Value <> FShowArrows then
   begin
@@ -1027,7 +1027,7 @@ begin
   end;
 end;
 
-procedure ThArrowBar.StartDragTracking;
+procedure TDecksSlider.StartDragTracking;
 begin
   FTimer.Interval := FIRST_DELAY;
   FTimerMode := tmScroll;
@@ -1036,26 +1036,26 @@ begin
   FTimer.Enabled := True;
 end;
 
-procedure ThArrowBar.StartHotTracking;
+procedure TDecksSlider.StartHotTracking;
 begin
   FTimer.Interval := HOTTRACK_INTERVAL;
   FTimerMode := tmHotTrack;
   FTimer.Enabled := True;
 end;
 
-procedure ThArrowBar.StopDragTracking;
+procedure TDecksSlider.StopDragTracking;
 begin
   StartHotTracking;
 end;
 
-procedure ThArrowBar.StopHotTracking;
+procedure TDecksSlider.StopHotTracking;
 begin
   FTimer.Enabled := False;
   FHotZone := zNone;
   Invalidate;
 end;
 
-procedure ThArrowBar.TimerHandler(Sender: TObject);
+procedure TDecksSlider.TimerHandler(Sender: TObject);
 var
   Pt: TPoint;
 begin
@@ -1078,12 +1078,12 @@ begin
 end;
 
 {$IFDEF FPC}
-procedure ThArrowBar.WMEraseBkgnd(var Message: TLmEraseBkgnd);
+procedure TDecksSlider.WMEraseBkgnd(var Message: TLmEraseBkgnd);
 begin
   Message.Result := -1;
 end;
 
-procedure ThArrowBar.WMNCCalcSize(var Message: TLMNCCalcSize);
+procedure TDecksSlider.WMNCCalcSize(var Message: TLMNCCalcSize);
 var
   Sz: Integer;
 begin
@@ -1092,7 +1092,7 @@ begin
 end;
 
 {$IFDEF Windows}
-procedure ThArrowBar.WMNCPaint(var Message: TWMNCPaint);
+procedure TDecksSlider.WMNCPaint(var Message: TWMNCPaint);
 
   procedure DrawNCArea(ADC: HDC; const Clip: HRGN);
   var
@@ -1118,12 +1118,12 @@ end;
 
 {$ELSE}
 
-procedure ThArrowBar.WMEraseBkgnd(var Message: TWmEraseBkgnd);
+procedure TDecksSlider.WMEraseBkgnd(var Message: TWmEraseBkgnd);
 begin
   Message.Result := -1;
 end;
 
-procedure ThArrowBar.WMNCCalcSize(var Message: TWMNCCalcSize);
+procedure TDecksSlider.WMNCCalcSize(var Message: TWMNCCalcSize);
 var
   Sz: Integer;
 begin
@@ -1131,7 +1131,7 @@ begin
   GR32.InflateRect(Message.CalcSize_Params.rgrc[0], -Sz, -Sz);
 end;
 
-procedure ThArrowBar.WMNCPaint(var Message: TWMNCPaint);
+procedure TDecksSlider.WMNCPaint(var Message: TWMNCPaint);
 
   procedure DrawNCArea(ADC: HDC; const Clip: HRGN);
   var

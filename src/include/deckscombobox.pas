@@ -13,9 +13,10 @@ uses
 
 type
 	TFormPopup = class(TForm)
-	{$IFDEF WINDOWS}
-	procedure WMMouseActivate(var Message: TWMMouseActivate); message WM_MOUSEACTIVATE;
-	{$ENDIF}
+		{$IFDEF WINDOWS}
+		procedure WMActivate(var Msg: TWMActivate); message WM_ACTIVATE;
+		procedure WMMouseActivate(var Message: TWMMouseActivate); message WM_MOUSEACTIVATE;
+		{$ENDIF}
 	end;
 
 	TDecksComboBox = class(TBCStyleCustomControl)
@@ -141,12 +142,21 @@ uses
 
 procedure Register;
 begin
-	RegisterComponents('Custom', [TDecksComboBox]);
+	RegisterComponents('Decks', [TDecksComboBox]);
 end;
 
 { TFormPopup }
 
 {$IFDEF WINDOWS}
+procedure TFormPopup.WMActivate(var Msg: TWMActivate);
+begin
+	SendMessage(Self.Handle, WM_NCACTIVATE, 1, 0);
+	inherited;
+	// if we are being activated, then give pretend activation state back to our owner
+	if (Msg.Active <> WA_INACTIVE) then
+		SendMessage(Self.PopupParent.Handle, WM_NCACTIVATE, WPARAM(True), -1);
+end;
+
 procedure TFormPopup.WMMouseActivate(var Message: TWMMouseActivate);
 begin
 	Message.Result := MA_NOACTIVATE;
@@ -157,12 +167,12 @@ end;
 
 procedure TDecksComboBox.ButtonClick(Sender: TObject);
 const
-	MinDelayReopen = 500 / (1000 * 60 * 60 * 24);
+	MinDelayReopen = 500 / (1000 * 60 * 60 * 24) / 2;
 var
 	p: TPoint;
 	h: Integer;
 	s: TSize;
-	Frm: TCustomForm;
+	ParFrm, Frm: TCustomForm;
 begin
 	{$IFDEF DARWIN}
 	if Assigned(FForm) and not FForm.Visible then FreeForm;
@@ -205,13 +215,13 @@ begin
 		Frm := GetParentForm(Self);
 		ShowWindow(FForm.Handle, SW_SHOWNOACTIVATE);
 		FForm.Visible := True;
-		if Frm <> nil then // and (Msg.Active <> WA_INACTIVE) then
-			SendMessage(Frm.Handle, LM_NCACTIVATE, WPARAM(True), -1);
+//		if Frm <> nil then // and (Msg.Active <> WA_INACTIVE) then
+//			SendMessage(Frm.Handle, LM_NCACTIVATE, WPARAM(True), -1);
 
 		if Assigned(FOnDropDown) then
 			FOnDropDown(self);
-		if FListBox.CanSetFocus then
-			FListBox.SetFocus;
+{		if FListBox.CanSetFocus then
+			FListBox.SetFocus;}
 		FTimerCheckFormHide.Enabled := True;
 		FQueryFormHide := False;
 	end;
@@ -603,7 +613,7 @@ begin
 		FForm.OnDeactivate := FormDeactivate;
 		FForm.OnHide := FormHide;
 		FForm.FormStyle := fsStayOnTop;
-		   FForm.Parent := nil;
+		FForm.Parent := nil;
 		FForm.PopupParent := GetParentForm(Self);
 	end;
 
@@ -634,7 +644,7 @@ procedure TDecksComboBox.FreeForm;
 begin
 	if Assigned(FListBox) then
 	begin
-		if FListBox.LCLRefCount > 0 then exit;
+		if FListBox.LCLRefCount > 0 then Exit;
 		if FItems = nil then
 			FItems := TStringList.Create;
 		FItems.Assign(FListBox.Items);

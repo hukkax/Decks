@@ -155,7 +155,7 @@ uses
 
 procedure Register;
 begin
-	RegisterComponents('Custom', [TDecksValueLabel]);
+	RegisterComponents('Decks', [TDecksValueLabel]);
 end;
 
 { TDecksValueLabel }

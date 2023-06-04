@@ -33,38 +33,38 @@
         <UnitName Value="hListView"/>
       </Item3>
       <Item4>
-        <Filename Value="hshelltree.pas"/>
-        <HasRegisterProc Value="True"/>
-        <UnitName Value="hShellTree"/>
-      </Item4>
-      <Item5>
         <Filename Value="hknob.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="hKnob"/>
-      </Item5>
-      <Item6>
+      </Item4>
+      <Item5>
         <Filename Value="deckspanel.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="DecksPanel"/>
-      </Item6>
-      <Item7>
+      </Item5>
+      <Item6>
         <Filename Value="decksbevel.pas"/>
         <UnitName Value="DecksBevel"/>
-      </Item7>
-      <Item8>
+      </Item6>
+      <Item7>
         <Filename Value="deckslabel.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="DecksLabel"/>
-      </Item8>
-      <Item9>
+      </Item7>
+      <Item8>
         <Filename Value="deckscombobox.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="DecksComboBox"/>
-      </Item9>
-      <Item10>
+      </Item8>
+      <Item9>
         <Filename Value="decksvaluelabel.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="DecksValueLabel"/>
+      </Item9>
+      <Item10>
+        <Filename Value="decksshelltree.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="DecksShellTree"/>
       </Item10>
     </Files>
     <CompatibilityMode Value="True"/>

@@ -143,7 +143,7 @@ uses LCLType;
 
 procedure Register;
 begin
-	RegisterComponents('Custom', [TDecksPanel]);
+	RegisterComponents('Decks', [TDecksPanel]);
 end;
 
 { TDecksPanel }
@@ -176,7 +176,7 @@ begin
 	CalculateBorderRect(FBorder, r);
 
 	if Caption <> '' then
-		RenderText(r, FFontEx, Caption, TBGRABitmap(FBGRA));
+		RenderText(r, FFontEx, Caption, TBGRABitmap(FBGRA), True);
 
 	if Assigned(FOnAfterRenderBCPanel) then
 		FOnAfterRenderBCPanel(Self, FBGRA, r);

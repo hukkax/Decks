@@ -75,7 +75,7 @@ type
 		FColorSelectedText,
 		FColorGrid,
 		FColorHover: TColor;
-		FScrollbar: ThRangebar;
+		FScrollbar: TDecksRangebar;
 		FMouseOver: Boolean;
 		FFont: TFont;
 		FFiltered: Boolean;
@@ -134,7 +134,7 @@ type
 		procedure SetFirstVisibleIndex(I: Integer);
 		procedure SetLastVisibleIndex(I: Integer);
 		procedure SetItemIndex(I: Integer);
-		procedure SetScrollbar(AScrollbar: ThRangebar);
+		procedure SetScrollbar(AScrollbar: TDecksRangebar);
 		procedure SetSortColumn(I: Integer);
 		procedure SetHeaderHeight(H: Integer);
 		procedure SetHeaderColor(C: TColor);
@@ -202,7 +202,7 @@ type
 		property Enabled: Boolean read FEnabled write SetEnabled default True;
 		property Font: TFont read FFont write SetFont;
 		property ItemHeight: Integer read FItemHeight write SetItemHeight default 12;
-		property Scrollbar: ThRangebar read FScrollbar write SetScrollbar;
+		property Scrollbar: TDecksRangebar read FScrollbar write SetScrollbar;
 
 		property ParentShowHint;
 		//property PopupMenu;
@@ -242,7 +242,7 @@ uses
 
 procedure Register;
 begin
-	RegisterComponents('Custom', [ThListView]);
+	RegisterComponents('Decks', [ThListView]);
 end;
 
 { TMyHintWindow }
@@ -494,7 +494,7 @@ begin
 	Invalidate;
 end;
 
-procedure ThListView.SetScrollbar(AScrollbar: ThRangebar);
+procedure ThListView.SetScrollbar(AScrollbar: TDecksRangebar);
 begin
 	FScrollbar := AScrollbar;
 

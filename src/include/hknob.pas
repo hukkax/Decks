@@ -201,7 +201,7 @@ uses
 
 procedure Register;
 begin
-	RegisterComponents('Custom', [ThKnob]);
+	RegisterComponents('Decks', [ThKnob]);
 end;
 
 (*********************************)

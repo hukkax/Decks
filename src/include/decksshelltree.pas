@@ -1,4 +1,4 @@
-unit hShellTree;
+unit DecksShellTree;
 
 {$mode delphi}
 
@@ -10,7 +10,7 @@ uses
 type
   TListScrollEvent = procedure(Kind, Pos: Integer) of Object;
 
-  ThShellTree = class(TShellTreeView) //class helper for TShellTreeView
+  TDecksShellTree = class(TShellTreeView) //class helper for TShellTreeView
   private
 	FOnScroll: TListScrollEvent;
 	DefItemSpace: Integer;
@@ -51,22 +51,22 @@ uses
 
 procedure Register;
 begin
-	RegisterComponents('Custom', [ThShellTree]);
+	RegisterComponents('Decks', [TDecksShellTree]);
 end;
 
-{ ThShellTree }
+{ TDecksShellTree }
 
-function ThShellTree.GetMaxScrollY: Integer;
+function TDecksShellTree.GetMaxScrollY: Integer;
 begin
 	Result := GetMaxScrollTop;
 end;
 
-function ThShellTree.GetScrollY: Integer;
+function TDecksShellTree.GetScrollY: Integer;
 begin
 	Result := ScrolledTop;
 end;
 
-procedure ThShellTree.SetScrollY(Y: Integer);
+procedure TDecksShellTree.SetScrollY(Y: Integer);
 begin
 	if Y <> ScrolledTop then
 	begin
@@ -75,14 +75,14 @@ begin
 	end;
 end;
 
-procedure ThShellTree.WMVScroll(var Msg: TLMScroll);
+procedure TDecksShellTree.WMVScroll(var Msg: TLMScroll);
 begin
 	inherited;
 	if Assigned(FOnScroll) then
 		FOnScroll(Msg.ScrollCode, Msg.Pos);
 end;
 
-procedure ThShellTree.MouseMove(Shift: TShiftState; X, Y: Integer);
+procedure TDecksShellTree.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
 	if Assigned(OnMouseMove) then
 		OnMouseMove(Self, Shift, X, Y);
@@ -92,7 +92,7 @@ begin
 	UpdateHotTrack(X, Y);
 end;
 
-procedure ThShellTree.UpdateHotTrack(X, Y: Integer);
+procedure TDecksShellTree.UpdateHotTrack(X, Y: Integer);
 begin
 	NodeUnderCursor := nil;
 	if not (tvoHotTrack in Options) then Exit;
@@ -100,20 +100,20 @@ begin
 	Invalidate;
 end;
 
-procedure ThShellTree.HintMouseLeave(Sender: TObject);
+procedure TDecksShellTree.HintMouseLeave(Sender: TObject);
 begin
 	if FindLCLControl(Mouse.CursorPos) <> Self then
 		FHintWnd.Hide;
 end;
 
-procedure ThShellTree.MouseLeave;
+procedure TDecksShellTree.MouseLeave;
 begin
 	NodeUnderCursor := nil;
 	HintMouseLeave(Self);
 	inherited MouseLeave;
 end;
 
-procedure ThShellTree.UpdateTooltip(X, Y: integer);
+procedure TDecksShellTree.UpdateTooltip(X, Y: integer);
 var
   Node: TTreeNode;
   PHint, PLeft: TPoint;
@@ -176,7 +176,7 @@ begin
   FHintWnd.ActivateHint(R, Node.Text)
 end;
 
-function ThShellTree.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
+function TDecksShellTree.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
 begin
 	Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
@@ -184,7 +184,7 @@ begin
 		FOnScroll(0, ScrolledTop);
 end;
 
-procedure ThShellTree.DoPaintNode(Node: TTreeNode);
+procedure TDecksShellTree.DoPaintNode(Node: TTreeNode);
 var
   NodeRect: TRect;
   VertMid, VertDelta, RealExpandSignSize, RealIndent: integer;
@@ -722,7 +722,7 @@ begin
 end;
 
 
-constructor ThShellTree.Create(AOwner: TComponent);
+constructor TDecksShellTree.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
 	FOnScroll := nil;

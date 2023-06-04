@@ -286,7 +286,7 @@ end;
 
 procedure Register;
 begin
-	RegisterComponents('Custom', [TDecksButton]);
+	RegisterComponents('Decks', [TDecksButton]);
 end;
 
 procedure TDecksButton.AssignDefaultStyle;
@@ -531,7 +531,7 @@ begin
 	if FTextApplyGlobalOpacity then
 	begin
 		{ Draw text }
-		RenderText(r, AState.FontEx, actualCaption, ABGRA);
+		RenderText(r, AState.FontEx, actualCaption, ABGRA, True);
 		RenderGlyph(r_g, g);
 		{ Set global opacity }
 		ABGRA.ApplyGlobalOpacity(FGlobalOpacity);
@@ -541,7 +541,7 @@ begin
 		{ Set global opacity }
 		ABGRA.ApplyGlobalOpacity(FGlobalOpacity);
 		{ Draw text }
-		RenderText(r, AState.FontEx, actualCaption, ABGRA);
+		RenderText(r, AState.FontEx, actualCaption, ABGRA, True);
 		RenderGlyph(r_g, g);
 	end;
 	if g <> FGlyph then g.Free;

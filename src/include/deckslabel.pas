@@ -125,7 +125,7 @@ uses
 
 procedure Register;
 begin
-	RegisterComponents('Custom', [TDecksLabel]);
+	RegisterComponents('Decks', [TDecksLabel]);
 end;
 
 { TDecksLabel }
@@ -145,7 +145,7 @@ begin
 
 	DecksBevel.RenderBackgroundAndBorder(r, FBackground, TBGRABitmap(FBGRA),
 		FRounding, FBorder, FBevel, FInnerMargin);
-	RenderText(r, FFontEx, Caption, TBGRABitmap(FBGRA));
+	RenderText(r, FFontEx, Caption, TBGRABitmap(FBGRA), True);
 
 	{$IFDEF INDEBUG}
 	FRenderCount := FRenderCount +1;
