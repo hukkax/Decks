@@ -18,6 +18,19 @@ const
 	WHEEL_PB = 10;
 	WHEEL_PBZONES = 11;
 
+	COLUMN_FILENAME  = 0;
+	COLUMN_BPM       = 1;
+	COLUMN_DURATION  = 2;
+	COLUMN_BITRATE   = 3;
+	COLUMN_YEAR      = 4;
+	COLUMN_GENRE     = 5;
+	COLUMN_ARTIST    = 6;
+	COLUMN_TITLE     = 7;
+	COLUMN_COMMENT   = 8;
+	COLUMN_FILESIZE  = 9;
+	COLUMN_FILEDATE  = 10;
+	COLUMN_LAST = COLUMN_FILEDATE;
+
 type
 	TDecksColor = TColor;
 	//TDecksColorPair = array[Boolean] of TDecksColor;
@@ -66,13 +79,14 @@ type
 				Enabled: Boolean;
 			end;
 			FileList: record
-				ColumnVisible: array[0..9] of Boolean;
+				ColumnVisible: array[0..COLUMN_LAST] of Boolean;
 			end;
 			Tracklist: record
 				Visible: Boolean;
 			end;
 			DeckPanelHeight: Word;
 			Zoom: Word;
+			ShowTitlebar: Boolean;
 		end;
 
 		Directory: record
@@ -213,7 +227,8 @@ var
 	i: Integer;
 begin
 	Sect := GetConfigFilePath;
-	if not FileExists(Sect) then Exit(False);
+	ForceDirectories(ExtractFilePath(Sect));
+	//if not FileExists(Sect) then Exit(False);
 
 	Ini := TIniFile.Create(Sect);
 
@@ -230,6 +245,7 @@ begin
 	Window.Tracklist.Visible := Ini.ReadBool(Sect, 'tracklist.visible', False);
 	Window.DeckPanelHeight := Ini.ReadInteger(Sect, 'deckheight', 0);
 	Window.Zoom := Ini.ReadInteger(Sect, 'zoom', 100);
+	Window.ShowTitlebar := Ini.ReadBool(Sect, 'titlebar.enabled', True);
 
 	Sect := 'audio';
 	Audio.Buffer       := Ini.ReadInteger(Sect, 'buffer', 20);
@@ -316,6 +332,7 @@ begin
 	Sect := 'window';
 	Ini.WriteInteger(Sect, 'zoom', Window.Zoom);
 	Ini.WriteInteger(Sect, 'deckheight', Window.DeckPanelHeight);
+	Ini.WriteBool(Sect, 'titlebar.enabled', Window.ShowTitlebar);
 	Ini.WriteBool(Sect, 'dirlist.enabled', Window.DirList.Enabled);
 	for i := 0 to High(Window.FileList.ColumnVisible) do
 		Ini.WriteBool(Sect, Format('filelist.columns.%d.visible', [i]),

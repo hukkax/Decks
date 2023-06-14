@@ -21,6 +21,8 @@ type
 		Amp:         Single;
 		Length:      Single;   // song length in seconds
 		Bitrate:     Word;     // song bitrate in kbps
+		FileSize:    QWord;
+		FileDate:    TDateTime;
 		//StartPos:    QWord;    // graph start offset in songdata bytes
 	end;
 
@@ -43,8 +45,11 @@ type
 	function  Split(const S: String; out L, R: String): Boolean;
 	function  SplitInt(const S: String; out L, R: Int64): Boolean;
 
+	function FileDate(const FileName: String): TDateTime;
+	function FileSize(const FileName: String): QWord;
+
 	procedure SetSongInfoPath(const Path: String);
-	function  GetSongInfoNew(const Filename: String; KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
+	function  GetSongInfoNew(const BPMFilename: String; KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 	function  GetSongInfo(const Filename: String; KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 	function  GetBPMFile(const AudioFileName: String): String; inline;
 
@@ -87,6 +92,35 @@ begin
 	end;
 end;
 
+function FileDate(const FileName: String): TDateTime;
+begin
+	try
+		SysUtils.FileAge(FileName, Result, False);
+	except
+		Result := 0;
+	end;
+end;
+
+function FileSize(const FileName: String): QWord;
+var
+	F: file of Byte;
+begin
+	Result := 0;
+	if not FileExists(FileName) then Exit;
+	try
+		{$I-}
+		AssignFile(F, FileName);
+		Reset(F);
+		{$I+}
+		if IOResult = 0 then
+			Result := System.FileSize(F)
+		else
+			Result := 0;
+	finally
+		{$I-}CloseFile(F);{$I+}
+	end;
+end;
+
 procedure SetSongInfoPath(const Path: String);
 begin
 	Config.Directory.BPM := IncludeTrailingPathDelimiter(Path);
@@ -121,7 +155,7 @@ begin
 	Result := Config.Directory.BPM + AudioFilename + '.bpm';
 end;
 
-function GetSongInfoNew(const Filename: String;
+function GetSongInfoNew(const BPMFilename: String;
 	KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 var
 	P, Sect: String;
@@ -136,9 +170,7 @@ var
 	end;
 
 begin
-	Result := Default(TSongInfo);
-
-	Ini := TIniFile.Create(Filename);
+	Ini := TIniFile.Create(BPMFilename);
 	try
 		Sect := 'song';
 

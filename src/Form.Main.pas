@@ -9,7 +9,7 @@ uses
 	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
 	Types, ShellCtrls, ComCtrls, Menus, FGL, LCLIntf, LCLType, EditBtn,
 	BGRABitmap, BGRABitmapTypes, BGRAVirtualScreen, ListFilterEdit,
-	hListView, hShellTree, DecksButton, hSlider, hKnob, DecksLabel, DecksPanel,
+	hListView, DecksShellTree, DecksButton, hSlider, hKnob, DecksLabel, DecksPanel,
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
 	Decks.SongInfo, Decks.TagScanner,
 	Frame.Deck;
@@ -36,16 +36,6 @@ const
 	LI_NORMAL = 0;
 	LI_HASEMBEDDEDIMAGE = 1;
 	LI_ISDIRECTORY = 2;
-
-	COLUMN_FILENAME  = 0;
-	COLUMN_BPM       = 1;
-	COLUMN_DURATION  = 2;
-	COLUMN_BITRATE   = 3;
-	COLUMN_YEAR      = 4;
-	COLUMN_GENRE     = 5;
-	COLUMN_ARTIST    = 6;
-	COLUMN_TITLE     = 7;
-	COLUMN_COMMENT   = 8;
 
 type
 	TPlayedFileInfo = class
@@ -103,7 +93,7 @@ type
 		PopupListHeader: TPopupMenu;
 		PanelMain: TDecksPanel;
 		lBPM: TDecksLabel;
-		sBPM: ThGaugeBar;
+		sBPM: TDecksGaugeBar;
 		bMainMenu: TDecksButton;
 		bToggleEffects: TDecksButton;
 		bToggleMixer: TDecksButton;
@@ -119,7 +109,7 @@ type
 		sEQ2L: ThKnob;
 		sEQ2M: ThKnob;
 		sEQ2H: ThKnob;
-		sFader: ThGaugeBar;
+		sFader: TDecksGaugeBar;
 		pbBeats: TBGRAVirtualScreen;
 		PanelWin: TDecksPanel;
 		bWinMin: TDecksButton;
@@ -127,12 +117,12 @@ type
 		bWinClose: TDecksButton;
 		BottomPanel: TDecksPanel;
 		LeftPanel: TPanel;
-		ListDirs: ThShellTree;
-		sDirs: ThRangeBar;
+		ListDirs: TDecksShellTree;
+		sDirs: TDecksRangeBar;
 		EmbeddedImage: TImage;
 		FileList: ThListView;
 		SplitterBottom: TSplitter;
-		sFiles: ThRangeBar;
+		sFiles: TDecksRangeBar;
 		DeckPanel: TDecksPanel;
 		miZoomIn: TMenuItem;
 		miZoomOut: TMenuItem;
@@ -216,6 +206,8 @@ type
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
 		QueueFileSelect: String;
+		OriginalWindowRect: TRect;
+		InFullscreen: Boolean;
 
 		procedure ResizeFrames;
 		function  FindFileListEntry(const Filename: String): ThListItem;
@@ -234,6 +226,7 @@ type
 		EQControls: array[1..2, TEQBand] of ThKnob;
 
 		procedure ScaleTo(Percent: Word);
+		procedure ToggleFullScreen;
 		procedure UpdateMixerVisibility;
 		procedure ApplyMixer(ApplyEQ: Boolean = True);
 		procedure SetMasterTempo(BPM: Single);
@@ -654,18 +647,18 @@ begin
 			end;
 		end
 		else
-		if (Ctrl is ThGaugeBar) then
+		if (Ctrl is TDecksGaugeBar) then
 		begin
-			with ThGaugeBar(Ctrl) do
+			with TDecksGaugeBar(Ctrl) do
 				if Ctrl = sBPM then
 					Position := Position + (100 * Sign(Dir))
 				else
 					Position := Position + (SmallChange * Sign(Dir));
 		end
 		else
-		if (Ctrl is ThRangeBar) then
+		if (Ctrl is TDecksRangeBar) then
 		begin
-			with ThRangeBar(Ctrl) do
+			with TDecksRangeBar(Ctrl) do
 				Position := Position + (Increment * Sign(Dir));
 		end;
 	end;
@@ -678,8 +671,11 @@ end;
 procedure TMainForm.FormActivate(Sender: TObject);
 begin
 	{$IFDEF WINDOWS}
-	SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and not(WS_CAPTION));
-	MoveWindow(Handle, Left, Top, Width-1, Height, True);
+	if not Config.Window.ShowTitlebar then
+	begin
+		SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and not(WS_CAPTION));
+		MoveWindow(Handle, Left, Top, Width-1, Height, True);
+	end;
 	{$ENDIF}
 	OnActivate := nil;
 end;
@@ -707,6 +703,9 @@ begin
 	end
 	else
 	begin
+		{$IFDEF WINDOWS}
+		ToggleFullScreen;
+		{$ENDIF}
 		WindowState := wsNormal;
 		bWinMax.Caption := '🗖';
 		bWinMax.Hint := 'Maximize';
@@ -817,24 +816,28 @@ var
 	i: Integer;
 	{$IFDEF USEMIDI}
 	S: String;
-	mi: TMenuItem;
 	{$ENDIF}
+	mi: TMenuItem;
+	Dev: TAudioDevice;
 //	FC, CC: TFocusableControl;
 //	Ctrl: TControl;
 begin
-	{$IFDEF WINDOWS}
-	BorderIcons := [];
-	BorderStyle := bsSizeable;
-	{$ELSE}
-	PanelWin.Visible := False;
-	{$ENDIF}
-
 	DefaultFormatSettings.DecimalSeparator := '.';
 	Config.Load;
 
 	CurrentDir := Config.Directory.Audio;
 	if not DirectoryExists(CurrentDir) then
 		CurrentDir := Config.AppPath;
+
+	{$IFDEF WINDOWS}
+	if not Config.Window.ShowTitlebar then
+	begin
+		BorderIcons := [];
+		BorderStyle := bsSingle;
+	end;
+	{$ELSE}
+	PanelWin.Visible := False;
+	{$ENDIF}
 
 	Caption := AppVersionString.Replace('/', '-', [rfReplaceAll]);
 	SelectedListItem.Filename := '';
@@ -854,6 +857,8 @@ begin
 	if i = 0 then i := Trunc(ClientHeight * 0.3);
 	DeckPanel.Height := i;
 
+	InFullscreen := False;
+	PanelWin.Visible := InFullscreen;
 	// ==========================================
 	// Init list controls
 	//
@@ -869,6 +874,8 @@ begin
 		AddColumn('Artist', -16);
 		AddColumn('Title', -16);
 		AddColumn('Comment', -16);
+		AddColumn('Size', 64, taRightJustify);
+		AddColumn('Date', 84);
 		for i := 0 to Columns.Count-1 do
 			Columns[i].Tag := i;
 		Font.Color := COLOR_FILE_DEFAULT;
@@ -912,6 +919,25 @@ begin
 	end;
 	{$ENDIF}
 	miMIDIInput.Visible := miMIDIInput.Count > 0;
+
+	// ==========================================
+	// List audio devices
+	//
+	{for Dev in AudioManager.Devices do
+	begin
+		mi := TMenuItem.Create(miCueDevices);
+		if Dev.Index = 1 then
+			mi.Caption := 'None'
+		else
+			mi.Caption := Dev.Name;
+		mi.Tag := Dev.Index - 1;
+		mi.GroupIndex := 1;
+		mi.AutoCheck := True;
+		mi.RadioItem := True;
+		mi.Checked := (mi.Tag = Config.Audio.CueDevice);
+		mi.OnClick := CueDeviceChange;
+		miCueDevices.Add(mi);
+	end;}
 
 	EQControls[1, EQ_BAND_LOW]  := sEQ1L;
 	EQControls[1, EQ_BAND_MID]  := sEQ1M;
@@ -1007,6 +1033,12 @@ begin
 
 end;
 
+procedure TMainForm.FormShow(Sender: TObject);
+begin
+	UpdateMixerVisibility;
+	UpdateToggleButtons;
+end;
+
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
 	{$IFNDEF DEBUG}
@@ -1049,12 +1081,32 @@ end;
 
 procedure TMainForm.FormResize(Sender: TObject);
 begin
-	{$IFNDEF MSWINDOWS}
+	{$IFNDEF WINDOWS}
 	FileList.Invalidate;
 	MixerPanel.Invalidate;
 	{$ENDIF}
 	if FocusableControls <> nil then
 		FocusableControls.FocusRectangle.Realign;
+end;
+
+procedure TMainForm.ToggleFullScreen;
+begin
+	if not InFullscreen then
+	begin
+		OriginalWindowRect := Bounds(Left, Top, Width, Height);
+		SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) and not(WS_CAPTION));
+		MoveWindow(Handle, Left, Top, Width-1, Height, True);
+		WindowState := wsFullScreen;
+		InFullscreen := True;
+	end
+	else
+	begin
+		SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) or WS_CAPTION);
+		MoveWindow(Handle, OriginalWindowRect.Left, OriginalWindowRect.Top, OriginalWindowRect.Width, OriginalWindowRect.Height, True);
+		WindowState := wsNormal;
+		InFullscreen := False;
+	end;
+	PanelWin.Visible := InFullscreen;
 end;
 
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
@@ -1065,6 +1117,11 @@ begin
 	if Key = VK_SHIFT then IsShiftDown := True;
 
 	case Key of
+
+		{$IFDEF WINDOWS}
+		VK_F11:
+			ToggleFullScreen;
+		{$ENDIF}
 
 		VK_RETURN:
 		begin
@@ -1388,10 +1445,11 @@ end;
 procedure TMainForm.OnFileScanEvent(EventKind: TTagScannerEventKind; const Filename: String; Tags: PSongTags);
 var
 	Item: ThListItem;
-	S: String;
+	Fn, S: String;
 	I: Integer;
 begin
 	case EventKind of
+
 		tsFileScanStarted:
 		begin
 			bToggleLeftPane.Enabled := False;
@@ -1493,7 +1551,7 @@ begin
 
 			Item.SubItems.BeginUpdate;
 			Item.SubItems.Clear;
-			for I := COLUMN_BPM to COLUMN_COMMENT do
+			for I := COLUMN_BPM to COLUMN_LAST do
 				Item.SubItems.Add('');
 
 			if Tags.Info.BPM > 1 then
@@ -1515,12 +1573,19 @@ begin
 			end;
 			if Tags.Year > 0 then
 				Item.SubItems[COLUMN_YEAR-1]:= Tags.Year.ToString;
+
+			Fn := IncludeTrailingPathDelimiter(Config.Directory.Audio) + Filename;
+			Tags.Info.FileSize := FileSize(Fn);
+			Tags.Info.FileDate := FileDate(Fn);
+
 			Item.SubItems[COLUMN_GENRE-1]   := Tags.Genre;
 			Item.SubItems[COLUMN_ARTIST-1]  := Tags.Artist;
 			Item.SubItems[COLUMN_TITLE-1]   := Tags.Title;
 			Item.SubItems[COLUMN_COMMENT-1] := Tags.Comment;
-			Item.Tag := IfThen(Tags.HasImage, LI_HASEMBEDDEDIMAGE, LI_NORMAL);
+			Item.SubItems[COLUMN_FILESIZE-1]:= (Tags.Info.FileSize div 1024 div 1024).ToString + ' MB';
+			Item.SubItems[COLUMN_FILEDATE-1]:= FormatDateTime('yyyy-mm-dd', Tags.Info.FileDate);
 
+			Item.Tag := IfThen(Tags.HasImage, LI_HASEMBEDDEDIMAGE, LI_NORMAL);
 			Item.SubItems.EndUpdate;
 			FileList.Invalidate;
 		end;
@@ -1580,6 +1645,9 @@ begin
 	if Info.Length >= 1 then
 		Item.SubItems[COLUMN_DURATION-1] :=
 			FormatDateTime('nn:ss', Info.Length / SecsPerDay).Replace('.',':');
+
+	//Item.SubItems[COLUMN_FILESIZE-1] := Info.FileSize.ToString;
+	//Item.SubItems[COLUMN_FILEDATE-1] := FormatDateTime('yyyy-mm-dd hh:nn', Info.FileDate);
 
 	FileList.Invalidate;
 	Application.ProcessMessages;
@@ -1762,6 +1830,9 @@ begin
 
 	S := Item.Caption;
 
+	EmbeddedImage.Height := 0;
+	EmbeddedImage.Picture.Clear;
+
 	if Item.Tag = LI_HASEMBEDDEDIMAGE then
 	begin
 		if ReadImageFromTags(CurrentDir + S) then
@@ -1769,11 +1840,6 @@ begin
 			AlignEmbeddedImage;
 			Application.ProcessMessages;
 		end;
-	end
-	else
-	begin
-		EmbeddedImage.Height := 0;
-		EmbeddedImage.Picture.Clear;
 	end;
 
 	SelectedListItem.Kind := Item.Tag;
@@ -2423,28 +2489,32 @@ end;
 procedure TMainForm.EmbeddedImageMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 var
-	W, H: Integer;
+	DW, DH, W, H: Integer;
+	Scale: Single;
 	DR: TRect;
 begin
-	W := FileList.ClientWidth  div 2;
-	H := FileList.ClientHeight div 2;
-	X := Min(W, H);
-	DR := Types.Rect(W-X, H-X, W+X, H+X);
+	DW := FileList.ClientWidth;
+	DH := FileList.ClientHeight;
+	W := EmbeddedImage.Picture.Bitmap.Width;
+	H := EmbeddedImage.Picture.Bitmap.Height;
+
+	Scale := Min(DW / W, DH / H) / 2;
+	W := Trunc(W * Scale);
+	H := Trunc(H * Scale);
+
+	DW := DW div 2;
+	DH := DH div 2;
+	DR := Types.Rect(DW-W, DH-H, DW+W, DH+H);
+
 	FileList.Canvas.AntialiasingMode := amOn;
 	FileList.Canvas.StretchDraw(DR, EmbeddedImage.Picture.Bitmap);
 	FileList.Canvas.AntialiasingMode := amDontCare;
 end;
 
-procedure TMainForm.EmbeddedImageMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
-	X, Y: Integer);
+procedure TMainForm.EmbeddedImageMouseUp(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: Integer);
 begin
 	FileList.Invalidate;
-end;
-
-procedure TMainForm.FormShow(Sender: TObject);
-begin
-	UpdateMixerVisibility;
-	UpdateToggleButtons;
 end;
 
 procedure TMainForm.miEnableEffectsClick(Sender: TObject);
@@ -2561,5 +2631,17 @@ begin
 	if Ctrl is TWinControl then
 		Self.ActiveControl := TWinControl(Ctrl);
 end;
+
+(*procedure TMainForm.CueDeviceChange(Sender: TObject);
+var
+	i: Integer;
+begin
+	if Sender is TMenuItem then
+	begin
+		i := (Sender as TMenuItem).Tag;
+		Config.Audio.CueDevice := i;
+		//InitDevice(i, Config.Audio.CueDevice); TODO
+	end;
+end;*)
 
 end.
