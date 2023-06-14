@@ -78,3 +78,7 @@ tracklist*.txt
 *.sh
 *.0
 *.chm
+
+src/bin/win64/
+
+bin/win32/
