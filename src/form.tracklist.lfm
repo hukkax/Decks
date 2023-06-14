@@ -39,7 +39,7 @@ object FormTracklist: TFormTracklist
     TabOrder = 0
     TabStop = True
   end
-  object Scrollbar: ThRangeBar
+  object Scrollbar: TDecksRangeBar
     Left = 791
     Height = 213
     Top = 0

@@ -678,6 +678,7 @@ object DeckFrame: TDeckFrame
       Font.Height = 20
       Font.Style = [fsBold]
       Layout = tlCenter
+      ParentColor = False
       ParentFont = False
       ShowAccelChar = False
       Transparent = False
@@ -831,7 +832,7 @@ object DeckFrame: TDeckFrame
       OnDblClick = pbRulerDblClick
       OnMouseDown = pbRulerMouseDown
     end
-    object SliderGraphX: ThRangeBar
+    object SliderGraphX: TDecksRangeBar
       Left = 5
       Height = 21
       Top = 178

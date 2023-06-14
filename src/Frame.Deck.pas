@@ -86,7 +86,7 @@ type
 		pb: TBGRAVirtualScreen;
 		pbZones: TBGRAVirtualScreen;
 		pbRuler: TBGRAVirtualScreen;
-		SliderGraphX: ThRangeBar;
+		SliderGraphX: TDecksRangeBar;
 		pnlControls: TDecksPanel;
 		bPlay: TDecksButton;
 		bBendUp: TDecksButton;
@@ -187,7 +187,7 @@ type
 		procedure ZoneChangedMessage(var Msg: TLMessage); message WM_ZONE;
 		procedure ZoneChanged(Zone: Integer; FromCallback, MixTime: Boolean);
 		procedure GetPlayPosition; inline;
-		procedure SetSlider(var Slider: ThGaugeBar; Position: Integer); overload;
+		procedure SetSlider(var Slider: TDecksGaugeBar; Position: Integer); overload;
 		procedure SetSlider(var Slider: ThKnob; Position: Integer); overload;
 		procedure SetSlider(var Slider: TDecksValueLabel; Position: Double); overload;
 		procedure ZoomSample(Dir: Integer);
@@ -331,7 +331,7 @@ begin
 	end;
 end;
 
-procedure TDeckFrame.SetSlider(var Slider: ThGaugeBar; Position: Integer);
+procedure TDeckFrame.SetSlider(var Slider: TDecksGaugeBar; Position: Integer);
 begin
 	Slider.OnChange := nil;
 	Slider.Position := Position;

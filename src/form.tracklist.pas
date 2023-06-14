@@ -10,7 +10,7 @@ uses
 type
 	TFormTracklist = class(TForm)
 		SongList: ThListView;
-		Scrollbar: ThRangeBar;
+		Scrollbar: TDecksRangeBar;
 		procedure FormShow(Sender: TObject);
 	private
 

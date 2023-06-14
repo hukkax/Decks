@@ -39,7 +39,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="21">
+    <Units Count="20">
       <Unit0>
         <Filename Value="Decks3.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -88,60 +88,55 @@
         <UnitName Value="hListView"/>
       </Unit9>
       <Unit10>
-        <Filename Value="include\hshelltree.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="hShellTree"/>
-      </Unit10>
-      <Unit11>
         <Filename Value="include\hslider.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="hSlider"/>
-      </Unit11>
-      <Unit12>
+      </Unit10>
+      <Unit11>
         <Filename Value="include\hknob.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="hKnob"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="Decks.MIDI.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit12>
       <Unit13>
-        <Filename Value="Decks.MIDI.pas"/>
+        <Filename Value="Decks.TagScanner.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit13>
       <Unit14>
-        <Filename Value="Decks.TagScanner.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit14>
-      <Unit15>
         <Filename Value="include\mousewheelaccelerator.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MouseWheelAccelerator"/>
-      </Unit15>
-      <Unit16>
+      </Unit14>
+      <Unit15>
         <Filename Value="Decks.Effects.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit16>
-      <Unit17>
+      </Unit15>
+      <Unit16>
         <Filename Value="TextInputDialog.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FormTextInput"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit17>
-      <Unit18>
+      </Unit16>
+      <Unit17>
         <Filename Value="Form.Tracklist.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FormTracklist"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit18>
-      <Unit19>
+      </Unit17>
+      <Unit18>
         <Filename Value="include\teegenerictree.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TeeGenericTree"/>
-      </Unit19>
-      <Unit20>
+      </Unit18>
+      <Unit19>
         <Filename Value="include\focusrectangleunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FocusRectangleUnit"/>
-      </Unit20>
+      </Unit19>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
