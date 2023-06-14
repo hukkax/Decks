@@ -1,12 +1,11 @@
 # Decks
 
 A deejaying software written in Free Pascal.
-Currently not in active development, but will be later.
 
 - Utilizes beat graphs for tempo determination and navigation
 - Meant to be used with an external mixer, but it's possible to mix by visual cues only
-- Crossfader and EQ controls are provided, but no headphone cueing
-- Unlimited number of simultaneous decks; decks can be freely assigned to any audio output device
+- Crossfader and EQ controls are provided, but no builtin headphone cueing
+- Each deck can be assigned to any audio output device
 
 ![Screenshot](https://github.com/hukkax/Decks/blob/main/docs/images/main.png)
 
@@ -14,15 +13,15 @@ Currently not in active development, but will be later.
 
 - I already use this in my DJ sets
 - No documentation yet
-- Linux build unstable and thus unusable
+- Linux build needs work
 - Lots of work to be done regarding code quality, stability, GUI, features
 
 ## Build info
 
 Use Lazarus to build.
 
-- Windows: Stable
-- Linux: Builds and runs; crashes randomly during playback
+- Windows: Stable enough
+- Linux: Builds and runs; unstable on Qt5, scaling issues on GTK2
 - Mac: Untested
 
 Required Lazarus packages:
