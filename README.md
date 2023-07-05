@@ -13,7 +13,7 @@ A deejaying software written in Free Pascal.
 
 - I already use this in my DJ sets
 - No documentation yet
-- Linux build needs work
+- Linux build needs some work
 - Lots of work to be done regarding code quality, stability, GUI, features
 
 ## Build info
@@ -21,7 +21,7 @@ A deejaying software written in Free Pascal.
 Use Lazarus to build.
 
 - Windows: Stable enough
-- Linux: Builds and runs; unstable on Qt5, scaling issues on GTK2
+- Linux: Builds and runs on Gtk2; unstable on Qt5, RtMidi crashes
 - Mac: Untested
 
 Required Lazarus packages:
