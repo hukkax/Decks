@@ -826,6 +826,11 @@ var
 //	FC, CC: TFocusableControl;
 //	Ctrl: TControl;
 begin
+	// change working directory to the exe path in case
+	// we're being run from the IDE; needed to make
+	// relative paths in config work
+	SetCurrentDir(ExtractFilePath(ParamStr(0)));
+
 	DefaultFormatSettings.DecimalSeparator := '.';
 	Config.Load;
 
@@ -1993,7 +1998,6 @@ begin
 		if ADeck = nil then Continue;
 		AForm := ADeck.Form;
 		if AForm = nil then Continue;
-		Form.Left := C;
 		AForm.SetBounds(C, 0, W, DeckPanel.ClientHeight);
 		Inc(C, W);
 	end;
