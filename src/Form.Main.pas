@@ -451,11 +451,13 @@ var
 begin
 	if Action.Kind = NO_ACTION then Exit;
 
+	{$IFDEF USEMIDI}
 	if MIDI.Debug then
 	begin
 		WriteStr(S, Action.Kind);
 		Caption := S + Format('(%d)=%d', [Action.Param,Value]);
 	end;
+    {$ENDIF}
 
 	Deck := nil;
 	Form := nil;
@@ -531,6 +533,8 @@ var
 	Num: Byte;
 	B: Boolean;
 begin
+	{$IFNDEF USEMIDI}Exit;{$ENDIF}
+
 	if Deck = nil then Exit;
 	if Deck = MixerDeck[1].Deck then
 		Num := 1
@@ -837,7 +841,10 @@ begin
 	end;
 	{$ELSE}
 	PanelWin.Visible := False;
-	{$ENDIF}
+
+    FileList.Font.Size := 12;
+    ListDirs.Font.Size := 12;
+    {$ENDIF}
 
 	Caption := AppVersionString.Replace('/', '-', [rfReplaceAll]);
 	SelectedListItem.Filename := '';
@@ -867,15 +874,15 @@ begin
 		Columns.Clear;
 		AddColumn('Filename', -54).AlwaysShow := True;
 		AddColumn(' BPM', 60, taCenter).AlwaysShow := True;
-		AddColumn('Duration', 62, taCenter);
-		AddColumn('Bitrate', 46, taCenter);
+		AddColumn('Duration', 62+8, taCenter);
+		AddColumn('Bitrate', 46+8, taCenter);
 		AddColumn('Year', 50, taCenter);
 		AddColumn('Genre', 100);
 		AddColumn('Artist', -16);
 		AddColumn('Title', -16);
 		AddColumn('Comment', -16);
 		AddColumn('Size', 64, taRightJustify);
-		AddColumn('Date', 84);
+		AddColumn('Date', 100);
 		for i := 0 to Columns.Count-1 do
 			Columns[i].Tag := i;
 		Font.Color := COLOR_FILE_DEFAULT;
@@ -895,7 +902,7 @@ begin
 	Screen.HintFont.Size := FileList.Font.Size;
 	Application.ShowHint := True;
 	{$IFDEF LCLGTK2} // fix buggy colors
-	shpBorder.Brush.Style := bsSolid; // it's white otherwise?
+	//shpBorder.Brush.Style := bsSolid; // it's white otherwise?
 	{$ENDIF}
 
 	// ==========================================
@@ -1050,7 +1057,13 @@ begin
 	end;
 	{$ENDIF}
 
-	FileList.Tag := 0;
+	if TagScanner <> nil then
+	begin
+		TagScanner.Terminate;
+		TagScanner.Free;
+	end;
+
+    FileList.Tag := 0;
 	OnResize := nil;
 	ListDirs.OnCollapsed := nil;
 	CanClose := True;
@@ -1091,6 +1104,7 @@ end;
 
 procedure TMainForm.ToggleFullScreen;
 begin
+	{$IFDEF WINDOWS}
 	if not InFullscreen then
 	begin
 		OriginalWindowRect := Bounds(Left, Top, Width, Height);
@@ -1107,6 +1121,7 @@ begin
 		InFullscreen := False;
 	end;
 	PanelWin.Visible := InFullscreen;
+	{$ENDIF}
 end;
 
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
@@ -1600,7 +1615,7 @@ var
 	Item: ThListItem;
 	S: String;
 begin
-	if Deck = nil then Exit;
+    if Deck = nil then Exit;
 
 	Item := FindFileListEntry(ExtractFileName(Deck.Filename));
 	if Item = nil then Exit;
@@ -1685,7 +1700,11 @@ begin
 		FileList.Items.Clear;
 		FileList.Tag := 0;
 
-		if Assigned(TagScanner) then TagScanner.Terminate;
+		if TagScanner <> nil then
+		begin
+			TagScanner.Terminate;
+			TagScanner.Free;
+		end;
 
 		TagScanner := TTagScannerJob.Create;
 		TagScanner.Directory   := CurrentDir;
@@ -1742,7 +1761,8 @@ begin
 		Deck := CreateDeck
 	else
 		if not Deck.Paused then Exit;
-	if Deck.Load(SelectedListItem.Filename) then
+
+    if (Deck <> nil) and (Deck.Load(SelectedListItem.Filename)) then
 	begin
 		if (HadNone) and (Config.Deck.FirstSetsMasterBPM) then
 			SetMasterTempo(Deck.AvgBPM);
@@ -1882,6 +1902,7 @@ var
 
 begin
 	FileList.Items.Clear;
+	{$IFDEF WINDOWS}
 	OldMode := SetErrorMode(SEM_FAILCRITICALERRORS);
 	try
 		for Drive := 'A' to 'Z' do
@@ -1898,6 +1919,7 @@ begin
 	finally
 		SetErrorMode(OldMode);
 	end;
+	{$ENDIF}
 end;
 
 procedure TMainForm.FileListDblClick(Sender: TObject);
@@ -1957,20 +1979,22 @@ end;
 
 procedure TMainForm.ResizeFrames;
 var
-	Deck: TDeck;
-	Form: TDeckFrame;
 	C, W: Integer;
+	ADeck: TDeck;
+	AForm: TBaseDeckFrame;
 begin
 	if (DeckList = nil) or (DeckList.Count < 1) then Exit;
-	C := DeckList.Count;
-	W := DeckPanel.ClientWidth div C;
+
+    W := DeckPanel.Width div DeckList.Count;
 	C := 0;
-	for Deck in DeckList do
+
+    for ADeck in DeckList do
 	begin
-		Form := TDeckFrame(Deck.Form);
-		Form.Width := W;
-		Form.Height := DeckPanel.ClientHeight;
+		if ADeck = nil then Continue;
+		AForm := ADeck.Form;
+		if AForm = nil then Continue;
 		Form.Left := C;
+		AForm.SetBounds(C, 0, W, DeckPanel.ClientHeight);
 		Inc(C, W);
 	end;
 end;
@@ -2083,7 +2107,6 @@ begin
 	DeckLayoutChanged;
 
 	sFaderChange(Self);
-	ResizeFrames;
 
 	mi := TMenuItem.Create(PopupFile);
 	mi.OnClick := miLoadFileClick;
@@ -2091,7 +2114,9 @@ begin
 	Result.MenuItem := mi;
 	Result.UpdateMenuItem;
 
+	ResizeFrames;
 	EndFormUpdate;
+
 	Timer.Enabled := True;
 end;
 

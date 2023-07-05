@@ -167,14 +167,14 @@ begin
 	Queued := False;
 end;
 
-procedure TTagScannerJob.ThreadDone(Sender : TObject);
+procedure TTagScannerJob.ThreadDone(Sender: TObject);
 begin
 	FDirectory := '';
 	if Queued then
 		TThread.RemoveQueuedEvents(FThread, FileProcessed);
 
+	FreeAndNil(FFileList);
 	FThread := nil;
-	FFileList.Free;
 end;
 
 procedure TTagScannerJob.Terminate;
@@ -191,6 +191,7 @@ begin
 	inherited Create(True);
 	FJob := AJob;
 	OnTerminate := FJob.ThreadDone;
+	FreeOnTerminate := True;
 end;
 
 procedure TTagScannerThread.Execute;

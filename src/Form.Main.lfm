@@ -1417,7 +1417,6 @@ object MainForm: TMainForm
           BorderStyle = bsNone
           Color = 3224115
           Font.Color = 10922154
-          Font.Height = 22
           OnChange = eFileFilterChange
           OnKeyDown = eFileFilterKeyDown
           ParentFont = False

@@ -891,6 +891,7 @@ begin
 	begin
 		FPreviousHoveredItem := Old;
 		Draw(False);
+        Invalidate;
 	end;
 
 	inherited MouseMove(Shift, X, Y);
