@@ -22,15 +22,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   http://mac.sourceforge.net/atl/
 }
 {$I ovotag.inc}
+
 unit file_mp3;
 
 interface
 
 uses
-  Classes, lazutf8classes, SysUtils, audiotag, basetag, tag_id3v2;
+	Classes, LazUTF8, SysUtils, //lazutf8classes,
+	audiotag, basetag, tag_id3v2;
 
 const
-  Mp3FileMask: string    = '*.mpa;*.mp1;*.mp2;*.mp3;';
+	Mp3FileMask: string    = '*.mpa;*.mp1;*.mp2;*.mp3;';
 
 type
 
@@ -420,13 +422,13 @@ function TMP3Reader.LoadFromFile(AFileName: Tfilename): boolean;
 const
   SizeOfData = MAX_MPEG_FRAME_LENGTH * 2;
 var
-  fStream: TFileStreamUTF8;
+  fStream: TFileStream;
   Data: array [1..SizeOfData] of byte;
   Transferred: DWord;
 begin
   FoundVBRKind := '';
   Result := inherited LoadFromFile(AFileName);
-  fStream := TFileStreamUTF8.Create(fileName, fmOpenRead or fmShareDenyNone);
+  fStream := TFileStream.Create(fileName, fmOpenRead or fmShareDenyNone);
   try
     ftags := TID3Tags.Create;
     fTags.ReadFromStream(fStream);
@@ -457,13 +459,13 @@ end;
 
 function TMP3Reader.SaveToFile(AFileName: Tfilename): boolean;
 var
-  SourceStream: TFileStreamUTF8;
-  DestStream: TFileStreamUTF8;
+  SourceStream,
+  DestStream: TFileStream;
 begin
   result:= true;
   inherited SaveToFile(AFilename);
-  SourceStream := TFileStreamUTF8.Create(FileName, fmOpenRead or fmShareDenyNone);
-  DestStream := TFileStreamUTF8.Create(AFileName, fmCreate or fmOpenReadWrite or fmShareDenyNone);
+  SourceStream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
+  DestStream   := TFileStream.Create(AFileName, fmCreate or fmOpenReadWrite or fmShareDenyNone);
 
   Try
     SourceStream.Seek(fTags.Size, soFromBeginning);
