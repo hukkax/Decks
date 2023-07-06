@@ -113,6 +113,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
       DropDownArrow = True
       DropDownMenu = PopupEffectPresets
+      DropDownStyle = bdsCommon
     end
     object bEffect1: TDecksButton
       Tag = 1
@@ -169,6 +170,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
       DropDownArrow = True
       DropDownMenu = PopupEffectPresets
+      DropDownStyle = bdsCommon
     end
     object bEffect2: TDecksButton
       Tag = 2
@@ -224,6 +226,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
       DropDownArrow = True
       DropDownMenu = PopupEffectPresets
+      DropDownStyle = bdsCommon
     end
     object bEffect3: TDecksButton
       Tag = 3
@@ -279,6 +282,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
       DropDownArrow = True
       DropDownMenu = PopupEffectPresets
+      DropDownStyle = bdsCommon
     end
     object bEffect4: TDecksButton
       Tag = 4
@@ -335,6 +339,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
       DropDownArrow = True
       DropDownMenu = PopupEffectPresets
+      DropDownStyle = bdsCommon
     end
     object bEffect5: TDecksButton
       Tag = 5
@@ -391,6 +396,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
       DropDownArrow = True
       DropDownMenu = PopupEffectPresets
+      DropDownStyle = bdsCommon
     end
     object bEffect6: TDecksButton
       Tag = 6
@@ -447,6 +453,7 @@ object DeckFrame: TDeckFrame
       ClickOffset = True
       DropDownArrow = True
       DropDownMenu = PopupEffectPresets
+      DropDownStyle = bdsCommon
     end
     object SliderFxParam0: ThKnob
       Left = 2
@@ -1066,7 +1073,7 @@ object DeckFrame: TDeckFrame
       object bZoneAdd: TDecksButton
         Left = 357
         Height = 28
-        Hint = 'Left: Move cue to song start'
+        Hint = 'Add Zone'
         Top = 1
         Width = 40
         Anchors = [akTop, akRight]
@@ -1121,7 +1128,7 @@ object DeckFrame: TDeckFrame
       object bZoneDel: TDecksButton
         Left = 396
         Height = 28
-        Hint = 'Left: Move cue to song start'
+        Hint = '̈Delete Zone'
         Top = 1
         Width = 40
         Anchors = [akTop, akRight]
