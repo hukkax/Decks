@@ -196,7 +196,7 @@ type
 implementation
 
 uses
-	{$IFDEF WINDOWS}Windows, Types,{$ENDIF}
+	{$IFDEF WINDOWS}Windows,{$ENDIF}
 	Math, LCLIntf, LCLType;
 
 procedure Register;
