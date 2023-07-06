@@ -786,13 +786,21 @@ begin
 	if (OtherDeck.Paused) and (Deck.Paused) then
 	begin
 		Deck.Play;
-	end
-	else
+		Exit;
+	end;
+
+	// detect if play was pressed during the first beat of a bar, if so,
+	// start synced playback immediately instead of waiting for the next bar to begin
+	// TODO: configuration
+	PT := OtherDeck.Graph.PosToGraph(OtherDeck.GetPlayPosition(False), False);
+	if (not Immediate) and (PT.Y <= OtherDeck.Graph.Height div 4) then
+		Immediate := True;
+
 	if Immediate then
 	begin
 		CT := Deck.Graph.PosToGraph(Deck.GetPlayPosition(True), False);
 		BASS_SetDevice(CurrentDevice);
-		PT := OtherDeck.Graph.PosToGraph(OtherDeck.GetPlayPosition(False), False);
+//		PT := OtherDeck.Graph.PosToGraph(OtherDeck.GetPlayPosition(False), False);
 		CT.Y := PT.Y;
 		P := Deck.Graph.GraphToPos(CT);
 
