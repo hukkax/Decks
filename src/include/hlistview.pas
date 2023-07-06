@@ -594,7 +594,7 @@ end;
 procedure ThListView.SetItemHeight(H: Integer);
 begin
 	if H < 1 then
-		H := FFont.GetTextHeight('Xgjq"!_');
+		H := FFont.GetTextHeight('Xgjqy"!_');
 
 	FItemHeight := H;
 	GetVisibleRows;
@@ -890,6 +890,7 @@ begin
 	if FHoveredItem <> Old then
 	begin
 		FPreviousHoveredItem := Old;
+		Application.CancelHint;
 		Draw(False);
         Invalidate;
 	end;
@@ -961,7 +962,7 @@ begin
 			HintStr := Hint;
 			CursorRect := FHintRect;
 			HintColor := Self.Color;
-			HintPos := ClientToScreen(Point(FHintRect.Left+1, FHintRect.Top-2));
+			HintPos := ClientToScreen(Point(FHintRect.Left+1, FHintRect.Top-4));
 		end
 		else
 			HintStr := '';

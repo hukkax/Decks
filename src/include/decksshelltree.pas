@@ -47,7 +47,7 @@ type
 implementation
 
 uses
-	Math, Themes, LCLType, LCLIntF, InterfaceBase, ImgList;
+	Math, Themes, Types, LCLType, LCLIntF, InterfaceBase, ImgList;
 
 procedure Register;
 begin
@@ -115,65 +115,74 @@ end;
 
 procedure TDecksShellTree.UpdateTooltip(X, Y: integer);
 var
-  Node: TTreeNode;
-  PHint, PLeft: TPoint;
-  R, TextRect, IntRect: TRect;
-  CurMonitor: TMonitor;
+	Node: TTreeNode;
+	PHint, PLeft: TPoint;
+	R, TextRect, IntRect: TRect;
+	CurMonitor: TMonitor;
+	Sz: TSize;
 begin
-  if not (tvoToolTips in Options) then exit;
+	if not (tvoToolTips in Options) then Exit;
 
-  if FHintWnd=nil then
-  begin
-    FHintWnd:=THintWindow.Create(Self);
-    FHintWnd.OnMouseLeave:=HintMouseLeave;
-  end;
+	if FHintWnd = nil then
+	begin
+		FHintWnd := THintWindow.Create(Self);
+		FHintWnd.OnMouseLeave := HintMouseLeave;
+	end;
 
-  Node := GetNodeAt(X, Y);
-  if Node=nil then
-  begin
-    FHintWnd.Hide;
-    exit;
-  end;
+	Node := GetNodeAt(X, Y);
+	if Node = nil then
+	begin
+		FHintWnd.Hide;
+		Exit;
+	end;
 
-  TextRect := Rect(Node.DisplayTextLeft, Node.Top, Node.DisplayTextRight, Node.Top + Node.Height);
-  OffsetRect(TextRect, 0, -ScrolledTop);
-  if not PtInRect(TextRect, Point(X, Y))
-  or (IntersectRect(IntRect{%H-}, TextRect, ClientRect) and EqualRect(IntRect, TextRect)) then
-  begin
-    FHintWnd.Hide;
-    Exit;
-  end;
+	TextRect := Rect(Node.DisplayTextLeft, Node.Top, Node.DisplayTextRight, Node.Top + Node.Height);
+	Types.OffsetRect(TextRect, 0, -ScrolledTop);
+	if not PtInRect(TextRect, Point(X, Y)) or
+		(IntersectRect(IntRect{%H-}, TextRect, ClientRect) and EqualRect(IntRect, TextRect)) then
+	begin
+		FHintWnd.Hide;
+		Exit;
+	end;
 
-  // Get max width for hint from monitor's work area.
-  CurMonitor := GetParentForm(Self).Monitor;
-  R := CurMonitor.WorkareaRect;
-  R := FHintWnd.CalcHintRect(R.Right-R.Left, Node.Text, nil);
-  FHintWnd.Color := Application.HintColor;
+	// Get max width for hint from monitor's work area.
+	CurMonitor := GetParentForm(Self).Monitor;
+	R := CurMonitor.WorkareaRect;
+	R := FHintWnd.CalcHintRect(R.Right - R.Left, Node.Text, nil);
+	FHintWnd.Color := Application.HintColor;
 
-  if WidgetSet.GetLCLCapability(lcTransparentWindow) = LCL_CAPABILITY_YES then
-  begin
-    // Font is explicitly set for transparent hints, otherwise default font is used.
-    if not FHintWnd.Visible then
-    begin
-      FHintWnd.Font.Assign(Self.Font);
-      FHintWnd.Font.Color := Screen.HintFont.Color;
-    end;
-    // Put transparent hint exactly on the node.
-    PHint := ClientToScreen(Point(TextRect.Left-1, TextRect.Top-3+BorderWidth));
-  end
-  else begin
-    // By default put hint to the right side of node.
-    PHint := ClientToScreen(Point(ClientWidth, TextRect.Top-3+BorderWidth));
-    if PHint.X + R.Right > CurMonitor.BoundsRect.Right then
-    begin                      // No space on the right? Put it to the left side.
-      PLeft := ClientToScreen(Point(ClientRect.Left, ClientRect.Top));
-      if PLeft.X >= R.Right then  // enough space on left?
-        PHint.X := PLeft.X - R.Right;
-    end;
-  end;
+	if WidgetSet.GetLCLCapability(lcTransparentWindow) = LCL_CAPABILITY_YES then
+	begin
+		// Font is explicitly set for transparent hints, otherwise default font is used.
+		if not FHintWnd.Visible then
+		begin
+			FHintWnd.Font.Assign(Self.Font);
+			FHintWnd.Font.Color := Screen.HintFont.Color;
+		end;
+		// Put transparent hint exactly on the node.
+		PHint := ClientToScreen(Point(TextRect.Left-1, TextRect.Top-3+BorderWidth));
+	end
+	else
+	begin
+		// By default put hint to the right side of node.
+		PHint := ClientToScreen(Point(ClientWidth, TextRect.Top-3+BorderWidth));
+		if PHint.X + R.Right > CurMonitor.BoundsRect.Right then
+		begin                      // No space on the right? Put it to the left side.
+			PLeft := ClientToScreen(Point(ClientRect.Left, ClientRect.Top));
+			if PLeft.X >= R.Right then  // enough space on left?
+				PHint.X := PLeft.X - R.Right;
+		end;
+	end;
 
-  OffsetRect(R, PHint.X, PHint.Y);
-  FHintWnd.ActivateHint(R, Node.Text)
+	// correct horizontal alignment
+	if Images = nil then
+	begin
+		Sz := GetImageSize;
+		PHint.X := PHint.X - Sz.cx;
+	end;
+
+	Types.OffsetRect(R, PHint.X, PHint.Y);
+	FHintWnd.ActivateHint(R, Node.Text);
 end;
 
 function TDecksShellTree.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
