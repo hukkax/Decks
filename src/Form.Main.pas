@@ -845,9 +845,6 @@ begin
 	end;
 	{$ELSE}
 	PanelWin.Visible := False;
-
-    FileList.Font.Size := 12;
-    ListDirs.Font.Size := 12;
     {$ENDIF}
 
 	Caption := AppVersionString.Replace('/', '-', [rfReplaceAll]);
