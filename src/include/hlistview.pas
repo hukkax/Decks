@@ -892,7 +892,9 @@ begin
 		FPreviousHoveredItem := Old;
 		Application.CancelHint;
 		Draw(False);
+		{$IFNDEF WINDOWS}
         Invalidate;
+		{$ENDIF}
 	end;
 
 	inherited MouseMove(Shift, X, Y);
