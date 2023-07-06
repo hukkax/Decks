@@ -1111,7 +1111,7 @@ begin
 		if FDropDownMenuVisible or (Now < FDropDownClosingTime + DropDownReopenDelay) then
 			FDropDownMenuVisible := False // Prevent redropping
 		else
-		if ((FActiveButt = bbtDropDown) or (FStyle = bbtButton)) and
+		if ((FActiveButt = bbtDropDown) or (FStyle = bbtButton)) and (Button = mbLeft) and
 			(FDropDownMenu <> nil) and Enabled then
 		begin
 			ClientToScreenPoint := ClientToScreen(Point(0, Height));
@@ -1147,7 +1147,7 @@ begin
 
 				FDropDownMenuVisible := True;
 				FSaveDropDownClosed := FDropDownMenu.OnClose;
-				FDropDownMenu.OnClose := DropDownClosed;
+//				FDropDownMenu.OnClose := DropDownClosed; // !!! causes stack overflow
 				FDropDownMenu.PopUp(X, Y);
 			end;
 		end;
