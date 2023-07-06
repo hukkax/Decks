@@ -13,7 +13,7 @@ unit hKnob;
 interface
 
 uses
-	Classes, SysUtils, Graphics, Controls, StdCtrls, ExtCtrls, Forms,
+	Classes, Types, SysUtils, Graphics, Controls, StdCtrls, ExtCtrls, Forms,
 	LMessages, LResources,
 	BCBaseCtrls, BGRABitmap, BGRABitmapTypes;
 

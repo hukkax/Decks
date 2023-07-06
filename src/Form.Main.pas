@@ -7,12 +7,11 @@ interface
 
 uses
 	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-	Types, ShellCtrls, ComCtrls, Menus, FGL, LCLIntf, LCLType, EditBtn,
-	BGRABitmap, BGRABitmapTypes, BGRAVirtualScreen, ListFilterEdit,
+	Types, ShellCtrls, ComCtrls, Menus, FGL, LCLIntf, LCLType,
+	BGRABitmap, BGRABitmapTypes, BGRAVirtualScreen,
 	hListView, DecksShellTree, DecksButton, hSlider, hKnob, DecksLabel, DecksPanel,
 	Decks.Config, Decks.Audio, Decks.MIDI, Decks.Effects, Decks.Deck,
-	Decks.SongInfo, Decks.TagScanner,
-	Frame.Deck;
+	Decks.SongInfo, Decks.TagScanner, Frame.Deck;
 
 {$WARN 5024 off : Parameter "$1" not used}
 
@@ -1102,6 +1101,7 @@ begin
 	{$IFNDEF WINDOWS}
 	FileList.Invalidate;
 	MixerPanel.Invalidate;
+	Invalidate;
 	{$ENDIF}
 	if FocusableControls <> nil then
 		FocusableControls.FocusRectangle.Realign;

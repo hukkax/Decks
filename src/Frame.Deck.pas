@@ -869,6 +869,7 @@ end;
 
 procedure TDeckFrame.FormResize(Sender: TObject);
 begin
+	Invalidate;
 	if not Enabled then Exit;
 	RedrawGraph(True);
 	DrawWaveform;
@@ -2133,7 +2134,7 @@ begin
 			if Button.HelpContext = 0 then
 			begin
 				Button.DropDownMenu := PopupEffectPresets;
-				Button.Style := bbtDropDown;
+//				Button.Style := bbtDropDown;
 				Button.DropDownArrow := True;
 			end;
 		end

@@ -35,6 +35,7 @@ object MainForm: TMainForm
     Color = 3553082
     DoubleBuffered = True
     FullRepaint = False
+    ParentBackground = False
     ParentColor = False
     ParentDoubleBuffered = False
     ParentShowHint = False
@@ -72,6 +73,7 @@ object MainForm: TMainForm
       Bevel.OuterBevel = bcbNone
       Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
       Border.Color = 2500134
+      Border.LightColor = 6710886
       Border.Style = bboNone
       FontEx.Color = 13421772
       FontEx.FontQuality = fqFineAntialiasing
@@ -1148,6 +1150,7 @@ object MainForm: TMainForm
     Bevel.OuterBevel = bcbTop
     Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
     Border.Color = 5395800
+    Border.LightColor = 5395800
     Border.Style = bboSolid
     Border.Width = 2
     FontEx.Color = 13421772
@@ -1174,6 +1177,7 @@ object MainForm: TMainForm
       Color = 2171427
       Constraints.MinWidth = 220
       FullRepaint = False
+      ParentBackground = False
       ParentColor = False
       TabOrder = 0
       OnResize = LeftPanelResize
@@ -1190,7 +1194,7 @@ object MainForm: TMainForm
         Constraints.MinWidth = 200
         ExpandSignType = tvestArrowFill
         Font.Color = 9366009
-        Font.Height = 19
+        Font.Height = -16
         FileSortType = fstNone
         HideSelection = False
         HotTrack = True
@@ -1250,7 +1254,9 @@ object MainForm: TMainForm
       Top = 2
       Width = 5
       Color = 5395800
+      DoubleBuffered = False
       ParentColor = False
+      ParentDoubleBuffered = False
       ResizeStyle = rsLine
     end
     object FilesPanel: TDecksPanel
@@ -1315,7 +1321,7 @@ object MainForm: TMainForm
         HeaderColor = 3553082
         HeaderTextColor = 10001052
         Font.Color = 14544639
-        Font.Height = 19
+        Font.Height = -16
         ItemHeight = 23
         Scrollbar = sFiles
         ParentShowHint = False
@@ -1417,6 +1423,7 @@ object MainForm: TMainForm
           BorderStyle = bsNone
           Color = 3224115
           Font.Color = 10922154
+          Font.Height = -15
           OnChange = eFileFilterChange
           OnKeyDown = eFileFilterKeyDown
           ParentFont = False
