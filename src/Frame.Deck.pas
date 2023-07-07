@@ -1636,7 +1636,8 @@ var
 	FAdd, FPos: Double;
 	BL, L, Sam, TPos, BeatPos: QWord;
 	Sample: PByte;
-	BeatCol: TBGRAPixel;
+	IsFirstBeat: Boolean;
+	BeatCol: array[Boolean] of TBGRAPixel;
 begin
 	BL := Deck.Graph.GetBarLength(True, Bar);
 	L := BL * 2 div Trunc(Power(2, SampleZoom));
@@ -1649,12 +1650,14 @@ begin
 	Pos := Min(Pos, Deck.Graph.length_audio - L);
 	Result := Pos;
 
-	BeatPos := Deck.Graph.GetNextBeat(Pos);
+	BeatPos := Deck.Graph.GetNextBeat(Pos, IsFirstBeat);
 	BL := Trunc(BL / 4);
 
 	if FAdd >= 0.1 then
 	begin
-		BeatCol := BGRA(120, 255, 60);
+		BeatCol[True]  := BGRA(55, 255, 255);
+		BeatCol[False] := BGRA(120, 255, 60);
+
 		HY := pbWave.Bitmap.Height div 2 - 1;
 		FPos := Pos;
 		for X := 0 to W-1 do
@@ -1669,8 +1672,9 @@ begin
 			end;
 			if TPos >= BeatPos then
 			begin
-				pbWave.Bitmap.VertLine(X, 0, pbWave.Bitmap.Height-1, BeatCol);
-				Inc(BeatPos, BL);
+				pbWave.Bitmap.VertLine(X, 0, pbWave.Bitmap.Height-1, BeatCol[IsFirstBeat]);
+				//Inc(BeatPos); //, BL);
+				BeatPos := Deck.Graph.GetNextBeat(BeatPos+1, IsFirstBeat);
 			end;
 			FPos += FAdd;
 			Sam := Min(255, Trunc(Sam / FAdd * Brightness));

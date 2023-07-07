@@ -124,7 +124,7 @@ type
 		function 	PosToBar(P: QWord; ForGraph: Boolean = False): Integer;
 		function	PosToGraph(P: QWord; ForGraph: Boolean = False): TPoint;
 		function	GetBeatLength(ForGraph: Boolean = False): Integer; inline;
-		function	GetNextBeat(P: QWord): QWord;
+		function	GetNextBeat(P: QWord; out IsFirstBeat: Boolean): QWord;
 		function	GetBarLength(ForGraph: Boolean = False; X: Integer = -1): Integer;
 		function 	GetBarLengthAt(var P: QWord): Single;
 
@@ -682,9 +682,10 @@ begin
 		Result := Trunc(GetFreq(ForGraph) * ((60000 / Song.AvgBPM) / 250));
 end;
 
-function TBeatGraph.GetNextBeat(P: QWord): QWord;
+function TBeatGraph.GetNextBeat(P: QWord; out IsFirstBeat: Boolean): QWord;
 var
 	Y, Bar, BL: Integer;
+	BarPos, BarPos2: QWord;
 begin
 	Result := 0;
 
@@ -694,11 +695,17 @@ begin
 	BL := Trunc(GetBarLength(True, Bar) / 4);
 	if BL <= 0 then Exit;
 
-	Result := Bars[Bar].Pos;
+	BarPos  := Bars[Bar].Pos;
+	BarPos2 := BarPos + GetBarLength(True, Bar);
+	Result := BarPos;
 
 	for Y := 0 to 7 do
 	begin
-		if Result >= P then Exit;
+		if Result >= P then
+		begin
+			IsFirstBeat := (Abs(Result - BarPos) < 100) or (Abs(Result - BarPos2) < 100);
+			Exit;
+		end;
 		Inc(Result, BL);
 	end;
 end;
