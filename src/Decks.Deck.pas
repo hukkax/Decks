@@ -7,7 +7,7 @@ unit Decks.Deck;
 interface
 
 uses
-	Classes, SysUtils, Forms, Menus,
+	Classes, SysUtils, Forms, Menus, IniFiles,
 	BASS, BASSmix, BASS_FX,
 	Decks.Audio, Decks.Song, Decks.SongInfo, Decks.BeatGraph,
 	Decks.Effects;
@@ -72,6 +72,9 @@ type
 
 		Equalizer:    TEqualizer;
 
+		OnLoadInfo,
+		OnSaveInfo: TInfoFileAccessEvent;
+
 		function	BPMToHz(aBPM: Single; Zone: Word = 0): Cardinal;
 		function	HzToBPM(Hz: Single; Zone: Word = 0): Single;
 
@@ -115,7 +118,7 @@ type
 implementation
 
 uses
-	Math, IniFiles,
+	Math,
 	Form.Main,
 	Decks.Config, Decks.TagScanner;
 
@@ -190,6 +193,9 @@ end;
 constructor TDeck.Create;
 begin
 	inherited Create;
+
+	OnLoadInfo := nil;
+	OnSaveInfo := nil;
 
 	Graph := TBeatGraph.Create(TSong(Self), Config.ThemePath);
 	Paused := False;
@@ -287,7 +293,7 @@ function TDeck.GetInfo: Boolean;
 begin
 	Graph.Zones.Clear;
 	Tags := ReadFileTags(Filename, False);
-	Info := GetSongInfo(ExtractFileName(Filename), InfoHandler);
+	Info := GetSongInfo(ExtractFileName(Filename), OnLoadInfo, InfoHandler);
 	Result := Info.Initialized;
 	if not Result then
 		Info := Tags.Info;
@@ -423,6 +429,8 @@ begin
 				Ini.WriteInt64(Sect, 'data', Z.Data);
 			end;
 		end;
+		if Assigned(OnSaveInfo) then
+			OnSaveInfo(S, Ini);
 	finally
 		Ini.Free;
 	end;

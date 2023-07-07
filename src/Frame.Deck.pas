@@ -8,10 +8,11 @@ interface
 uses
 	Classes, SysUtils, Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
 	ExtCtrls, Buttons, LCLType, LCLIntf, LMessages, Menus, ComCtrls,
+	IniFiles, BCTypes, FGL,
 	BGRAVirtualScreen, BGRABitmap, BGRABitmapTypes,
 	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, Decks.Effects,
 	BASS, BASSmix,
-	hKnob, hSlider, DecksButton, DecksValueLabel, DecksPanel, BCTypes, FGL;
+	hKnob, hSlider, DecksButton, DecksValueLabel, DecksPanel;
 
 const
 	BPMStep = 0.01;
@@ -31,6 +32,7 @@ type
 		Effect: TBaseEffect;
 		Button: TDecksButton;
 		LabelWidth: Word;
+		IsStored: Boolean;
 
 		destructor Destroy; override;
 	end;
@@ -103,6 +105,7 @@ type
 		bZoneAdd: TDecksButton;
 		bZoneDel: TDecksButton;
 		miShowFile: TMenuItem;
+		bStoreFx: TDecksButton;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -173,6 +176,9 @@ type
 		procedure pnlEffectsResize(Sender: TObject);
 		procedure miShowFileClick(Sender: TObject);
 		procedure bLoopBeatSetDown(Sender: TObject);
+		procedure bStoreFxMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
+		procedure bStoreFxSetDown(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -202,6 +208,7 @@ type
 		procedure ApplyEffects;
 		procedure ShowEffectValue(Knob: ThKnob);
 		procedure UnloopAll;
+		procedure EnableEffect(EffectIndex: Byte; Toggle: Boolean = False);
 	public
 		GraphHover,
 		GraphCue:   TPoint;
@@ -218,6 +225,9 @@ type
 
 		constructor Create(AOwner: TComponent); override;
 		destructor  Destroy; override;
+
+		procedure LoadDeckInfo(const Filename: String; Ini: TIniFile);
+		procedure SaveDeckInfo(const Filename: String; Ini: TIniFile);
 
 		procedure OnZoneChanged(Zone: Integer; MixTime: Boolean);
 		procedure OnDeckEvent(Kind: Integer);
@@ -444,6 +454,9 @@ begin
 	Deck.Graph.WantedZoom := 1;
 	SampleZoom := 2;
 
+	Deck.OnLoadInfo := LoadDeckInfo;
+	Deck.OnSaveInfo := SaveDeckInfo;
+
 	Deck.Graph.OnGraphIteration := OnGraphIteration;
 	Deck.Graph.OnZoneChange := OnZoneChanged;
 	Deck.Graph.OnLoadProgress := OnLoadProgress;
@@ -625,6 +638,48 @@ begin
 	if (B) or (Deck.Synced) then
 		if Deck.IsOtherDeckPlaying then
 			SyncToOtherDeck(True);
+end;
+
+procedure TDeckFrame.LoadDeckInfo(const Filename: String; Ini: TIniFile);
+var
+	Effect: TGUIEffect;
+	Param: TEffectParam;
+	B: Boolean;
+	Sect: String;
+begin
+	for Effect in Effects do
+	begin
+		Sect := LowerCase('fx.' + Effect.Effect.Name);
+		B := Ini.SectionExists(Sect);
+		Effect.IsStored := B;
+		if B then
+		begin
+			Effect.Effect.Enabled := Ini.ReadBool(Sect, 'Enabled', Effect.Effect.Enabled);
+			for Param in Effect.Effect.Params do
+				Param.Value := Ini.ReadFloat(Sect, Param.Name, Param.Value);
+		end;
+		EnableEffect(Effects.IndexOf(Effect));
+	end;
+end;
+
+procedure TDeckFrame.SaveDeckInfo(const Filename: String; Ini: TIniFile);
+var
+	Effect: TGUIEffect;
+	Param: TEffectParam;
+	Sect: String;
+begin
+	for Effect in Effects do
+	begin
+		Sect := LowerCase('fx.' + Effect.Effect.Name);
+		if not Effect.IsStored then
+			Ini.EraseSection(Sect)
+		else
+		begin
+			Ini.WriteBool(Sect, 'Enabled', Effect.Effect.Enabled);
+			for Param in Effect.Effect.Params do
+				Ini.WriteFloat(Sect, Param.Name, Param.Value)
+		end;
+	end;
 end;
 
 procedure TDeckFrame.bStoreClick(Sender: TObject);
@@ -1406,6 +1461,20 @@ begin
 	end;
 end;
 
+procedure TDeckFrame.bStoreFxMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+	B: Boolean;
+begin
+	B := not Effects[SelectedEffect].IsStored;
+	Effects[SelectedEffect].IsStored := B;
+	bStoreFx.Down := B;
+end;
+
+procedure TDeckFrame.bStoreFxSetDown(Sender: TObject);
+begin
+	bStoreFx.StateNormal.Border.LightWidth := IfThen(bStoreFx.Down, 1, 0);
+end;
+
 procedure TDeckFrame.pbRulerRedraw(Sender: TObject; Bitmap: TBGRABitmap);
 begin
 	DrawRuler;
@@ -2168,7 +2237,7 @@ begin
 			if Button.HelpContext = 0 then
 			begin
 				Button.DropDownMenu := PopupEffectPresets;
-//				Button.Style := bbtDropDown;
+				//Button.Style := bbtDropDown;
 				Button.DropDownArrow := True;
 			end;
 		end
@@ -2182,6 +2251,8 @@ begin
 	end;
 
 	PopupEffectPresets.Items.Clear;
+
+	bStoreFx.Down := Effects[SelectedEffect].IsStored;
 
 	Fx := Effects[SelectedEffect].Effect;
 	B := Fx <> nil;
@@ -2341,27 +2412,33 @@ begin
 	end;
 end;
 
-procedure TDeckFrame.bEffect0MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TDeckFrame.EnableEffect(EffectIndex: Byte; Toggle: Boolean = False);
 var
 	Fx: TBaseEffect;
 	B: Boolean;
 begin
-	if Button = mbRight then
+	if (EffectIndex >= Effects.Count) then Exit;
+	Fx := Effects[EffectIndex].Effect;
+	if Fx = nil then Exit;
+
+	if Toggle then
+		B := not Fx.Enabled
+	else
+		B := Fx.Enabled;
+	with Effects[EffectIndex].Button do
 	begin
-		if not (Sender is TDecksButton) then Exit;
-		X := (Sender as TDecksButton).Tag;
-		Fx := Effects[X].Effect;
-		if Fx = nil then Exit;
-		B := not Fx.Enabled;
-		if B then
-			Fx.Stream := Deck.Stream;
-		with Effects[X].Button do
-		begin
-			StateNormal.Border.LightWidth := IfThen(B, 2, 0);
-			Down := B;
-		end;
-		Fx.Enabled := B;
+		StateNormal.Border.LightWidth := IfThen(B, 2, 0);
+		Down := B;
 	end;
+	Fx.Stream := Deck.Stream;
+	Fx.Enabled := B;
+end;
+
+procedure TDeckFrame.bEffect0MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+	if Button = mbRight then
+		if (Sender is TDecksButton) then
+			EnableEffect((Sender as TDecksButton).Tag, True);
 end;
 
 procedure TDeckFrame.miSetMasterTempoClick(Sender: TObject);

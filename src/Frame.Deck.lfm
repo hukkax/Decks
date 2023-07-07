@@ -619,6 +619,63 @@ object DeckFrame: TDeckFrame
       FloatPosition = 100
       PageSize = 0
     end
+    object bStoreFx: TDecksButton
+      Left = 534
+      Height = 36
+      Hint = 'Store with song setup'
+      Top = 29
+      Width = 41
+      Anchors = [akTop, akRight]
+      AllowAllUp = True
+      StateNormal.Background.Color = 6249562
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsGradient
+      StateNormal.Border.Color = 2302497
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 11775917
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = 24
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = []
+      StateNormal.FontEx.PaddingBottom = 3
+      Caption = '🖫'
+      DropDownWidth = 16
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      GroupIndex = 999
+      OnMouseDown = bStoreFxMouseDown
+      OnSetDown = bStoreFxSetDown
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 1
+      RoundingDropDown.RoundY = 1
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
   end
   object bMaster: TDecksPanel
     Tag = -1

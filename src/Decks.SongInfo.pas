@@ -6,13 +6,15 @@ unit Decks.SongInfo;
 interface
 
 uses
-	Classes, SysUtils;
+	Classes, SysUtils, IniFiles;
 
 type
 	TInfoKeyword = ( IKW_BPM, IKW_CUE, IKW_ZONE, IKW_ZONEDATA, IKW_ZONE_OLD, IKW_BPM_OLD );
 	TInfoParams  = array of Int64;
 
-	TInfoKeywordHandler = procedure(Keyword: TInfoKeyword; Params: TInfoParams) of object;
+	TInfoKeywordHandler  = procedure(Keyword: TInfoKeyword; Params: TInfoParams) of object;
+
+	TInfoFileAccessEvent = procedure(const Filename: String; Ini: TIniFile) of object;
 
 	TSongInfo = record
 		Initialized: Boolean;  // loaded
@@ -49,15 +51,18 @@ type
 	function FileSize(const FileName: String): QWord;
 
 	procedure SetSongInfoPath(const Path: String);
-	function  GetSongInfoNew(const BPMFilename: String; KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
-	function  GetSongInfo(const Filename: String; KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
+	function  GetSongInfoNew(const BPMFilename: String;
+		OnLoadInfo: TInfoFileAccessEvent;
+		KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
+	function  GetSongInfo(const Filename: String;
+		OnLoadInfo: TInfoFileAccessEvent;
+		KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 	function  GetBPMFile(const AudioFileName: String): String; inline;
 
 
 implementation
 
 uses
-	IniFiles,
 	Decks.Beatgraph,
 	Decks.Config;
 
@@ -156,6 +161,7 @@ begin
 end;
 
 function GetSongInfoNew(const BPMFilename: String;
+	OnLoadInfo: TInfoFileAccessEvent;
 	KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 var
 	P, Sect: String;
@@ -238,6 +244,9 @@ begin
 			Inc(i);
 		end;
 
+		if Assigned(OnLoadInfo) then
+			OnLoadInfo(BPMFilename, Ini);
+
 	finally
 		Ini.Free;
 		Result.Initialized := True;
@@ -246,6 +255,7 @@ end;
 
 
 function GetSongInfo(const Filename: String;
+	OnLoadInfo: TInfoFileAccessEvent;
 	KeywordHandler: TInfoKeywordHandler = nil): TSongInfo;
 var
 	Ver, K, P, Fn: String;
@@ -296,7 +306,7 @@ begin
 
 			if (Sl.Count > 0) and (Sl[0] = '[Decks 3]') then
 			begin
-				Result := GetSongInfoNew(Fn, KeywordHandler);
+				Result := GetSongInfoNew(Fn, OnLoadInfo, KeywordHandler);
 				Exit;
 			end;
 
