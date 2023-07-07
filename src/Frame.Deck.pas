@@ -7,7 +7,7 @@ interface
 
 uses
 	Classes, SysUtils, Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
-	ExtCtrls, {EditBtn, }Buttons, LCLType, LCLIntf, LMessages, Menus, ComCtrls,
+	ExtCtrls, Buttons, LCLType, LCLIntf, LMessages, Menus, ComCtrls,
 	BGRAVirtualScreen, BGRABitmap, BGRABitmapTypes,
 	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, Decks.Effects,
 	BASS, BASSmix,
@@ -498,7 +498,7 @@ end;
 
 procedure TDeckFrame.ShowPosition;
 var
-	time_e, time_r, tm, ts, X, Y, W, H: Integer;
+	time_e, time_r, tm, ts, Y, W, H: Integer;
 	se, sr: String;
 	Vol: DWord = 0;
 begin
@@ -801,7 +801,7 @@ begin
 	// TODO: configuration
 	if (not Immediate) and (not OtherDeck.Paused) then
 	begin
-		PT := GetOtherDeckPos;
+		PT := {%H-}GetOtherDeckPos;
 		if PT.Y <= OtherDeck.Graph.Height div 4 then
 			Immediate := True;
 	end;
@@ -1562,6 +1562,7 @@ begin
 					zkJump:		Col := clTeal;
 					zkSkip:		Col := clMaroon;
 					zkEnd:		Col := clBlack;
+					else		Col := clGray;
 				end;
 				Zoner.FillRect(R, ColorToBGRA(Col));
 				Col := clWhite;
@@ -1633,11 +1634,12 @@ var
 	X, W: Cardinal;
 	HY, Y: Integer;
 	FAdd, FPos: Double;
-	L, Sam: QWord;
+	BL, L, Sam, TPos, BeatPos: QWord;
 	Sample: PByte;
+	BeatCol: TBGRAPixel;
 begin
-	L := Deck.Graph.GetBarLength(True, Bar);
-	L := L * 2 div Trunc(Power(2, SampleZoom));
+	BL := Deck.Graph.GetBarLength(True, Bar);
+	L := BL * 2 div Trunc(Power(2, SampleZoom));
 	if L < 10 then Exit(0);
 
 	W := pbWave.ClientWidth;
@@ -1647,18 +1649,28 @@ begin
 	Pos := Min(Pos, Deck.Graph.length_audio - L);
 	Result := Pos;
 
+	BeatPos := Deck.Graph.GetNextBeat(Pos);
+	BL := Trunc(BL / 4);
+
 	if FAdd >= 0.1 then
 	begin
+		BeatCol := BGRA(120, 255, 60);
 		HY := pbWave.Bitmap.Height div 2 - 1;
 		FPos := Pos;
 		for X := 0 to W-1 do
 		begin
+			TPos := Trunc(FPos);
 			Sam := 0;
-			Sample := @Deck.Graph.AudioData[Trunc(FPos)];
+			Sample := @Deck.Graph.AudioData[TPos];
 			for Y := 1 to WaveformStep do
 			begin
 				Sam += Sample^;
 				Inc(Sample);
+			end;
+			if TPos >= BeatPos then
+			begin
+				pbWave.Bitmap.VertLine(X, 0, pbWave.Bitmap.Height-1, BeatCol);
+				Inc(BeatPos, BL);
 			end;
 			FPos += FAdd;
 			Sam := Min(255, Trunc(Sam / FAdd * Brightness));

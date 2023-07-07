@@ -124,6 +124,7 @@ type
 		function 	PosToBar(P: QWord; ForGraph: Boolean = False): Integer;
 		function	PosToGraph(P: QWord; ForGraph: Boolean = False): TPoint;
 		function	GetBeatLength(ForGraph: Boolean = False): Integer; inline;
+		function	GetNextBeat(P: QWord): QWord;
 		function	GetBarLength(ForGraph: Boolean = False; X: Integer = -1): Integer;
 		function 	GetBarLengthAt(var P: QWord): Single;
 
@@ -620,17 +621,15 @@ var
 	BL: Single;
 begin
 	Result := 0;
-	if (not Generating) and (P > 0) then
-	begin
-		GP := P;
-		BL := GetBarLengthAt(GP);
-		if BL > 0 then
-		begin
-			Bar := PosToBar(GP, True);
-			if Bar >= 0 then
-				Result := ((GP - Bars[Bar].Pos) / BL);
-		end;
-	end;
+	if (Generating) or (P = 0) then Exit;
+
+	GP := P;
+	BL := GetBarLengthAt(GP);
+	if BL <= 0.1 then Exit;
+
+	Bar := PosToBar(GP, True);
+	if Bar >= 0 then
+		Result := ((GP - Bars[Bar].Pos) / BL);
 end;
 
 // P = song byte pos, changes to graph byte pos
@@ -681,6 +680,27 @@ begin
 		Result := GraphToSongBytes(Bars[X+1].Pos - Bars[X].Pos, ForGraph)
 	else
 		Result := Trunc(GetFreq(ForGraph) * ((60000 / Song.AvgBPM) / 250));
+end;
+
+function TBeatGraph.GetNextBeat(P: QWord): QWord;
+var
+	Y, Bar, BL: Integer;
+begin
+	Result := 0;
+
+	Bar := PosToBar(P, True);
+	if Bar < 0 then Exit;
+
+	BL := Trunc(GetBarLength(True, Bar) / 4);
+	if BL <= 0 then Exit;
+
+	Result := Bars[Bar].Pos;
+
+	for Y := 0 to 7 do
+	begin
+		if Result >= P then Exit;
+		Inc(Result, BL);
+	end;
 end;
 
 procedure TBeatGraph.Clear;
