@@ -773,10 +773,17 @@ end;
 
 procedure TDeckFrame.SyncToOtherDeck(Immediate: Boolean);
 var
+	OtherDeck: TDeck;
+
+	function GetOtherDeckPos: TPoint; inline;
+	begin
+		Result := OtherDeck.Graph.PosToGraph(OtherDeck.GetPlayPosition(False), False);
+	end;
+
+var
+	PT, CT: TPoint;
 	P: QWord;
 	B: Cardinal;
-	PT, CT: TPoint;
-	OtherDeck: TDeck;
 begin
 	if not Enabled then Exit;
 
@@ -792,15 +799,18 @@ begin
 	// detect if play was pressed during the first beat of a bar, if so,
 	// start synced playback immediately instead of waiting for the next bar to begin
 	// TODO: configuration
-	PT := OtherDeck.Graph.PosToGraph(OtherDeck.GetPlayPosition(False), False);
-	if (not Immediate) and (PT.Y <= OtherDeck.Graph.Height div 4) then
-		Immediate := True;
+	if (not Immediate) and (not OtherDeck.Paused) then
+	begin
+		PT := GetOtherDeckPos;
+		if PT.Y <= OtherDeck.Graph.Height div 4 then
+			Immediate := True;
+	end;
 
 	if Immediate then
 	begin
 		CT := Deck.Graph.PosToGraph(Deck.GetPlayPosition(True), False);
 		BASS_SetDevice(CurrentDevice);
-//		PT := OtherDeck.Graph.PosToGraph(OtherDeck.GetPlayPosition(False), False);
+		PT := GetOtherDeckPos;
 		CT.Y := PT.Y;
 		P := Deck.Graph.GraphToPos(CT);
 
