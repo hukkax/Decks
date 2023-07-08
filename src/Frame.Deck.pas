@@ -23,8 +23,10 @@ const
 {$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 
 type
+	TDragInfoKind = ( DRAG_NONE, DRAG_WAVE, DRAG_BEAT );
+
 	TDragInfo = record
-		Dragging: Boolean;
+		Dragging: TDragInfoKind;
 		Offset:   Integer;
 	end;
 
@@ -41,6 +43,15 @@ type
 		Knob:       ThKnob;
 		NameLabel:  TLabel;
 		ValueLabel: TLabel;
+	end;
+
+	TBeatDrag = record
+	const
+		RectSize = 8;
+	public
+		Pos:  QWord;
+		Rect: TRect;
+		Zone: TZone;
 	end;
 
 	TEffectsList = TFPGObjectList<TGUIEffect>;
@@ -188,7 +199,7 @@ type
 		Ruler: TBGRABitmap;
 		ShowRemainingTime: Boolean;
 		ZoneTextStyle: TTextStyle;
-		BeatDragRect: TRect;
+		BeatDrag: TBeatDrag;
 
 		procedure InitDevice(Dev: Integer);
 		procedure ZoneChangedMessage(var Msg: TLMessage); message WM_ZONE;
@@ -238,9 +249,9 @@ type
 		procedure BeginFormUpdate;
 		procedure EndFormUpdate;
 
-		function  ProcessKeyUp(var Key: Word; Shift: TShiftState): Boolean;
-		function  ProcessKeyDown(var Key: Word; Shift: TShiftState): Boolean;
-		function  ProcessKeyPress(var Key: Char): Boolean;
+		function  ProcessKeyUp(Key: Word; Shift: TShiftState): Boolean;
+		function  ProcessKeyDown(Key: Word; Shift: TShiftState): Boolean;
+		function  ProcessKeyPress(Key: Char): Boolean;
 
 		procedure SetZoneKind(Zone: Word; Kind: TZoneKind);
 		procedure SetSynced(B: Boolean);
@@ -261,10 +272,12 @@ type
 		procedure DrawZones(Recalc: Boolean = True);
 		procedure DrawRuler(Recalc: Boolean = True);
 		procedure DrawGraph;
-		procedure RedrawGraph(Recalc: Boolean = False);
+		procedure RedrawGraph(Recalc: Boolean = False; IgnoreGUIBPM: Boolean = False);
 		procedure UpdateCaption;
 
 		procedure ShowPanel_Effects;
+
+		procedure SetKnob(const Knob: ThKnob; Value: Integer);
 	end;
 
 var
@@ -1103,7 +1116,7 @@ begin
 	inherited Destroy;
 end;
 
-function TDeckFrame.ProcessKeyUp(var Key: Word; Shift: TShiftState): Boolean;
+function TDeckFrame.ProcessKeyUp(Key: Word; Shift: TShiftState): Boolean;
 begin
 	Result := True;
 	if not Enabled then Exit;
@@ -1111,7 +1124,7 @@ begin
 	case Key of
 
 		VK_CONTROL:
-			bPlay.OnMouseUp(Self, mbRight, Shift, 0, 0);
+			Cue(False);
 
 		VK_SHIFT:
 			IsShiftDown := False;
@@ -1124,7 +1137,7 @@ begin
 	end;
 end;
 
-function TDeckFrame.ProcessKeyDown(var Key: Word; Shift: TShiftState): Boolean;
+function TDeckFrame.ProcessKeyDown(Key: Word; Shift: TShiftState): Boolean;
 begin
 	Result := True;
 	if not Enabled then Exit;
@@ -1133,7 +1146,7 @@ begin
 
 		VK_SPACE:		bPlay.OnClick(Self);
 
-		VK_CONTROL:		bPlay.OnMouseDown(Self, mbRight, Shift, 0, 0);
+		VK_CONTROL:		Cue(True);
 
 		VK_MENU: ;
 
@@ -1163,7 +1176,7 @@ begin
 	end;
 end;
 
-function TDeckFrame.ProcessKeyPress(var Key: Char): Boolean;
+function TDeckFrame.ProcessKeyPress(Key: Char): Boolean;
 begin
 	Result := True;
 	if not Enabled then Exit;
@@ -1251,6 +1264,12 @@ procedure TDeckFrame.JumpToBar(Bar: Word);
 begin
 	if Enabled then
 		JumpToPos(Deck.Graph.GraphToSongBytes(Deck.Graph.Bars[Bar].Pos));
+end;
+
+procedure TDeckFrame.SetKnob(const Knob: ThKnob; Value: Integer);
+begin
+	if (Knob <> nil) and (Abs(Knob.Position - Value) <= Knob.Sensitivity) then
+		Knob.Position := Value;
 end;
 
 procedure TDeckFrame.pbMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1483,6 +1502,8 @@ end;
 
 procedure TDeckFrame.pbWaveMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
+var
+	Z: TZone;
 begin
 	if Enabled then
 	case Button of
@@ -1490,8 +1511,16 @@ begin
 		begin
 			SetMaster(Deck.Index);
 			SetCaptureControl(pbWave);
-			DragWave.Dragging := True;
 			DragWave.Offset := X;
+			if PtInRect(Point(X, Y), BeatDrag.Rect) then
+			begin
+				DragWave.Dragging := DRAG_BEAT;
+				{Z := Deck.Graph.AddZone(Deck.Graph.PosToBar(BeatDrag.Pos, True), 0);
+				if Z <> nil then
+					RedrawGraph(True);}
+			end
+			else
+				DragWave.Dragging := DRAG_WAVE;
 		end;
 
 		mbRight:
@@ -1507,25 +1536,47 @@ end;
 procedure TDeckFrame.pbWaveMouseUp(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
 begin
-	DragWave.Dragging := False;
+	DragWave.Dragging := DRAG_NONE;
 	SetCaptureControl(nil);
 end;
 
 procedure TDeckFrame.pbWaveMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var
+	Z: TZone;
+	Ch: Single;
 begin
-	if not Enabled then Exit;
+	if Deck = nil then Exit;
 
-	if DragWave.Dragging then
-	begin
-		SetCue(Max(0, CuePos {%H-}- ((DragWave.Offset - X) * WaveformStep)));
-		DragWave.Offset := X;
-	end
-	else
-	begin
-		if PtInRect(Point(X, Y), BeatDragRect) then
-			pbWave.Cursor := crArrow
+	if Enabled then
+	case DragWave.Dragging of
+
+		DRAG_WAVE:
+		begin
+			SetCue(Max(0, CuePos {%H-}- ((DragWave.Offset - X) * WaveformStep)));
+			DragWave.Offset := X;
+		end;
+
+		DRAG_BEAT:
+		begin
+			Z := BeatDrag.Zone;
+
+			Ch := (X - DragWave.Offset);
+			Ch := 1 - ((Ch / pbWave.ClientWidth) / 100);
+			Z.BPM := Z.BPM * Ch;
+
+			// update visuals
+			DragWave.Offset := X;
+			Deck.Graph.ZonesChanged;
+			RedrawGraph(True, True);
+			DrawWaveform;
+			Deck.SetBPM(MasterBPM);
+		end;
+
 		else
-			pbWave.Cursor := crSizeWE;
+			if PtInRect(Point(X, Y), BeatDrag.Rect) then
+				pbWave.Cursor := crArrow
+			else
+				pbWave.Cursor := crSizeWE;
 	end;
 end;
 
@@ -1710,8 +1761,6 @@ begin
 end;
 
 function TDeckFrame.DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; const Palette: TBGRAPalette): QWord;
-const
-BeatDragRectSize = 7;
 var
 	X, W: Cardinal;
 	HY, Y: Integer;
@@ -1761,8 +1810,13 @@ begin
 				// draw the drag box for the first beat in a bar
 				if IsFirstBeat then
 				begin
-					BeatDragRect := Bounds(X - (BeatDragRectSize div 2), 0, BeatDragRectSize, BeatDragRectSize);
-					pbWave.Bitmap.FillRect(BeatDragRect, BeatCol[True]);
+					if DragWave.Dragging = DRAG_NONE then
+					begin
+						BeatDrag.Pos := TPos;
+						BeatDrag.Zone := Deck.Graph.GetZoneAt(Max(0, BeatPos - Deck.Graph.GetBeatLength(False)));
+					end;
+					BeatDrag.Rect := Bounds(X - (BeatDrag.RectSize div 2), 0, BeatDrag.RectSize, BeatDrag.RectSize);
+					pbWave.Bitmap.FillRect(BeatDrag.Rect, BeatCol[True]);
 				end;
 				BeatPos := Deck.Graph.GetNextBeat(BeatPos+1, IsFirstBeat);
 			end;
@@ -1896,19 +1950,21 @@ begin
 	pb.Repaint;
 end;
 
-procedure TDeckFrame.RedrawGraph(Recalc: Boolean);
+procedure TDeckFrame.RedrawGraph(Recalc: Boolean = False; IgnoreGUIBPM: Boolean = False);
 var
 	BPM: Single;
 begin
 	if not Enabled then Exit;
 
-	BPM := lBPM.Value; //SliderTempo.Position + (SliderTempoFrac.Position / 1000);
-
-	if Deck.Graph.Zones.Count > 0 then
+	if not IgnoreGUIBPM then
 	begin
-		Deck.Graph.Zones[CurrentZone].BPM := BPM;
-		if Recalc then
-			Deck.Graph.NeedRecalc := True;
+		BPM := lBPM.Value; //SliderTempo.Position + (SliderTempoFrac.Position / 1000);
+		if Deck.Graph.Zones.Count > 0 then
+		begin
+			Deck.Graph.Zones[CurrentZone].BPM := BPM;
+			if Recalc then
+				Deck.Graph.NeedRecalc := True;
+		end;
 	end;
 
 	Recalc := Deck.Graph.NeedRecalc;

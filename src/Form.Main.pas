@@ -489,7 +489,7 @@ begin
 						Form.bSync.SetMouseDown(mbLeft, Pressed);
 	DECK_REVERSE:		Deck.SetReverse(Pressed, Deck.Synced);
 	DECK_LOAD:			if Pressed then LoadDeck(DeckNum);
-	DECK_AMP:			Form.SliderAmp.Position := Trunc(((Value) / 128) * 200);
+	DECK_AMP:			Form.SetKnob(Form.SliderAmp, Trunc(((Value) / 128) * 200));
 	DECK_BEND:			{if Pressed then Deck.BendStart(Value > 0, False)
 							else Deck.BendStop;}
 						if Value > 0 then
@@ -502,8 +502,7 @@ begin
 	MIXER_EQ_KILL:		if Pressed then Deck.ToggleEQKill(EQ_BAND_LOW);
 	MIXER_EQ_LOW..
 	MIXER_EQ_HIGH:		if DeckNum > 0 then
-							EQControls[DeckNum, EQBandFrom[Action.Kind]].Position :=
-								Trunc(((Value - 64) / 128) * 3000);
+							Form.SetKnob(EQControls[DeckNum, EQBandFrom[Action.Kind]], Trunc(((Value - 64) / 128) * 3000));
 	DECK_FX_FILTER:		if DeckNum > 0 then
 							Form.SliderFxParam0.FloatPosition :=
 								((Value - 64) / 127) * 2;
