@@ -821,7 +821,7 @@ var
 	S: String;
 	{$ENDIF}
 	mi: TMenuItem;
-	Dev: TAudioDevice;
+//	Dev: TAudioDevice;
 //	FC, CC: TFocusableControl;
 //	Ctrl: TControl;
 begin
@@ -1191,6 +1191,15 @@ begin
 		VK_DELETE:
 			CloseDeck(MasterDeck);
 
+		VK_CONTROL:
+		begin
+			if (GetKeyState(VK_LCONTROL) < 0) then
+				TDeckFrame(MixerDeck[1].Deck.Form).Cue(True);
+			if (GetKeyState(VK_RCONTROL) < 0) then
+				TDeckFrame(MixerDeck[2].Deck.Form).Cue(True);
+			Exit;
+		end;
+
 	else
 		if (MasterDeck <> nil) and (MasterDeck.ProcessKeyDown(Key, Shift)) then
 			Key := 0;
@@ -1209,7 +1218,18 @@ end;
 
 procedure TMainForm.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-	if Key = VK_SHIFT then IsShiftDown := False;
+	case Key of
+		VK_SHIFT:
+			IsShiftDown := False;
+		VK_CONTROL:
+		begin
+			if not (GetKeyState(VK_LCONTROL) < 0) then
+				TDeckFrame(MixerDeck[1].Deck.Form).Cue(False);
+			if not (GetKeyState(VK_RCONTROL) < 0) then
+				TDeckFrame(MixerDeck[2].Deck.Form).Cue(False);
+			Exit;
+		end;
+	end;
 
 	if MasterDeck <> nil then
 		if MasterDeck.ProcessKeyUp(Key, Shift) then
@@ -1646,7 +1666,7 @@ begin
 	Item := FindFileListEntry(Filename);
 	if Item = nil then Exit;
 
-	Info := GetSongInfo(Filename);
+	Info := GetSongInfo(Filename, nil);
 	if Info.BPM > 1 then
 	begin
 		S := Format('%.2f', [Info.BPM]);
@@ -2050,6 +2070,18 @@ begin
 
 			with DeckInFocusableControls[i,1] do
 			begin
+				Data := DF.pnlControls;
+				Add(DF.bPlay);
+				Add(DF.bSync);
+				Add(DF.bReverse);
+				Add(DF.bBendUp);
+				Add(DF.bBendDown);
+				//
+				Add(DF.SliderAmp);
+			end;
+
+			with DeckInFocusableControls[i,2] do
+			begin
 				Data := DF.pnlEffects;
 				{Add(DF.pnlEffectButtons);
 				Add(DF.pnlEffectKnobs);
@@ -2064,18 +2096,6 @@ begin
 				Add(DF.bLoopZone); Add(DF.bLoopSong);
 				Add(DF.bLoopBeat); Add(DF.bLoopBeat2);
 				Add(DF.bLoopBar); Add(DF.bLoopBar2); Add(DF.bLoopBar4);
-			end;
-
-			with DeckInFocusableControls[i,2] do
-			begin
-				Data := DF.pnlControls;
-				Add(DF.bPlay);
-				Add(DF.bSync);
-				Add(DF.bReverse);
-				Add(DF.bBendUp);
-				Add(DF.bBendDown);
-				//
-				Add(DF.SliderAmp);
 			end;
 
 		end;
