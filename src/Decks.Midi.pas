@@ -116,13 +116,14 @@ type
 
 	// a button/knob/other control on a midi device
 	TMIDIControl = record
-		Enabled:   Boolean;
-		HasLED:    Boolean;
-		Kind:      TMidiControlKind;
-		Parameter: Integer;
-		Name:      String;
-		Group:     String;
-		Action:    TDecksAction;
+		Enabled:    Boolean;
+		HasLED:     Boolean;
+		Kind:       TMidiControlKind;
+		Parameter:  Integer;
+		DeadZone:   Integer;
+		Name:       String;
+		Group:      String;
+		Action:     TDecksAction;
 	end;
 
 	TMIDI = record
@@ -136,9 +137,9 @@ type
 		OutDevice:        Integer;
 		InputDeviceList,
 		OutputDeviceList: TStringList;
-		Controls:         array[Byte] of TMIDIControl;
-		Leds:             array[TDecksActionKind, 1..2] of Integer;
-		ActionNames:      array[TDecksActionKind] of String;
+		Controls:         array [Byte] of TMIDIControl;
+		Leds:             array [TDecksActionKind, 1..2] of Integer;
+		ActionNames:      array [TDecksActionKind] of String;
 
 		procedure Init;
 		procedure Uninit;
@@ -166,6 +167,7 @@ procedure MIDIInCallback(Timestamp: Double; Data: PByte; Size: size_t; UserData:
 var
 	Ctrl: TMIDIControl;
 	Params: PExecuteParams;
+	DeadZone, CenterVal: Integer;
 begin
 	if Size < 3 then Exit;
 
@@ -174,24 +176,26 @@ begin
 
 	New(Params);
 	Params^.Kind := Ctrl.Kind;
+	CenterVal := 0;
 
 	case Ctrl.Kind of
 		MIDI_CTRL_BUTTON:
 		begin
 			Params^.Action := Ctrl.Action;
-			Params^.Value := Ctrl.Parameter;
+			Params^.Value  := Ctrl.Parameter;
 			Params^.Pressed := (Data[0] = MIDI_CTRLCODE_BUTTON_PRESS);
 		end;
 		MIDI_CTRL_ABSOLUTE:
 		begin
 			Params^.Action := Ctrl.Action;
-			Params^.Value := Data[2];
+			Params^.Value  := Data[2];
 			Params^.Pressed := True;
+			CenterVal := 64;
 		end;
 		MIDI_CTRL_RELATIVE_TWOSCOMPLEMENT:
 		begin
 			if (Data[2] and 64) <> 0 then
-				Params^.Value := (Data[2] and 63) - 64// negative
+				Params^.Value := (Data[2] and 63) - 64 // negative
 			else
 				Params^.Value := (Data[2] and 63);     // positive
 			Params^.Action  := Ctrl.Action;
@@ -199,6 +203,13 @@ begin
 		end;
 		MIDI_CTRL_RELATIVE_BINARYOFFSET:  ; // TODO
 		MIDI_CTRL_RELATIVE_SIGNMAGNITUDE: ; // TODO
+	end;
+
+	if (CenterVal <> 0) and (Ctrl.DeadZone <> 0) then
+	begin
+		DeadZone := Ctrl.DeadZone div 2;
+		if (Params^.Value >= (CenterVal - DeadZone)) and (Params^.Value <= (CenterVal + DeadZone)) then
+			Params^.Value := CenterVal;
 	end;
 
 	Application.RemoveAsyncCalls(MainForm);
@@ -221,7 +232,7 @@ procedure TMIDI.Init;
 		begin
 			i := Ini.ReadInteger(Sect, S, -1);
 			B := (i < 0);
-			if B then i := Abs(i);
+			i := Abs(i);
 			if i in [0..255] then
 			begin
 				Controls[i].Enabled := True;
@@ -333,6 +344,13 @@ begin
 			Leds[Act, 1] := Ini.ReadInteger('leds', ActionNames[Act] + '(1)', -1);
 			Leds[Act, 2] := Ini.ReadInteger('leds', ActionNames[Act] + '(2)', -1);
 		end;
+
+		// TODO implement jump/scale keywords. currently defaults to jump
+		for i := 0 to 255 do
+			if Controls[i].Kind = MIDI_CTRL_ABSOLUTE then
+				Controls[i].DeadZone := Ini.ReadInteger('deadzone', Controls[i].Name, 0)
+			else
+				Controls[i].DeadZone := 0;
 
 		sl := TStringList.Create;
 

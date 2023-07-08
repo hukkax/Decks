@@ -502,15 +502,8 @@ begin
 	MIXER_EQ_KILL:		if Pressed then Deck.ToggleEQKill(EQ_BAND_LOW);
 	MIXER_EQ_LOW..
 	MIXER_EQ_HIGH:		if DeckNum > 0 then
-						begin
-							Value := Value - 64;
-							if InRange(Value, -KnobSnap, +KnobSnap) then
-								Value := 0;
-							//else if Value < 0 then Inc(Value, KnobSnap)
-							//else if Value > 0 then Dec(Value, KnobSnap);
 							EQControls[DeckNum, EQBandFrom[Action.Kind]].Position :=
-								Trunc((Value / 128) * 3000);
-						end;
+								Trunc(((Value - 64) / 128) * 3000);
 	DECK_FX_FILTER:		if DeckNum > 0 then
 							Form.SliderFxParam0.FloatPosition :=
 								((Value - 64) / 127) * 2;
