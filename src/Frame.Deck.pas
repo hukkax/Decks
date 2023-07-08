@@ -188,6 +188,7 @@ type
 		Ruler: TBGRABitmap;
 		ShowRemainingTime: Boolean;
 		ZoneTextStyle: TTextStyle;
+		BeatDragRect: TRect;
 
 		procedure InitDevice(Dev: Integer);
 		procedure ZoneChangedMessage(var Msg: TLMessage); message WM_ZONE;
@@ -452,7 +453,7 @@ var
 	mi: TMenuItem;
 begin
 	Deck.Graph.WantedZoom := 1;
-	SampleZoom := 2;
+	SampleZoom := 1;
 
 	Deck.OnLoadInfo := LoadDeckInfo;
 	Deck.OnSaveInfo := SaveDeckInfo;
@@ -1512,10 +1513,20 @@ end;
 
 procedure TDeckFrame.pbWaveMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
-	if (not Enabled) or (not DragWave.Dragging) then Exit;
+	if not Enabled then Exit;
 
-	SetCue(Max(0, CuePos {%H-}- ((DragWave.Offset - X) * WaveformStep)));
-	DragWave.Offset := X;
+	if DragWave.Dragging then
+	begin
+		SetCue(Max(0, CuePos {%H-}- ((DragWave.Offset - X) * WaveformStep)));
+		DragWave.Offset := X;
+	end
+	else
+	begin
+		if PtInRect(Point(X, Y), BeatDragRect) then
+			pbWave.Cursor := crArrow
+		else
+			pbWave.Cursor := crSizeWE;
+	end;
 end;
 
 procedure TDeckFrame.pbWaveMouseWheel(Sender: TObject; Shift: TShiftState;
@@ -1699,6 +1710,8 @@ begin
 end;
 
 function TDeckFrame.DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; const Palette: TBGRAPalette): QWord;
+const
+BeatDragRectSize = 7;
 var
 	X, W: Cardinal;
 	HY, Y: Integer;
@@ -1731,6 +1744,7 @@ begin
 		FPos := Pos;
 		for X := 0 to W-1 do
 		begin
+			// collect samples for this horizontal position in waveform display
 			TPos := Trunc(FPos);
 			Sam := 0;
 			Sample := @Deck.Graph.AudioData[TPos];
@@ -1739,12 +1753,21 @@ begin
 				Sam += Sample^;
 				Inc(Sample);
 			end;
+
+			// draw beat indicator if a beat is located in this position
 			if TPos >= BeatPos then
 			begin
 				pbWave.Bitmap.VertLine(X, 0, pbWave.Bitmap.Height-1, BeatCol[IsFirstBeat]);
-				//Inc(BeatPos); //, BL);
+				// draw the drag box for the first beat in a bar
+				if IsFirstBeat then
+				begin
+					BeatDragRect := Bounds(X - (BeatDragRectSize div 2), 0, BeatDragRectSize, BeatDragRectSize);
+					pbWave.Bitmap.FillRect(BeatDragRect, BeatCol[True]);
+				end;
 				BeatPos := Deck.Graph.GetNextBeat(BeatPos+1, IsFirstBeat);
 			end;
+
+			// draw the sample data
 			FPos += FAdd;
 			Sam := Min(255, Trunc(Sam / FAdd * Brightness));
 			Y := Trunc(Sam / 256 * HY);
