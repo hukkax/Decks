@@ -12,8 +12,8 @@ object DeckFrame: TDeckFrame
   TabOrder = 0
   object pnlEffects: TDecksPanel
     Left = 0
-    Height = 74
-    Top = 263
+    Height = 78
+    Top = 259
     Width = 580
     Align = alBottom
     Background.Color = 3553082
@@ -459,7 +459,7 @@ object DeckFrame: TDeckFrame
       Left = 2
       Height = 25
       Hint = 'Amplification'
-      Top = 29
+      Top = 30
       Width = 46
       Anchors = [akLeft, akBottom]
       Max = 200
@@ -489,7 +489,7 @@ object DeckFrame: TDeckFrame
       Left = 52
       Height = 25
       Hint = 'Amplification'
-      Top = 29
+      Top = 30
       Width = 46
       Anchors = [akLeft, akBottom]
       Max = 200
@@ -516,7 +516,7 @@ object DeckFrame: TDeckFrame
       Left = 101
       Height = 25
       Hint = 'Amplification'
-      Top = 29
+      Top = 30
       Width = 46
       Anchors = [akLeft, akBottom]
       Max = 200
@@ -543,7 +543,7 @@ object DeckFrame: TDeckFrame
       Left = 150
       Height = 25
       Hint = 'Amplification'
-      Top = 29
+      Top = 30
       Width = 46
       Anchors = [akLeft, akBottom]
       Max = 200
@@ -570,7 +570,7 @@ object DeckFrame: TDeckFrame
       Left = 199
       Height = 25
       Hint = 'Amplification'
-      Top = 29
+      Top = 30
       Width = 46
       Anchors = [akLeft, akBottom]
       Max = 200
@@ -597,7 +597,7 @@ object DeckFrame: TDeckFrame
       Left = 248
       Height = 25
       Hint = 'Amplification'
-      Top = 29
+      Top = 30
       Width = 46
       Anchors = [akLeft, akBottom]
       Max = 200
@@ -806,7 +806,7 @@ object DeckFrame: TDeckFrame
   end
   object pnlGraph: TDecksPanel
     Left = 0
-    Height = 233
+    Height = 229
     Top = 30
     Width = 580
     Align = alClient
@@ -853,7 +853,7 @@ object DeckFrame: TDeckFrame
     object pb: TBGRAVirtualScreen
       Cursor = crNone
       Left = 5
-      Height = 140
+      Height = 136
       Top = 17
       Width = 570
       Align = alClient
@@ -870,7 +870,7 @@ object DeckFrame: TDeckFrame
     object pbZones: TBGRAVirtualScreen
       Left = 5
       Height = 21
-      Top = 157
+      Top = 153
       Width = 570
       OnRedraw = pbZonesRedraw
       Align = alBottom
@@ -899,7 +899,7 @@ object DeckFrame: TDeckFrame
     object SliderGraphX: TDecksRangeBar
       Left = 5
       Height = 21
-      Top = 178
+      Top = 174
       Width = 570
       Align = alBottom
       Color = 3553082
@@ -919,7 +919,7 @@ object DeckFrame: TDeckFrame
     object pnlZone: TDecksPanel
       Left = 5
       Height = 29
-      Top = 199
+      Top = 195
       Width = 570
       Align = alBottom
       Background.Color = 3553082

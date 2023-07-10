@@ -999,6 +999,8 @@ end;
 *)
 
 procedure TDeckFrame.InitGUIEffectParam(Index: Byte; AKnob: ThKnob);
+const
+	W = 15;
 var
 	Lbl: TLabel;
 begin
@@ -1007,7 +1009,7 @@ begin
 	Lbl := TLabel.Create(AKnob.Parent);
 	Lbl.AutoSize := False;
 	Lbl.Transparent := True;
-	Lbl.SetBounds(AKnob.Left-15, 1, AKnob.Width+30-1, 20);
+	Lbl.SetBounds(AKnob.Left-W, 1, AKnob.Width-1+(W*2), 24);
 	Lbl.Alignment := taCenter;
 	Lbl.Font.Color := clWhite;
 	Lbl.Parent := AKnob.Parent;
@@ -2367,7 +2369,7 @@ begin
 					GUIParam.NameLabel.Caption := Param.Name;
 					GUIParam.NameLabel.Hint := Param.Caption;
 					GUIParam.NameLabel.ShowHint := True;
-					GUIParam.NameLabel.SetBounds(Knob.Left-20, Knob.Top + Knob.Height + 2, Knob.Width+40-1, 18);
+					GUIParam.NameLabel.SetBounds(Knob.Left-20, Knob.Top + Knob.Height + 1, Knob.Width+40, 18+10);
 				end;
 			end;
 			if GUIParam.NameLabel <> nil then

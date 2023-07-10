@@ -45,7 +45,7 @@ object MainForm: TMainForm
       Left = 0
       Height = 45
       Top = 0
-      Width = 1058
+      Width = 1064
       Align = alClient
       Background.Color = 3553082
       Background.Gradient1.StartColor = clWhite
@@ -117,14 +117,13 @@ object MainForm: TMainForm
         StateNormal.Border.Style = bboSolid
         StateNormal.FontEx.Color = 14605788
         StateNormal.FontEx.FontQuality = fqSystemClearType
-        StateNormal.FontEx.Height = 17
+        StateNormal.FontEx.Height = -21
         StateNormal.FontEx.Shadow = True
         StateNormal.FontEx.ShadowColorOpacity = 160
         StateNormal.FontEx.ShadowRadius = 2
         StateNormal.FontEx.ShadowOffsetX = 1
         StateNormal.FontEx.ShadowOffsetY = 1
         StateNormal.FontEx.Style = []
-        StateNormal.FontEx.PaddingBottom = 2
         Caption = '⚌ '
         DropDownWidth = 16
         DropDownArrowSize = 8
@@ -145,10 +144,10 @@ object MainForm: TMainForm
         ClickOffset = True
       end
       object lBPM: TDecksLabel
-        Left = 990
+        Left = 981
         Height = 29
         Top = 9
-        Width = 65
+        Width = 75
         Anchors = [akTop, akRight]
         AutoSize = False
         Background.Color = 2171427
@@ -179,7 +178,7 @@ object MainForm: TMainForm
         Caption = '125.00'
         FontEx.Color = 10922154
         FontEx.FontQuality = fqSystemClearType
-        FontEx.Height = 16
+        FontEx.Height = -21
         FontEx.Shadow = False
         FontEx.ShadowColorOpacity = 100
         FontEx.ShadowRadius = 5
@@ -190,10 +189,10 @@ object MainForm: TMainForm
         Rounding.RoundY = 0
       end
       object sBPM: TDecksGaugeBar
-        Left = 304
+        Left = 320
         Height = 29
         Top = 9
-        Width = 687
+        Width = 662
         Anchors = [akTop, akLeft, akRight]
         Color = 2171427
         BorderStyle = bsNone
@@ -246,7 +245,6 @@ object MainForm: TMainForm
         StateNormal.FontEx.ShadowOffsetX = 1
         StateNormal.FontEx.ShadowOffsetY = 1
         StateNormal.FontEx.Style = [fsBold]
-        StateNormal.FontEx.PaddingBottom = 2
         Caption = '☰ Decks'
         DropDownWidth = 16
         DropDownArrowSize = 8
@@ -294,14 +292,13 @@ object MainForm: TMainForm
         StateNormal.Border.Style = bboSolid
         StateNormal.FontEx.Color = 14605788
         StateNormal.FontEx.FontQuality = fqSystemClearType
-        StateNormal.FontEx.Height = 17
+        StateNormal.FontEx.Height = -21
         StateNormal.FontEx.Shadow = True
         StateNormal.FontEx.ShadowColorOpacity = 160
         StateNormal.FontEx.ShadowRadius = 2
         StateNormal.FontEx.ShadowOffsetX = 1
         StateNormal.FontEx.ShadowOffsetY = 1
         StateNormal.FontEx.Style = []
-        StateNormal.FontEx.PaddingBottom = 2
         Caption = '🎛'
         DropDownWidth = 16
         DropDownArrowSize = 8
@@ -349,14 +346,13 @@ object MainForm: TMainForm
         StateNormal.Border.Style = bboSolid
         StateNormal.FontEx.Color = 14605788
         StateNormal.FontEx.FontQuality = fqSystemClearType
-        StateNormal.FontEx.Height = 17
+        StateNormal.FontEx.Height = -21
         StateNormal.FontEx.Shadow = True
         StateNormal.FontEx.ShadowColorOpacity = 160
         StateNormal.FontEx.ShadowRadius = 2
         StateNormal.FontEx.ShadowOffsetX = 1
         StateNormal.FontEx.ShadowOffsetY = 1
         StateNormal.FontEx.Style = []
-        StateNormal.FontEx.PaddingBottom = 2
         Caption = '🎚'
         DropDownWidth = 16
         DropDownArrowSize = 8
@@ -436,7 +432,7 @@ object MainForm: TMainForm
         Height = 29
         Hint = '⚌⏦'
         Top = 9
-        Width = 48
+        Width = 36
         StateNormal.Background.Color = 10773183
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -490,10 +486,10 @@ object MainForm: TMainForm
       end
       object lCPU: TDecksLabel
         AnchorSideRight.Control = sBPM
-        Left = 256
+        Left = 260
         Height = 29
         Top = 9
-        Width = 48
+        Width = 60
         Anchors = [akTop, akRight]
         AutoSize = False
         Background.Color = 2171427
@@ -524,7 +520,7 @@ object MainForm: TMainForm
         Caption = 'CPU'
         FontEx.Color = 10922154
         FontEx.FontQuality = fqSystemClearType
-        FontEx.Height = 16
+        FontEx.Height = -21
         FontEx.Shadow = False
         FontEx.ShadowColorOpacity = 100
         FontEx.ShadowRadius = 5
@@ -564,14 +560,13 @@ object MainForm: TMainForm
         StateNormal.Border.Style = bboSolid
         StateNormal.FontEx.Color = 14605788
         StateNormal.FontEx.FontQuality = fqSystemClearType
-        StateNormal.FontEx.Height = 17
+        StateNormal.FontEx.Height = -21
         StateNormal.FontEx.Shadow = True
         StateNormal.FontEx.ShadowColorOpacity = 160
         StateNormal.FontEx.ShadowRadius = 2
         StateNormal.FontEx.ShadowOffsetX = 1
         StateNormal.FontEx.ShadowOffsetY = 1
         StateNormal.FontEx.Style = []
-        StateNormal.FontEx.PaddingBottom = 2
         Caption = '⌸'
         DropDownWidth = 16
         DropDownArrowSize = 8
@@ -591,10 +586,10 @@ object MainForm: TMainForm
       end
     end
     object PanelWin: TDecksPanel
-      Left = 1058
+      Left = 1064
       Height = 45
       Top = 0
-      Width = 142
+      Width = 136
       Align = alRight
       Background.Color = 3553082
       Background.Gradient1.StartColor = clWhite
@@ -637,7 +632,7 @@ object MainForm: TMainForm
       TabOrder = 1
       OnMouseDown = shpBorderMouseDown
       object bWinMin: TDecksButton
-        Left = 9
+        Left = 3
         Height = 29
         Hint = 'Minimize'
         Top = 9
@@ -693,7 +688,7 @@ object MainForm: TMainForm
         ClickOffset = True
       end
       object bWinMax: TDecksButton
-        Left = 52
+        Left = 46
         Height = 29
         Hint = 'Maximize'
         Top = 9
@@ -749,7 +744,7 @@ object MainForm: TMainForm
         ClickOffset = True
       end
       object bWinClose: TDecksButton
-        Left = 94
+        Left = 88
         Height = 29
         Hint = 'Close'
         Top = 9
@@ -1461,6 +1456,7 @@ object MainForm: TMainForm
           StateNormal.Border.Style = bboSolid
           StateNormal.FontEx.Color = 13421772
           StateNormal.FontEx.FontQuality = fqSystemClearType
+          StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
           StateNormal.FontEx.ShadowColorOpacity = 160
           StateNormal.FontEx.ShadowRadius = 2
@@ -1514,6 +1510,7 @@ object MainForm: TMainForm
           StateNormal.Border.Style = bboSolid
           StateNormal.FontEx.Color = 13421772
           StateNormal.FontEx.FontQuality = fqSystemClearType
+          StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
           StateNormal.FontEx.ShadowColorOpacity = 160
           StateNormal.FontEx.ShadowRadius = 2
@@ -1566,6 +1563,7 @@ object MainForm: TMainForm
           StateNormal.Border.Style = bboSolid
           StateNormal.FontEx.Color = 13421772
           StateNormal.FontEx.FontQuality = fqSystemClearType
+          StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
           StateNormal.FontEx.ShadowColorOpacity = 160
           StateNormal.FontEx.ShadowRadius = 2
@@ -1618,6 +1616,7 @@ object MainForm: TMainForm
           StateNormal.Border.Style = bboSolid
           StateNormal.FontEx.Color = 13421772
           StateNormal.FontEx.FontQuality = fqSystemClearType
+          StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
           StateNormal.FontEx.ShadowColorOpacity = 160
           StateNormal.FontEx.ShadowRadius = 2
@@ -1670,6 +1669,7 @@ object MainForm: TMainForm
           StateNormal.Border.Style = bboSolid
           StateNormal.FontEx.Color = 13421772
           StateNormal.FontEx.FontQuality = fqSystemClearType
+          StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
           StateNormal.FontEx.ShadowColorOpacity = 160
           StateNormal.FontEx.ShadowRadius = 2
@@ -1723,6 +1723,7 @@ object MainForm: TMainForm
           StateNormal.Border.Style = bboSolid
           StateNormal.FontEx.Color = 13421772
           StateNormal.FontEx.FontQuality = fqSystemClearType
+          StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
           StateNormal.FontEx.ShadowColorOpacity = 160
           StateNormal.FontEx.ShadowRadius = 2
@@ -1752,8 +1753,8 @@ object MainForm: TMainForm
   object PopupFile: TPopupMenu
     Images = ImageListIcons
     OnPopup = PopupFilePopup
-    Left = 352
-    Top = 488
+    Left = 392
+    Top = 552
     object miSep: TMenuItem
       Caption = '-'
     end
@@ -1781,7 +1782,7 @@ object MainForm: TMainForm
   end
   object ImageListIcons: TImageList
     Left = 56
-    Top = 96
+    Top = 152
     Bitmap = {
       4C7A170000001000000010000000C71300000000000078DAED9C7B70175596C7
       6FD5D6D46ECD3A3B355B6E955B5BE3EE386BADD6AEBB336675747CB58E3A6A8D
@@ -1948,12 +1949,12 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 15
     OnTimer = TimerTimer
-    Left = 16
-    Top = 96
+    Left = 56
+    Top = 216
   end
   object PopupMenu: TPopupMenu
-    Left = 16
-    Top = 144
+    Left = 56
+    Top = 56
     object miZoomOut: TMenuItem
       Caption = 'Zoom Out'
       OnClick = miZoomOutClick
@@ -1989,12 +1990,12 @@ object MainForm: TMainForm
     end
   end
   object PopupListHeader: TPopupMenu
-    Left = 264
-    Top = 440
+    Left = 392
+    Top = 488
   end
   object PopupDir: TPopupMenu
-    Left = 16
-    Top = 440
+    Left = 40
+    Top = 448
     object miDirCopyFile: TMenuItem
       Caption = 'Copy file here'
       OnClick = miDirCopyFileClick
