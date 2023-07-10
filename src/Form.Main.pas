@@ -1184,12 +1184,12 @@ begin
 			CloseDeck(MasterDeck);
 
 		VK_CONTROL:
+		if not eFileFilter.Focused then
 		begin
-			if (GetKeyState(VK_LCONTROL) < 0) then
+			if (MixerDeck[1].Deck <> nil) and (GetKeyState(VK_LCONTROL) < 0) then
 				TDeckFrame(MixerDeck[1].Deck.Form).Cue(True);
-			if (GetKeyState(VK_RCONTROL) < 0) then
+			if (MixerDeck[2].Deck <> nil) and (GetKeyState(VK_RCONTROL) < 0) then
 				TDeckFrame(MixerDeck[2].Deck.Form).Cue(True);
-			Exit;
 		end;
 
 	else
@@ -1211,16 +1211,19 @@ end;
 procedure TMainForm.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
 	case Key of
+
 		VK_SHIFT:
 			IsShiftDown := False;
+
 		VK_CONTROL:
-		begin
-			if not (GetKeyState(VK_LCONTROL) < 0) then
-				TDeckFrame(MixerDeck[1].Deck.Form).Cue(False);
-			if not (GetKeyState(VK_RCONTROL) < 0) then
-				TDeckFrame(MixerDeck[2].Deck.Form).Cue(False);
-			Exit;
-		end;
+			if not eFileFilter.Focused then
+			begin
+				if (MixerDeck[1].Deck <> nil) and not (GetKeyState(VK_LCONTROL) < 0) then
+					TDeckFrame(MixerDeck[1].Deck.Form).Cue(False);
+				if (MixerDeck[2].Deck <> nil) and not (GetKeyState(VK_RCONTROL) < 0) then
+					TDeckFrame(MixerDeck[2].Deck.Form).Cue(False);
+				Exit;
+			end;
 	end;
 
 	if MasterDeck <> nil then
