@@ -620,10 +620,10 @@ object DeckFrame: TDeckFrame
       PageSize = 0
     end
     object bStoreFx: TDecksButton
-      Left = 534
+      Left = 533
       Height = 36
       Hint = 'Store with song setup'
-      Top = 29
+      Top = 32
       Width = 41
       Anchors = [akTop, akRight]
       AllowAllUp = True
@@ -1393,14 +1393,14 @@ object DeckFrame: TDeckFrame
       StateNormal.Border.Style = bboSolid
       StateNormal.FontEx.Color = 11775917
       StateNormal.FontEx.FontQuality = fqSystemClearType
-      StateNormal.FontEx.Height = 17
+      StateNormal.FontEx.Height = 18
       StateNormal.FontEx.Shadow = True
       StateNormal.FontEx.ShadowColorOpacity = 160
       StateNormal.FontEx.ShadowRadius = 2
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 3
+      StateNormal.FontEx.PaddingBottom = 4
       Caption = '▲'
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -1449,14 +1449,14 @@ object DeckFrame: TDeckFrame
       StateNormal.Border.Style = bboSolid
       StateNormal.FontEx.Color = 11775917
       StateNormal.FontEx.FontQuality = fqSystemClearType
-      StateNormal.FontEx.Height = 17
+      StateNormal.FontEx.Height = 18
       StateNormal.FontEx.Shadow = True
       StateNormal.FontEx.ShadowColorOpacity = 160
       StateNormal.FontEx.ShadowRadius = 2
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = '▼'
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -1538,7 +1538,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = 'Sync'
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -1592,7 +1592,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = '◀ Rev. '
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -1662,7 +1662,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = 'Beat'
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -1720,7 +1720,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = 'x2'
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -1778,7 +1778,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = '↩ Song'
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -1835,7 +1835,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = '↩ Zone'
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -1893,7 +1893,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = 'Bar'
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -1951,7 +1951,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = 'x2'
       DropDownWidth = 16
       DropDownArrowSize = 8
@@ -2009,7 +2009,7 @@ object DeckFrame: TDeckFrame
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      StateNormal.FontEx.PaddingBottom = 1
+      StateNormal.FontEx.PaddingBottom = 2
       Caption = 'x4'
       DropDownWidth = 16
       DropDownArrowSize = 8

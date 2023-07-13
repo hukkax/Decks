@@ -1454,7 +1454,7 @@ object MainForm: TMainForm
           StateNormal.Border.Color = 2631720
           StateNormal.Border.LightColor = 3529055
           StateNormal.Border.Style = bboSolid
-          StateNormal.FontEx.Color = 13421772
+          StateNormal.FontEx.Color = 14540253
           StateNormal.FontEx.FontQuality = fqSystemClearType
           StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
@@ -1508,7 +1508,7 @@ object MainForm: TMainForm
           StateNormal.Border.Color = 2631720
           StateNormal.Border.LightColor = 3529055
           StateNormal.Border.Style = bboSolid
-          StateNormal.FontEx.Color = 13421772
+          StateNormal.FontEx.Color = 14540253
           StateNormal.FontEx.FontQuality = fqSystemClearType
           StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
@@ -1561,7 +1561,7 @@ object MainForm: TMainForm
           StateNormal.Border.Color = 2631720
           StateNormal.Border.LightColor = 3529055
           StateNormal.Border.Style = bboSolid
-          StateNormal.FontEx.Color = 13421772
+          StateNormal.FontEx.Color = 14540253
           StateNormal.FontEx.FontQuality = fqSystemClearType
           StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
@@ -1614,7 +1614,7 @@ object MainForm: TMainForm
           StateNormal.Border.Color = 2631720
           StateNormal.Border.LightColor = 3529055
           StateNormal.Border.Style = bboSolid
-          StateNormal.FontEx.Color = 13421772
+          StateNormal.FontEx.Color = 14540253
           StateNormal.FontEx.FontQuality = fqSystemClearType
           StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
@@ -1667,7 +1667,7 @@ object MainForm: TMainForm
           StateNormal.Border.Color = 2631720
           StateNormal.Border.LightColor = 3529055
           StateNormal.Border.Style = bboSolid
-          StateNormal.FontEx.Color = 13421772
+          StateNormal.FontEx.Color = 14540253
           StateNormal.FontEx.FontQuality = fqSystemClearType
           StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
@@ -1721,7 +1721,7 @@ object MainForm: TMainForm
           StateNormal.Border.Color = 2631720
           StateNormal.Border.LightColor = 3529055
           StateNormal.Border.Style = bboSolid
-          StateNormal.FontEx.Color = 13421772
+          StateNormal.FontEx.Color = 14540253
           StateNormal.FontEx.FontQuality = fqSystemClearType
           StateNormal.FontEx.Height = -20
           StateNormal.FontEx.Shadow = True
