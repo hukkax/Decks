@@ -22,12 +22,14 @@ const
 	MODE_SYNC_OFF     = 17;
 	MODE_EQ_KILL_ON   = 18;
 	MODE_EQ_KILL_OFF  = 19;
+	MODE_LOOP_ON      = 20;
+	MODE_LOOP_OFF     = 21;
 
-	MODE_LOAD_START   = 20;
-	MODE_LOAD_SUCCESS = 21;
-	MODE_LOAD_FAILURE = 22;
-	MODE_LOAD_GRAPH   = 23;
-	MODE_LOAD_FINISH  = 29;
+	MODE_LOAD_START   = 30;
+	MODE_LOAD_SUCCESS = 31;
+	MODE_LOAD_FAILURE = 32;
+	MODE_LOAD_GRAPH   = 33;
+	MODE_LOAD_FINISH  = 39;
 
 type
 	TSongModeEvent = procedure(Kind: Integer) of object;
@@ -154,7 +156,6 @@ begin
 	FreeStream(Stream);
 	Stream := BASS_Mixer_StreamCreate(44100, 2, 0);//BASS_STREAM_DECODE);
 	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_BUFFER, 0); // disable playback buffering
-
 
 	// generate the graph externally here before plugging the
 	// stream into the final output mixer

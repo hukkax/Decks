@@ -609,6 +609,7 @@ begin
 			else
 				EndPos := EndPos * LoopLength;
 			EndPos += StartPos;
+			ModeChange(MODE_LOOP_ON);
 		end;
 
 		LOOP_ZONE:
@@ -634,6 +635,7 @@ begin
 	begin
 		LoopInfo^.Enabled := False;
 		BASS_ChannelRemoveSync(OrigStream, LoopInfo^.Sync);
+		ModeChange(MODE_LOOP_OFF);
 	end
 	else
 		EnableLoop(LoopInfo, StartPos, EndPos);

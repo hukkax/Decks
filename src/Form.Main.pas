@@ -441,7 +441,6 @@ procedure TMainForm.Execute(Action: TDecksAction; Pressed: Boolean = True; Value
 const
 	EQBandFrom: array[MIXER_EQ_LOW..MIXER_EQ_HIGH] of TEQBand =
 		(EQ_BAND_LOW, EQ_BAND_MID, EQ_BAND_HIGH);
-	KnobSnap = 6;
 var
 	Deck: TDeck;
 	Form: TDeckFrame;
@@ -481,33 +480,28 @@ begin
 	case Action.Kind of
 
 	DECK_PLAY:			if Pressed then Form.bPlayClick(Self);
-	DECK_CUE:			if (Deck.Paused) or (Deck.Cueing) then
-							//Form.Cue(Pressed)
+	DECK_CUE:			if (Deck.Paused) or (Deck.Cueing) then //Form.Cue(Pressed)
 							Form.bPlay.SetMouseDown(mbRight, Pressed)
 							else if Pressed then Form.JumpToCue;
-	DECK_SYNC:			//if Pressed then Form.SetSynced(not Deck.Synced);
-						Form.bSync.SetMouseDown(mbLeft, Pressed);
+	DECK_SYNC:			Form.bSync.SetMouseDown(mbLeft, Pressed); //if Pressed then Form.SetSynced(not Deck.Synced);
 	DECK_REVERSE:		Deck.SetReverse(Pressed, Deck.Synced);
 	DECK_LOAD:			if Pressed then LoadDeck(DeckNum);
 	DECK_AMP:			Form.SetKnob(Form.SliderAmp, Trunc(((Value) / 128) * 200));
 	DECK_BEND:			{if Pressed then Deck.BendStart(Value > 0, False)
 							else Deck.BendStop;}
-						if Value > 0 then
-							Form.bBendUp.SetMouseDown(mbLeft, Pressed)
-						else
-							Form.bBendDown.SetMouseDown(mbLeft, Pressed);
+						if Value > 0 then Form.bBendUp.SetMouseDown(mbLeft, Pressed)
+							else Form.bBendDown.SetMouseDown(mbLeft, Pressed);
 	DECK_SEEK:			Form.SetCue(Types.Point(Max(0, Form.GraphCue.X + Value), 0));
 
 	MIXER_CROSSFADER:	sFader.Position := Round((Value / 127) * 1000);
 	MIXER_EQ_KILL:		if Pressed then Deck.ToggleEQKill(EQ_BAND_LOW);
 	MIXER_EQ_LOW..
-	MIXER_EQ_HIGH:		if DeckNum > 0 then
-							Form.SetKnob(EQControls[DeckNum, EQBandFrom[Action.Kind]], Trunc(((Value - 64) / 128) * 3000));
+	MIXER_EQ_HIGH:		if DeckNum > 0 then Form.SetKnob(EQControls[DeckNum, EQBandFrom[Action.Kind]],
+							Trunc(((Value - 64) / 128) * 3000));
 	DECK_FX_FILTER:		if DeckNum > 0 then
-							Form.SliderFxParam0.FloatPosition :=
-								((Value - 64) / 127) * 2;
+							Form.SliderFxParam0.FloatPosition := ((Value - 64) / 127) * 2;
 
-	UI_LIST:			if Pressed then SetActiveList(Value > 0);
+	UI_LIST:			if Pressed then SetActiveList(not FileListIsActive); //(Value > 0);
 	UI_SELECT:			if Pressed then ListBrowse(Value);
 	UI_SELECT_TOGGLE:	if Pressed then ListDirs.Selected.Expanded := not ListDirs.Selected.Expanded;
 	UI_SELECT_OPEN:		if Pressed then ListDirsChange(ListDirs, ListDirs.Selected);
@@ -515,6 +509,12 @@ begin
 	UI_SELECT_ENTER:	if not ClickButton(FocusableControls.ActiveControl, Pressed) then
 							if Pressed then FocusableControls.Descend;
 	UI_SELECT_EXIT:		if Pressed then FocusableControls.Ascend;
+
+	UI_MENU:			; // TODO
+
+	DECK_LOOP,
+	DECK_LOOP_SONG,
+	DECK_LOOP_ZONE:		if Pressed then ClickButton(Form.LoopControls[Action.Kind], Pressed);
 
 	end;
 end;
@@ -527,39 +527,32 @@ begin
 	{$IFNDEF USEMIDI}Exit;{$ENDIF}
 
 	if Deck = nil then Exit;
-	if Deck = MixerDeck[1].Deck then
-		Num := 1
+	if Deck = MixerDeck[1].Deck then Num := 1
 	else
-	if Deck = MixerDeck[2].Deck then
-		Num := 2
-	else
-		Exit;
+	if Deck = MixerDeck[2].Deck then Num := 2
+	else Exit;
 
 	B := (Num = 2);
 
 	case Event of
 
 		MODE_PLAY_START:
-		begin
 			if Deck.Cueing then
-				MIDI.SetLed(DECK_CUE, B)  // Cue on
+				MIDI.SetLed(DECK_CUE, B)         // Cue on
 			else
 			begin
-				MIDI.SetLed(DECK_PLAY, B); // Play on
+				MIDI.SetLed(DECK_PLAY, B);       // Play on
 				MIDI.SetLed(DECK_CUE, B, False); // Cue off
 			end;
-		end;
 
 		MODE_PLAY_WAITSYNC:
 			MIDI.SetLed(DECK_CUE, B);
 
 		MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:
-		begin
 			if Deck.Cueing then
-				MIDI.SetLed(DECK_CUE, B, False)  // Cue
+				MIDI.SetLed(DECK_CUE,  B, False)  // Cue
 			else
 				MIDI.SetLed(DECK_PLAY, B, False); // Play
-		end;
 
 		MODE_EQ_KILL_ON, MODE_EQ_KILL_OFF:
 		begin
@@ -569,9 +562,10 @@ begin
 		end;
 
 		MODE_SYNC_ON, MODE_SYNC_OFF:
-		begin
 			MIDI.SetLed(DECK_SYNC, B, Deck.Synced);
-		end;
+
+		MODE_LOOP_ON, MODE_LOOP_OFF:
+			MIDI.SetLed(DECK_LOOP, B, Event = MODE_LOOP_ON);
 
 	end;
 end;
@@ -1252,11 +1246,13 @@ begin
 	FileListIsActive := RightList;
 	if RightList then
 	begin
+		FocusableControls.ActiveControl := FileList;
 		FileList.Color := ColActive;
 		ListDirs.BackgroundColor := ColInactive;
 	end
 	else
 	begin
+		FocusableControls.ActiveControl := ListDirs;
 		FileList.Color := ColInactive;
 		ListDirs.BackgroundColor := ColActive;
 	end;
@@ -2072,6 +2068,10 @@ begin
 				Add(DF.bBendUp);
 				Add(DF.bBendDown);
 				//
+				Add(DF.bLoopSong); Add(DF.bLoopZone);
+				Add(DF.bLoopBeat); Add(DF.bLoopBeat2);
+				Add(DF.bLoopBar); Add(DF.bLoopBar2); Add(DF.bLoopBar4);
+				//
 				Add(DF.SliderAmp);
 			end;
 
@@ -2088,9 +2088,6 @@ begin
 				Add(DF.SliderFxParam0); Add(DF.SliderFxParam1);
 				Add(DF.SliderFxParam2); Add(DF.SliderFxParam3);
 				Add(DF.SliderFxParam4); Add(DF.SliderFxParam5);
-				Add(DF.bLoopZone); Add(DF.bLoopSong);
-				Add(DF.bLoopBeat); Add(DF.bLoopBeat2);
-				Add(DF.bLoopBar); Add(DF.bLoopBar2); Add(DF.bLoopBar4);
 			end;
 
 		end;
@@ -2622,6 +2619,9 @@ begin
 		begin
 			if Pressed then // press a button
 			begin
+				if Assigned(Btn.OnSetDown) then
+					Btn.Down := not Btn.Down
+				else
 				if Assigned(Btn.OnButtonClick) then
 					Btn.OnButtonClick(Ctrl)
 				else

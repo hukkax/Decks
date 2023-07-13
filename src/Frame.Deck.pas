@@ -10,7 +10,7 @@ uses
 	ExtCtrls, Buttons, LCLType, LCLIntf, LMessages, Menus, ComCtrls,
 	IniFiles, BCTypes, FGL,
 	BGRAVirtualScreen, BGRABitmap, BGRABitmapTypes,
-	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, Decks.Effects,
+	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, Decks.Effects, Decks.MIDI,
 	BASS, BASSmix,
 	hKnob, hSlider, DecksButton, DecksValueLabel, DecksPanel;
 
@@ -234,6 +234,7 @@ type
 		Effects: TEffectsList;
 		GUIEffectParams: array[0..5] of TGUIEffectParam;
 		SelectedEffect: Byte;
+		LoopControls: array [TDecksActionKind] of TDecksButton;
 
 		constructor Create(AOwner: TComponent); override;
 		destructor  Destroy; override;
@@ -495,6 +496,10 @@ begin
 		miAudioDevices.Add(mi);
 	end;
 	InitDevice(Config.Audio.Device[Deck.Index]);
+
+	LoopControls[DECK_LOOP]      := bLoopBar2;
+	LoopControls[DECK_LOOP_SONG] := bLoopSong;
+	LoopControls[DECK_LOOP_ZONE] := bLoopZone;
 
 	Show;
 	ShowPosition;
@@ -1470,8 +1475,8 @@ begin
 		Btn := TDecksButton(Sender);
 		Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
 		case Btn.Tag of
-			  1..3: begin K := LOOP_BEATS; L := Btn.Tag; end;
-			4..999: begin K := LOOP_BARS;  L := Btn.Tag div 4; end;
+			  1..3: begin K := LOOP_BEATS; L := Btn.Tag; LoopControls[DECK_LOOP] := (Sender as TDecksButton); end;
+			4..999: begin K := LOOP_BARS;  L := Btn.Tag div 4; LoopControls[DECK_LOOP] := (Sender as TDecksButton); end;
 			     0: begin K := LOOP_ZONE;  L := 1; end;
 			    -1: begin K := LOOP_SONG;  L := 1; end;
 			else    Exit;
@@ -2174,7 +2179,8 @@ begin
 						Fx.Effect.Apply;
 
 		MODE_EQ_KILL_ON, MODE_EQ_KILL_OFF,
-		MODE_SYNC_ON, MODE_SYNC_OFF:
+		MODE_SYNC_ON, MODE_SYNC_OFF,
+		MODE_LOOP_ON, MODE_LOOP_OFF:
 			MainForm.UpdateController(Deck, Kind);
 
 	end;
