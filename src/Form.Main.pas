@@ -2120,6 +2120,7 @@ begin
 	DeckLayoutChanged;
 
 	sFaderChange(Self);
+	TDeckFrame(Result.Form).SetSynced(True);
 
 	mi := TMenuItem.Create(PopupFile);
 	mi.OnClick := miLoadFileClick;
