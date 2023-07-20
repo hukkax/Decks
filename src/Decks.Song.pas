@@ -59,7 +59,8 @@ type
 		BeatFadeCounter,
 		BeatPreviousQuadrant: Byte;
 
-		OrigStream: HSTREAM;
+		FileStream,
+		OrigStream,
 		Stream: 	HSTREAM;
 
 		OnModeChange: TSongModeEvent;
@@ -84,7 +85,7 @@ type
 implementation
 
 uses
-	Decks.Audio;
+	Decks.Audio, Decks.Config;
 
 //
 // Callbacks
@@ -135,8 +136,8 @@ var
 	TmpBitrate: Single;
 begin
 	Stop;
+	FreeStream(FileStream);
 	FreeStream(OrigStream);
-	FreeStream(Reverse.Stream);
 
 	UF := UnicodeString(AFilename);
 
@@ -149,12 +150,12 @@ begin
 	BASS_ChannelGetInfo(OrigStream, ChannelInfo);
 	ByteLength := BASS_ChannelGetLength(OrigStream, BASS_POS_BYTE);
 	Duration := BASS_ChannelBytes2Seconds(OrigStream, ByteLength);
-	BASS_ChannelGetAttribute(OrigStream, BASS_ATTRIB_BITRATE, TmpBitrate);
+	BASS_ChannelGetAttribute(OrigStream, BASS_ATTRIB_BITRATE, TmpBitrate{%H-});
 	Bitrate := Trunc(TmpBitrate);
 
-	// resample and downmix to 44100 Hz 16-bit Stereo
+	// resample and downmix
 	FreeStream(Stream);
-	Stream := BASS_Mixer_StreamCreate(44100, 2, 0);//BASS_STREAM_DECODE);
+	Stream := BASS_Mixer_StreamCreate(Config.Audio.Hz, 8, BASS_MIXER_RESUME);
 	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_BUFFER, 0); // disable playback buffering
 
 	// generate the graph externally here before plugging the
@@ -166,13 +167,17 @@ begin
 
 	F := BASS_STREAM_DECODE or BASS_SAMPLE_LOOP or BASS_FX_FREESOURCE;
 	Reverse.Stream := BASS_FX_ReverseCreate(OrigStream, 1.0, F);
+
+	FileStream := OrigStream;
 	OrigStream := Reverse.Stream;
 
 	BASS_Mixer_StreamAddChannel(Stream, OrigStream,
-		BASS_MIXER_DOWNMIX or (*BASS_MIXER_BUFFER or*) BASS_MIXER_NORAMPIN);
+		BASS_MIXER_CHAN_MATRIX or BASS_MIXER_DOWNMIX or BASS_MIXER_NORAMPIN);
+
+	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_MIXER_THREADS, Config.Audio.Threads);
 
 	AvgBPM   := 0;
-	OrigFreq := 44100; //ChannelInfo.freq;
+	OrigFreq := Config.Audio.Hz; //ChannelInfo.freq;
 	PlayFreq := OrigFreq;
 
 	Loaded := True;

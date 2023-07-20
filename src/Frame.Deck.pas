@@ -117,6 +117,7 @@ type
 		bZoneDel: TDecksButton;
 		miShowFile: TMenuItem;
 		bStoreFx: TDecksButton;
+		miAudioSubDevices: TMenuItem;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -133,6 +134,7 @@ type
 		procedure bSyncMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
 			X, Y: Integer);
 		procedure cmbDevicesChange(Sender: TObject);
+		procedure cmbSubDevicesChange(Sender: TObject);
 		procedure bPlayClick(Sender: TObject);
 		procedure bPlayMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
@@ -202,6 +204,7 @@ type
 		BeatDrag: TBeatDrag;
 
 		procedure InitDevice(Dev: Integer);
+		procedure InitSubDevice(SubDev: Byte);
 		procedure ZoneChangedMessage(var Msg: TLMessage); message WM_ZONE;
 		procedure ZoneChanged(Zone: Integer; FromCallback, MixTime: Boolean);
 		procedure GetPlayPosition; inline;
@@ -320,9 +323,9 @@ end;
 
 procedure TDeckFrame.InitDevice(Dev: Integer);
 var
-//	Dev: Integer;
 	OK: Boolean;
 	S: String;
+	mi: TMenuItem;
 begin
 	Deck.Graph.BitmapSize := Point(pb.ClientWidth * Deck.Graph.WantedZoom, pb.ClientHeight);
 
@@ -353,7 +356,39 @@ begin
 		if Deck.Stream <> 0 then
 			BASS_ChannelSetDevice(Deck.Stream, Dev);
 		BASS_SetDevice(Dev);
+
+		miAudioSubDevices.Clear;
+		for Dev := 0 to High(SpeakerAssignmentInfo) do
+		begin
+			mi := TMenuItem.Create(miAudioSubDevices);
+			mi.Caption := SpeakerAssignmentInfo[Dev].Caption;
+			mi.GroupIndex := 1;
+			mi.AutoCheck := True;
+			mi.RadioItem := True;
+			mi.Tag := Dev;
+			mi.Checked := (mi.Tag = Config.Audio.SubDevice[Deck.Index]);
+			mi.OnClick := cmbSubDevicesChange;
+			miAudioSubDevices.Add(mi);
+		end;
+
+		InitSubDevice(Config.Audio.SubDevice[Deck.Index]);
 	end;
+end;
+
+procedure TDeckFrame.InitSubDevice(SubDev: Byte);
+var
+	SF: DWord;
+begin
+	if Deck.Stream = 0 then Exit;
+
+	SF := SpeakerAssignmentInfo[Config.Audio.SubDevice[Deck.Index]].SpeakerFlags;
+	BASS_Mixer_ChannelFlags(Deck.OrigStream, 0, SF);
+
+	Config.Audio.SubDevice[Deck.Index] := SubDev;
+	AudioManager.Devices[Config.Audio.Device[Deck.Index]].Speakers := SubDev;
+
+	SF := SpeakerAssignmentInfo[SubDev].SpeakerFlags;
+	BASS_Mixer_ChannelFlags(Deck.OrigStream, SF, SF);
 end;
 
 procedure TDeckFrame.SetSlider(var Slider: TDecksGaugeBar; Position: Integer);
@@ -770,6 +805,17 @@ begin
 		i := (Sender as TMenuItem).Tag;
 		Config.Audio.Device[Deck.Index] := i;
 		InitDevice(i);
+	end;
+end;
+
+procedure TDeckFrame.cmbSubDevicesChange(Sender: TObject);
+var
+	i: Integer;
+begin
+	if Sender is TMenuItem then
+	begin
+		i := (Sender as TMenuItem).Tag;
+		InitSubDevice(i);
 	end;
 end;
 
@@ -1509,8 +1555,8 @@ end;
 
 procedure TDeckFrame.pbWaveMouseDown(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: Integer);
-var
-	Z: TZone;
+{var
+	Z: TZone;}
 begin
 	if Enabled then
 	case Button of
@@ -2111,6 +2157,7 @@ begin
 			SliderGraphX.Position := 0;
 			lTime.Tag := -1;
 			Invalidate;
+			InitSubDevice(Config.Audio.SubDevice[Deck.Index]);
 			Timer.Enabled := True;
 			MainForm.ApplyMixer;
 			ApplyEffects;

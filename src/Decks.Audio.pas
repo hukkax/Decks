@@ -12,11 +12,9 @@ const
 		BASS_SPEAKER_FRONT, BASS_SPEAKER_REAR, BASS_SPEAKER_CENLFE, BASS_SPEAKER_REAR2);
 
 type
-	TAudioDevice = class
-		Index:		Word;	// Device index
-		Name,				// Description of the device
-		Filename:	String;	// The filename of the driver
-		IsDefault:	Boolean;
+	TSpeakerAssignmentInfo = record
+		SpeakerFlags: DWord;
+		Caption: String;
 	end;
 
 	TAudioDeviceInfo = record
@@ -29,10 +27,18 @@ type
 		Frequency: DWord;	// The device's current output sample rate
 	end;
 
+	TAudioDevice = class
+		Index:       Word;   // Device index
+		IsDefault:  Boolean; // Is this the system default output device?
+		Name:       String;  // Description of the device
+		Filename:   String;  // The filename of the driver
+		Speakers:   Byte;    // Index of SpeakerAssignmentInfo[]
+		DeviceInfo: TAudioDeviceInfo;
+	end;
+
 	TAudioManager = class
 	public
 		Devices:	TFPGObjectList<TAudioDevice>;
-		DeviceInfo: TAudioDeviceInfo;
 		DefaultDeviceIndex: Integer;
 		BASSVersion: String;
 
@@ -47,6 +53,8 @@ type
 	function  TranslateStreamLength(OriginalStream, MixerStream: HSTREAM): QWord;
 	procedure FreeStream(Stream: HSTREAM);
 
+var
+	SpeakerAssignmentInfo: array [0..11] of TSpeakerAssignmentInfo;
 
 implementation
 
@@ -55,6 +63,15 @@ uses
 	Decks.Config;
 	//basszxtune;
 
+procedure SetSpeakerAssignmentInfo(Index: Byte; Spk: DWord; const ACaption: String);
+begin
+	if Index <= 11 then
+	with SpeakerAssignmentInfo[Index] do
+	begin
+		SpeakerFlags := Spk;
+		Caption := ACaption;
+	end;
+end;
 
 function StreamLengthInSeconds(Stream: HSTREAM): Double;
 var
@@ -90,6 +107,19 @@ var
 	Info: BASS_DEVICEINFO;
 	//Fn: UnicodeString;
 begin
+	SetSpeakerAssignmentInfo(0,  BASS_SPEAKER_FRONT,		'Stereo: Front');
+	SetSpeakerAssignmentInfo(1,  BASS_SPEAKER_REAR,			'Stereo: Rear');
+	SetSpeakerAssignmentInfo(2,  BASS_SPEAKER_CENLFE,		'Stereo: Center/LFE');
+	SetSpeakerAssignmentInfo(3,  BASS_SPEAKER_REAR2,		'Stereo: Rear Center');
+	SetSpeakerAssignmentInfo(4,  BASS_SPEAKER_FRONTLEFT,	'Mono: Left');
+	SetSpeakerAssignmentInfo(5,  BASS_SPEAKER_FRONTRIGHT,	'Mono: Right');
+	SetSpeakerAssignmentInfo(6,  BASS_SPEAKER_REARLEFT,		'Mono: Rear Left');
+	SetSpeakerAssignmentInfo(7,  BASS_SPEAKER_REARRIGHT,	'Mono: Rear Right');
+	SetSpeakerAssignmentInfo(8,  BASS_SPEAKER_CENTER,		'Mono: Center');
+	SetSpeakerAssignmentInfo(9,  BASS_SPEAKER_LFE,			'Mono: LFE');
+	SetSpeakerAssignmentInfo(10, BASS_SPEAKER_REAR2LEFT,	'Mono: Side Left');
+	SetSpeakerAssignmentInfo(11, BASS_SPEAKER_REAR2RIGHT,	'Mono: Side Right');
+
 	Devices := TFPGObjectList<TAudioDevice>.Create(True);
 
 	i := 1; // first real audio output device (0 = no sound)
@@ -102,6 +132,7 @@ begin
 			Dev := TAudioDevice.Create;
 			Dev.Index := i;
 			Dev.Filename := Info.driver;
+			Dev.Speakers := 0;
 			Dev.Name := Info.name;
 			Dev.IsDefault := (Info.flags and BASS_DEVICE_DEFAULT) <> 0;
 			if Dev.IsDefault then
@@ -138,13 +169,13 @@ begin
 		Device := DefaultDeviceIndex - 1;
 
 	//showmessage('init dev #' + Devices[Device].Index.ToString + '='+Devices[Device].Name );
-	if not BASS_Init(Devices[Device].Index, 44100,
+	if not BASS_Init(Devices[Device].Index, Config.Audio.Hz,
 		BASS_DEVICE_LATENCY or BASS_DEVICE_SPEAKERS,
 		{$IFNDEF MSWINDOWS}@{$ENDIF}WinHandle, nil) then Exit;
 
 	if not BASS_GetInfo(Info{%H-}) then Exit;
 
-	with DeviceInfo do
+	with Devices[Device].DeviceInfo do
 	begin
 		Initialized := True;
 		MinRate := Info.minrate;
