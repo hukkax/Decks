@@ -47,7 +47,17 @@ type
 
 		Colors: record
 			FileList: record
-				Background: TDecksColor;
+				GridLines,
+				BgHover,
+				FgSelection,
+				BgSelection,
+				FgHeader,
+				BgHeader: TDecksColor;
+
+				Background: record
+					Normal,
+					Focused: TDecksColor;
+				end;
 				FileItem: record
 					FgDefault,
 					FgHasBPM,
@@ -96,9 +106,12 @@ type
 		end;
 
 		Audio: record
+			Hz: Word;
 			Buffer: Integer;
-			UpdatePeriod: Cardinal;
+			UpdatePeriod: Word;
+			Threads: Byte;
 			Device: array[1..4] of Byte;
+			SubDevice: array[1..4] of Byte;
 		end;
 
 		Controller: record
@@ -225,6 +238,16 @@ var
 	Ini: TIniFile;
 	Sect: String;
 	i: Integer;
+
+	procedure ReadColor(Color: PColor; const Item: String);
+	var
+		S: String;
+	begin
+		S := Ini.ReadString(Sect, Item, '');
+		if (not S.IsEmpty) then
+			Color^ := StringToColor(S);
+	end;
+
 begin
 	Sect := GetConfigFilePath;
 	ForceDirectories(ExtractFilePath(Sect));
@@ -248,10 +271,14 @@ begin
 	Window.ShowTitlebar := Ini.ReadBool(Sect, 'titlebar.enabled', True);
 
 	Sect := 'audio';
+	Audio.Hz           := Ini.ReadInteger(Sect, 'hz', 44100);
 	Audio.Buffer       := Ini.ReadInteger(Sect, 'buffer', 20);
 	Audio.UpdatePeriod := Ini.ReadInteger(Sect, 'updateperiod', 60);
+	Audio.Threads      := Ini.ReadInteger(Sect, 'threads', 1);
 	for i := 1 to High(Audio.Device) do
 		Audio.Device[i] := Ini.ReadInteger(Sect, 'device.' + IntToStr(i), 0);
+	for i := 1 to High(Audio.SubDevice) do
+		Audio.SubDevice[i] := Ini.ReadInteger(Sect, 'subdevice.' + IntToStr(i), 0);
 
 	Sect := 'controller';
 	Controller.Config := Ini.ReadString(Sect, 'config', '');
@@ -280,36 +307,34 @@ begin
 	Sect := 'theme.strings';
 	with Theme.Strings.FileList do
 	begin
-		Directory := Ini.ReadString(Sect, 'filelist.directory', '');
-		ParentDirectory := Ini.ReadString(Sect, 'filelist.parent', '');
-		Drives := Ini.ReadString(Sect, 'filelist.drives', '');
+		Directory := Ini.ReadString(Sect, 'filelist.directory', Directory);
+		ParentDirectory := Ini.ReadString(Sect, 'filelist.parent', ParentDirectory);
+		Drives := Ini.ReadString(Sect, 'filelist.drives', Drives);
 	end;
 
 	Sect := 'theme.colors';
 	with Theme.Colors.FileList do
 	begin
-		Background := StringToColor(
-			Ini.ReadString(Sect, 'filelist.background', '0'));
+		ReadColor(@GridLines, 'list.gridlines');
+		ReadColor(@FgHeader,  'list.fg.header');
+		ReadColor(@BgHeader,  'list.bg.header');
+		ReadColor(@BgHover,   'list.hover');
+		ReadColor(@FgSelection, 'list.fg.selected');
+		ReadColor(@BgSelection, 'list.bg.selected');
 
-		FileItem.FgDefault := StringToColor(
-			Ini.ReadString(Sect, 'filelist.fg', '0'));
-		FileItem.FgHasBPM := StringToColor(
-			Ini.ReadString(Sect, 'filelist.fg.hasbpm', '0'));
-		FileItem.FgPlayed := StringToColor(
-			Ini.ReadString(Sect, 'filelist.fg.played', '0'));
+		ReadColor(@Background.Normal,  'filelist.background');
+		ReadColor(@Background.Focused, 'filelist.background.focused');
 
-		DirectoryItem.FgParent := StringToColor(
-			Ini.ReadString(Sect, 'filelist.fg.parent', '0'));
-		DirectoryItem.BgParent := StringToColor(
-			Ini.ReadString(Sect, 'filelist.bg.parent', '0'));
-		DirectoryItem.FgDirectory := StringToColor(
-			Ini.ReadString(Sect, 'filelist.fg.dir', '0'));
-		DirectoryItem.BgDirectory := StringToColor(
-			Ini.ReadString(Sect, 'filelist.bg.dir', '0'));
-		DirectoryItem.FgDrive := StringToColor(
-			Ini.ReadString(Sect, 'filelist.fg.drive', '0'));
-		DirectoryItem.BgDrive := StringToColor(
-			Ini.ReadString(Sect, 'filelist.bg.drive', '0'));
+		ReadColor(@FileItem.FgDefault, 'filelist.fg');
+		ReadColor(@FileItem.FgHasBPM,  'filelist.fg.hasbpm');
+		ReadColor(@FileItem.FgPlayed,  'filelist.fg.played');
+
+		ReadColor(@DirectoryItem.FgParent, 'filelist.fg.parent');
+		ReadColor(@DirectoryItem.BgParent, 'filelist.bg.parent');
+		ReadColor(@DirectoryItem.FgDirectory, 'filelist.fg.dir');
+		ReadColor(@DirectoryItem.BgDirectory, 'filelist.bg.dir');
+		ReadColor(@DirectoryItem.FgDrive, 'filelist.fg.drive');
+		ReadColor(@DirectoryItem.BgDrive, 'filelist.bg.drive');
 	end;
 
 	Ini.Free;
@@ -325,8 +350,8 @@ begin
 	Ini := TIniFile.Create(GetConfigFilePath);
 
 	Sect := 'directory';
-	Ini.WriteString(Sect, 'bpm',   WritePath(Directory.BPM));
-	Ini.WriteString(Sect, 'audio', WritePath(Directory.Audio));
+//	Ini.WriteString(Sect, 'bpm',   WritePath(Directory.BPM));
+//	Ini.WriteString(Sect, 'audio', WritePath(Directory.Audio));
 	Ini.WriteBool(Sect, 'autoupdate', Directory.AutoUpdate);
 
 	Sect := 'window';
@@ -340,10 +365,14 @@ begin
 	Ini.WriteBool(Sect, 'tracklist.visible', Window.Tracklist.Visible);
 
 	Sect := 'audio';
+	Ini.WriteInteger(Sect, 'hz',           Audio.Hz);
 	Ini.WriteInteger(Sect, 'buffer',       Audio.Buffer);
 	Ini.WriteInteger(Sect, 'updateperiod', Audio.UpdatePeriod);
+	Ini.WriteInteger(Sect, 'threads',      Audio.Threads);
 	for i := 1 to High(Audio.Device) do
 		Ini.WriteInteger(Sect, 'device.' + IntToStr(i), Audio.Device[i]);
+	for i := 1 to High(Audio.SubDevice) do
+		Ini.WriteInteger(Sect, 'subdevice.' + IntToStr(i), Audio.SubDevice[i]);
 
 	Sect := 'mixer';
 	Ini.WriteBool(Sect, 'enabled', Mixer.Enabled);
@@ -363,12 +392,14 @@ begin
 		Ini.WriteString(Sect, 'filelist.parent', ParentDirectory);
 		Ini.WriteString(Sect, 'filelist.drives', Drives);
 	end;
-
+{
 	Sect := 'theme.colors';
 	with Theme.Colors.FileList do
 	begin
 		Ini.WriteString(Sect, 'filelist.background',
-			ColorToString(Background));
+			ColorToString(Background.Normal));
+		Ini.WriteString(Sect, 'filelist.background.focused',
+			ColorToString(Background.Focused));
 
 		Ini.WriteString(Sect, 'filelist.fg',
 			ColorToString(FileItem.FgDefault));
@@ -390,7 +421,7 @@ begin
 		Ini.WriteString(Sect, 'filelist.bg.drive',
 			ColorToString(DirectoryItem.BgDrive));
 	end;
-
+}
 	Ini.Free;
 end;
 
