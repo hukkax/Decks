@@ -1018,7 +1018,7 @@ object DeckFrame: TDeckFrame
         FullSideSelect = False
       end
       object bStart: TDecksButton
-        Left = 444
+        Left = 443
         Height = 28
         Hint = 'Left: Move cue to song start'#13#10'Right: Set song start position to cue'#13#10'Middle: Reset song start position'
         Top = 1
@@ -1073,7 +1073,7 @@ object DeckFrame: TDeckFrame
         ClickOffset = True
       end
       object bStore: TDecksButton
-        Left = 507
+        Left = 506
         Height = 28
         Hint = 'Save song setup'
         Top = 1
@@ -1916,7 +1916,7 @@ object DeckFrame: TDeckFrame
       Height = 27
       Hint = 'Loop 2 Bars'
       Top = 30
-      Width = 42
+      Width = 43
       Anchors = [akTop, akRight]
       AllowAllUp = True
       AutoToggle = True
@@ -1970,7 +1970,7 @@ object DeckFrame: TDeckFrame
     end
     object bLoopBar4: TDecksButton
       Tag = 16
-      Left = 462
+      Left = 463
       Height = 27
       Hint = 'Loop 4 Bars'
       Top = 30
@@ -2051,6 +2051,9 @@ object DeckFrame: TDeckFrame
     end
     object miAudioDevices: TMenuItem
       Caption = 'Audio device'
+    end
+    object miAudioSubDevices: TMenuItem
+      Caption = 'Speaker assignment'
     end
     object N1: TMenuItem
       Caption = '-'
