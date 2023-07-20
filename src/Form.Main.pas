@@ -220,6 +220,7 @@ type
 		function  ClickButton(Ctrl: TControl; Pressed: Boolean): Boolean;
 		procedure ListDrives;
 		procedure UpdateFilelistToolbar(IsDir: Boolean);
+		procedure ApplyTheme;
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
@@ -817,6 +818,38 @@ begin
 	SetCurrentDir(ExtractFilePath(ParamStr(0)));
 
 	DefaultFormatSettings.DecimalSeparator := '.';
+
+	Config.Theme.Strings.FileList.Directory := STR_SYM_FOLDER;
+	Config.Theme.Strings.FileList.ParentDirectory := STR_SYM_PARENT;
+	Config.Theme.Strings.FileList.Drives := STR_SYM_DRIVES;
+
+	with Config.Theme.Colors.FileList do
+	begin
+		Background.Normal  := $212223;
+		Background.Focused := $060606;
+
+		GridLines := FileList.ColorGrid;
+		BgHover := FileList.ColorHover;
+		FgSelection := FileList.ColorSelectedText;
+		BgSelection := FileList.ColorSelection;
+		FgHeader := FileList.HeaderTextColor;
+		BgHeader := FileList.HeaderColor;
+
+		FileItem.FgDefault := COLOR_FILE_DEFAULT;
+		FileItem.FgHasBPM  := COLOR_FILE_HASBPM;
+		FileItem.FgPlayed  := COLOR_FILE_PLAYED;
+
+		DirectoryItem.FgParent    := COLOR_FILE_PARENT;
+		DirectoryItem.BgParent    := COLOR_BG_PARENT;
+		DirectoryItem.FgDirectory := COLOR_FILE_DIRECTORY;
+		DirectoryItem.BgDirectory := COLOR_BG_DIRECTORY;
+		DirectoryItem.FgDrive     := COLOR_FILE_DRIVES;
+		DirectoryItem.BgDrive     := COLOR_BG_DRIVES;
+
+		FileList.Color := Background.Normal;
+		FileList.Font.Color := FileItem.FgDefault;
+	end;
+
 	Config.Load;
 
 	CurrentDir := Config.Directory.Audio;
@@ -1003,34 +1036,30 @@ begin
 		Inc(i);
 	end;}
 
+	ApplyTheme;
+
 	eFileFilterChange(Self);
-
-	{COLOR_FILE_PARENT    = $4488FF;
-	COLOR_FILE_DIRECTORY = $88CCEE;
-	COLOR_FILE_DEFAULT   = $AAAAAA;
-	COLOR_FILE_HASBPM    = $DDEEFF;
-	COLOR_FILE_PLAYED    = $5EB078;
-	COLOR_BG_PARENT      = $12151C;
-	COLOR_BG_DIRECTORY   = $111213;
-	COLOR_FILE_DRIVES    = COLOR_FILE_PARENT;
-	COLOR_BG_DRIVES      = COLOR_BG_PARENT;
-
-	Config.Theme.Strings.FileList.Directory := STR_SYM_FOLDER;
-	Config.Theme.Strings.FileList.ParentDirectory := STR_SYM_PARENT;
-	Config.Theme.Strings.FileList.Drives := STR_SYM_DRIVES;
-
-	with Config.Theme.Colors.FileList do
-	begin
-		//FileItem.FgPlayed := ;
-	end;
-	}
-
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
 	UpdateMixerVisibility;
 	UpdateToggleButtons;
+end;
+
+procedure TMainForm.ApplyTheme;
+begin
+	with Config.Theme.Colors.FileList do
+	begin
+		FileList.Color := Background.Normal;
+		FileList.Font.Color := FileItem.FgDefault;
+		FileList.ColorGrid := GridLines;
+		FileList.ColorHover := BgHover;
+		FileList.ColorSelectedText := FgSelection;
+		FileList.ColorSelection := BgSelection;
+		FileList.HeaderTextColor := FgHeader;
+		FileList.HeaderColor     := BgHeader;
+	end;
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -1239,10 +1268,12 @@ begin
 end;
 
 procedure TMainForm.SetActiveList(RightList: Boolean);
-const
-	ColActive = clBlack;
-	ColInactive = $212223;
+var
+	ColActive, ColInactive: TDecksColor;
 begin
+	ColActive := Config.Theme.Colors.FileList.Background.Focused;
+	ColInActive := Config.Theme.Colors.FileList.Background.Normal;
+
 	FileListIsActive := RightList;
 	if RightList then
 	begin
@@ -1440,7 +1471,7 @@ begin
 	begin
 		Info.Artist := Item.SubItems[COLUMN_ARTIST-1];
 		Info.Title  := Item.SubItems[COLUMN_TITLE-1];
-		Item.Color := COLOR_FILE_PLAYED;
+		Item.Color := Config.Theme.Colors.FileList.FileItem.FgPlayed;
 		FileList.Invalidate;
 	end;
 
@@ -1505,18 +1536,18 @@ begin
 					S := '/';
 					{$ENDIF}
 				end;
-				Item.Caption := STR_SYM_PARENT + '🗦' + S + '🗧';
+				Item.Caption := Config.Theme.Strings.FileList.ParentDirectory + '🗦' + S + '🗧';
 				Item.Hint := '..';
-				Item.Color := COLOR_FILE_PARENT;
-				Item.Background := COLOR_BG_PARENT;
+				Item.Color := Config.Theme.Colors.FileList.DirectoryItem.FgParent;
+				Item.Background := Config.Theme.Colors.FileList.DirectoryItem.BgParent;
 				Item.SortIndex := -2;
 			end
 			else
 			begin
-				Item.Caption := STR_SYM_FOLDER + S;
+				Item.Caption := Config.Theme.Strings.FileList.Directory + S;
 				Item.Hint := S;
-				Item.Color := COLOR_FILE_DIRECTORY;
-				Item.Background := COLOR_BG_DIRECTORY;
+				Item.Color := Config.Theme.Colors.FileList.DirectoryItem.FgDirectory;
+				Item.Background := Config.Theme.Colors.FileList.DirectoryItem.BgDirectory;
 				Item.SortIndex := -1;
 			end;
 			Item.Tag := LI_ISDIRECTORY;
@@ -1530,7 +1561,7 @@ begin
 		begin
 			Item := FileList.AddItem(ExtractFileName(Filename));
 			if PlayedFilenames.IndexOf(Filename) >= 0 then
-				Item.Color := COLOR_FILE_PLAYED;
+				Item.Color := Config.Theme.Colors.FileList.FileItem.FgPlayed;
 			if FileList.ItemIndex < 0 then
 				FileList.ItemIndex := 0;
 			FileList.Invalidate;
@@ -1551,11 +1582,11 @@ begin
 			end;
 			if I = -1 then
 			begin
-				Item := FileList.AddItem(STR_SYM_DRIVES + '🗦Drives🗧');
+				Item := FileList.AddItem(Config.Theme.Strings.FileList.Drives + '🗦Drives🗧');
 				Item.Hint := '/';
 				Item.Tag := LI_ISDIRECTORY;
-				Item.Color := COLOR_FILE_DRIVES;
-				Item.Background := COLOR_BG_DRIVES;
+				Item.Color := Config.Theme.Colors.FileList.DirectoryItem.FgDrive;
+				Item.Background := Config.Theme.Colors.FileList.DirectoryItem.BgDrive;
 				Item.SortIndex := -2;
 			end;
 			{$ENDIF}
@@ -1587,7 +1618,7 @@ begin
 				S := Format('%.2f', [Tags.Info.BPM]);
 				if Tags.Info.BPM < 100 then S := ' ' + S;
 				if Item.Color = clNone then
-					Item.Color := COLOR_FILE_HASBPM;
+					Item.Color := Config.Theme.Colors.FileList.FileItem.FgHasBPM;
 			end
 			else
 				S := '';
@@ -1662,7 +1693,7 @@ begin
 	begin
 		S := Format('%.2f', [Info.BPM]);
 		if Item.Color = clNone then
-			Item.Color := COLOR_FILE_HASBPM;
+			Item.Color := Config.Theme.Colors.FileList.FileItem.FgHasBPM;
 	end
 	else
 		S := '';
@@ -1905,8 +1936,8 @@ var
 	begin
 		Item := FileList.AddItem(STR_SYM_DRIVES + ' ' + DriveLetter);
 		Item.Hint := DriveLetter;
-		Item.Color := COLOR_FILE_PARENT;
-		Item.Background := COLOR_BG_PARENT;
+		Item.Color := Config.Theme.Colors.FileList.DirectoryItem.FgParent;
+		Item.Background := Config.Theme.Colors.FileList.DirectoryItem.BgParent;
 		Item.SortIndex := -2;
 		Item.Tag := LI_ISDIRECTORY;
 		Item.SubItems.Add('');
