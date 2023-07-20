@@ -296,12 +296,7 @@ begin
 	end;
 
 	for i := 0 to 255 do
-		with Controls[i] do
-		begin
-			Enabled := False;
-			Action.Kind  := NO_ACTION;
-			Action.Param := 0;
-		end;
+		Controls[i] := Default(TMIDIControl);
 
 	S := Config.Controller.Config;
 	if S = '' then Exit;
@@ -317,7 +312,7 @@ begin
 	if DeviceName <> '' then
 	begin
 		{$IFDEF USEMIDI}
-		Input := TRtMidiIn.Create();
+		Input := TRtMidiIn.Create(RTMIDI_API_UNSPECIFIED, 'Decks3', 100);
 		InputDeviceList := Input.GetDeviceList;
 		for i := 0 to InputDeviceList.Count-1 do
 			if InputDeviceList[i] = DeviceName then
@@ -328,7 +323,7 @@ begin
 				Break;
 			end;
 
-		Output := TRtMidiOut.Create();
+		Output := TRtMidiOut.Create(RTMIDI_API_UNSPECIFIED, 'Decks3', 100);
 		OutputDeviceList := Output.GetDeviceList;
 		for i := 0 to OutputDeviceList.Count-1 do
 			if OutputDeviceList[i] = DeviceName then

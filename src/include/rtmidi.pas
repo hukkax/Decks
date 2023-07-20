@@ -16,8 +16,8 @@ const
 	{$IFDEF MACOS}    'librtmidi.dylib';{$ENDIF}
 
 type
-	UInt = Cardinal;
-
+	UInt    = Cardinal;
+	size_t  = QWord;
 	CString = PAnsiChar;
 
 	// Wraps an RtMidi object for C function return statuses.
@@ -63,8 +63,6 @@ type
 		RTMIDI_ERROR_THREAD_ERROR       // A thread error occured.
 	);
 
-	size_t = QWord;
-
 	// The type of a RtMidi callback function.
 	// * timeStamp:  The time at which the message has been received.
 	// * message:    The midi message.
@@ -74,7 +72,6 @@ type
 	TRtMidiCallback = procedure(Timestamp: Double; Data: PByte; Size: size_t; UserData: Pointer); cdecl;
 
 	TRtMidiErrorCallback = procedure(ErrorKind: TRtMidiErrorType; ErrorMessage: String; UserData: Pointer);
-
 
 	TRtMidi = class
 	private
@@ -129,9 +126,10 @@ type
 	end;
 
 
-	function GetMidiDevices(WantOutput: Boolean): TStringList;
-	function GetMidiInDevices: TStringList;
-	function GetMidiOutDevices: TStringList;
+	function GetMidiDevices(Device: TRtMidiPtr = nil; WantOutput: Boolean = True): TStringList;
+	function GetMidiInDevices(Device: TRtMidiPtr = nil): TStringList;
+	function GetMidiOutDevices(Device: TRtMidiPtr = nil): TStringList;
+	function GetMidiPortName(Device: TRtMidiPtr; PortNumber: UInt): String;
 
 
 //==========================================================================
@@ -193,8 +191,13 @@ function rtmidi_get_port_count(device: TRtMidiPtr): UInt; DLLCall;
 
 // Return a string identifier for the specified MIDI input port number.
 // See RtMidi::getPortName().
-
+{$IFDEF RTMIDI_NEED_STRING_BUFFER}
+// this call now needs a string buffer:
+// RTMIDIAPI int rtmidi_get_port_name (RtMidiPtr device, unsigned int portNumber, char * bufOut, int * bufLen);
+function rtmidi_get_port_name(device: TRtMidiPtr; portNumber: UInt; bufout: CString; buflen: PInteger): Integer; DLLCall;
+{$ELSE}
 function rtmidi_get_port_name(device: TRtMidiPtr; portNumber: UInt): CString; DLLCall;
+{$ENDIF}
 
 //==========================================================================
 // RtMidiIn API
@@ -281,35 +284,80 @@ function rtmidi_out_send_message(device: TRtMidiOutPtr; msg: CString; length: In
 implementation
 
 
-function GetMidiDevices(WantOutput: Boolean): TStringList;
+function GetMidiDevices(Device: TRtMidiPtr = nil; WantOutput: Boolean = True): TStringList;
 var
-	device: TRtMidiPtr;
 	i, x, nPorts: Integer;
+	Created: Boolean = False;
 	S: String;
 begin
 	Result := TStringList.Create;
-	if not WantOutput then
-		device := rtmidi_in_create_default
-	else
-		device := rtmidi_out_create_default;
-	nPorts := rtmidi_get_port_count(device);
+
+	if Device = nil then
+	begin
+		Created := True;
+		if WantOutput then
+			Device := rtmidi_out_create_default
+		else
+			Device := rtmidi_in_create_default;
+	end;
+
+	if (Device = nil) or (not Device.ok) then Exit;
+	nPorts := rtmidi_get_port_count(Device);
+
 	for i := 0 to nPorts-1 do
 	begin
-		S := rtmidi_get_port_name(device, i);
-		x := LastDelimiter(' ', S);
-		Result.Add(Copy(S, 1, x-1));
+		try
+			S := GetMidiPortName(Device, i);
+			if S.IsEmpty then Continue;
+
+			x := LastDelimiter(' ', S);
+			S := Copy(S, 1, x-1);
+
+			x := Pos(':', S);
+			if x > 1 then
+				S := Copy(S, 1, x-1);
+
+			if not S.IsEmpty then
+				Result.Add(S);
+		except
+		end;
 	end;
-	rtmidi_out_free(device);
+
+	if Created then
+	begin
+		if WantOutput then
+			rtmidi_out_free(Device)
+		else
+			rtmidi_in_free(Device);
+	end;
 end;
 
-function GetMidiInDevices: TStringList;
+function GetMidiInDevices(Device: TRtMidiPtr = nil): TStringList;
 begin
-	Result := GetMidiDevices(False);
+	Result := GetMidiDevices(Device, False);
 end;
 
-function GetMidiOutDevices: TStringList;
+function GetMidiOutDevices(Device: TRtMidiPtr = nil): TStringList;
 begin
-	Result := GetMidiDevices(True);
+	Result := GetMidiDevices(Device, True);
+end;
+
+function GetMidiPortName(Device: TRtMidiPtr; PortNumber: UInt): String;
+var
+	CS: AnsiString;
+	{$IFDEF RTMIDI_NEED_STRING_BUFFER}
+	L: Integer;
+	{$ENDIF}
+begin
+	{$IFDEF RTMIDI_NEED_STRING_BUFFER}
+	CS := '';
+	rtmidi_get_port_name(Device, PortNumber, nil, @L); // get string length
+	SetLength(CS, L+1);
+	rtmidi_get_port_name(Device, PortNumber, @CS[1], @L); // get the string
+	{$ELSE}
+	CS := rtmidi_get_port_name(Device, PortNumber);
+	{$ENDIF}
+	Result := CS;
 end;
 
 //==========================================================================
@@ -353,7 +401,7 @@ end;
 
 function TRtMidi.GetPortName(PortNumber: UInt): String;
 begin
-	Result := rtmidi_get_port_name(Device, PortNumber);
+	Result := GetMidiPortName(Device, PortNumber);
 end;
 
 procedure TRtMidi.ClosePort;
@@ -419,7 +467,7 @@ end;
 
 function TRtMidiIn.GetDeviceList: TStringList;
 begin
-	Result := GetMidiInDevices;
+	Result := GetMidiInDevices(Device);
 end;
 
 function TRtMidiIn.GetMessage(var Sl: TStrings): Double;
@@ -450,7 +498,7 @@ end;
 
 function TRtMidiOut.GetDeviceList: TStringList;
 begin
-	Result := GetMidiOutDevices;
+	Result := GetMidiOutDevices(Device);
 end;
 
 procedure TRtMidiOut.SendMessage(const Message: array of Byte);
