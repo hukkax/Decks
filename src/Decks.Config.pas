@@ -5,7 +5,7 @@ unit Decks.Config;
 interface
 
 uses
-	Classes, SysUtils, Forms, Graphics;
+	Classes, SysUtils, Forms, Graphics, Generics.Collections;
 
 const
 	AppName = 'CaniMix';
@@ -32,6 +32,35 @@ const
 	COLUMN_LAST = COLUMN_FILEDATE;
 
 type
+	TConfigItemType = ( cfgBoolean, cfgByte, cfgWord, cfgInteger, cfgFloat, cfgString );
+	TConfigItemAccess = ( cfgRead, cfgWrite, cfgReadWrite );
+
+	TConfigItem = class
+	public
+		Kind:   TConfigItemType;
+		Access: TConfigItemAccess;
+		Data:   Pointer;
+		Section,
+		Name:   String;
+	end;
+
+	TConfigManager = class
+	public
+		Items: TObjectList<TConfigItem>;
+
+		procedure Clear;
+		procedure Add(aKind: TConfigItemType; const aSection, aName: String; aData: Pointer;
+		          Access: TConfigItemAccess = cfgReadWrite);
+
+		procedure Load(const Filename: String);
+		procedure Save(const Filename: String);
+
+		constructor Create;
+		destructor  Destroy; override;
+	end;
+
+	// ------------------------------------------------------------------------
+
 	TDecksColor = TColor;
 	//TDecksColorPair = array[Boolean] of TDecksColor;
 
@@ -77,6 +106,7 @@ type
 	end;
 
 	TDecksConfig = record
+		Manager: TConfigManager;
 		Filename,
 		AppPath,
 		Path,
@@ -111,7 +141,7 @@ type
 			TargetLUFS: Integer;
 			UpdatePeriod: Word;
 			Threads: Byte;
-			Device: array[1..4] of Byte;
+			Device:    array[1..4] of Byte;
 			SubDevice: array[1..4] of Byte;
 		end;
 
@@ -155,9 +185,10 @@ type
 		function  GetThemePath: String;
 		function  GetPluginPath: String;
 
+		procedure Setup;
 		function  Load: Boolean;
 		procedure Save;
-	end;
+ end;
 
 	{function ColorToString(C: TColor): String;
 	function StringToColor(const S: String): TColor;}
@@ -169,7 +200,98 @@ var
 implementation
 
 uses
+dialogs,
 	IniFiles;
+
+{ TConfigManager }
+
+constructor TConfigManager.Create;
+begin
+	inherited Create;
+	Items := TObjectList<TConfigItem>.Create(True);
+end;
+
+destructor TConfigManager.Destroy;
+begin
+	Items.Free;
+	inherited Destroy;
+end;
+
+procedure TConfigManager.Clear;
+begin
+	Items.Clear;
+end;
+
+procedure TConfigManager.Add(aKind: TConfigItemType; const aSection, aName: String; aData: Pointer;
+	Access: TConfigItemAccess = cfgReadWrite);
+var
+	Item: TConfigItem;
+begin
+	Item := TConfigItem.Create;
+	Item.Kind    := aKind;
+	Item.Access  := Access;
+	Item.Data    := aData;
+	Item.Section := aSection;
+	Item.Name    := aName;
+	Items.Add(Item);
+end;
+
+procedure TConfigManager.Load(const Filename: String);
+var
+	Ini: TIniFile;
+	Item: TConfigItem;
+	S: String;
+	PS: PAnsiString;
+begin
+	Ini := TIniFile.Create(Filename);
+	try
+		for Item in Items do
+		begin
+			if Item.Access in [cfgRead, cfgReadWrite] then
+			case Item.Kind of
+				cfgBoolean:		PBoolean(Item.Data)^ := Ini.ReadBool   (Item.Section, Item.Name, Boolean(Item.Data^));
+				cfgByte:		PByte(Item.Data)^    := Byte(Ini.ReadInteger(Item.Section, Item.Name, Byte(Item.Data^)));
+				cfgWord:		PWord(Item.Data)^    := Word(Ini.ReadInteger(Item.Section, Item.Name, Word(Item.Data^)));
+				cfgInteger:		PInteger(Item.Data)^ := Ini.ReadInteger(Item.Section, Item.Name, Integer(Item.Data^));
+				cfgFloat:		PDouble(Item.Data)^  := Ini.ReadFloat  (Item.Section, Item.Name, Double(Item.Data^));
+				cfgString:
+				begin
+					PS := Item.Data;
+					S := Ini.ReadString(Item.Section, Item.Name, PS^);
+					PS^ := S;
+				end;
+			end;
+		end;
+	finally
+		Ini.Free;
+	end;
+end;
+
+procedure TConfigManager.Save(const Filename: String);
+var
+	Ini: TIniFile;
+	Item: TConfigItem;
+begin
+	Ini := TIniFile.Create(Filename);
+	try
+		for Item in Items do
+		begin
+			if Item.Access in [cfgWrite, cfgReadWrite] then
+			case Item.Kind of
+				cfgBoolean:		Ini.WriteBool   (Item.Section, Item.Name, Boolean(Item.Data^));
+				cfgByte:		Ini.WriteInteger(Item.Section, Item.Name, Byte(Item.Data^));
+				cfgWord:		Ini.WriteInteger(Item.Section, Item.Name, Word(Item.Data^));
+				cfgInteger:		Ini.WriteInteger(Item.Section, Item.Name, Integer(Item.Data^));
+				cfgFloat:		Ini.WriteFloat  (Item.Section, Item.Name, Double(Item.Data^));
+				cfgString:		Ini.WriteString (Item.Section, Item.Name, String(Item.Data^));
+			end;
+		end;
+	finally
+		Ini.Free;
+	end;
+end;
+
+
 
 {function ColorToString(C: TColor): String;
 var
@@ -236,85 +358,27 @@ end;
 
 function TDecksConfig.Load: Boolean;
 var
-	Ini: TIniFile;
-	Sect: String;
-	i: Integer;
+	Fn: String;
 
-	procedure ReadColor(Color: PColor; const Item: String);
+	{procedure ReadColor(Color: PColor; const Item: String);
 	var
 		S: String;
 	begin
 		S := Ini.ReadString(Sect, Item, '');
 		if (not S.IsEmpty) then
 			Color^ := StringToColor(S);
-	end;
+	end;}
 
 begin
-	Sect := GetConfigFilePath;
-	ForceDirectories(ExtractFilePath(Sect));
+	Fn := GetConfigFilePath;
+	ForceDirectories(ExtractFilePath(Fn));
 	//if not FileExists(Sect) then Exit(False);
 
-	Ini := TIniFile.Create(Sect);
+	Manager.Load(Fn);
+	Directory.BPM   := ReadPath(Directory.BPM);
+	Directory.Audio := ReadPath(Directory.Audio);
 
-	Sect := 'directory';
-	Directory.BPM   := ReadPath(Ini.ReadString(Sect, 'bpm',   Directory.BPM));
-	Directory.Audio := ReadPath(Ini.ReadString(Sect, 'audio', Directory.Audio));
-	Directory.AutoUpdate := Ini.ReadBool(Sect, 'autoupdate', True);
-
-	Sect := 'window';
-	Window.DirList.Enabled := Ini.ReadBool(Sect, 'dirlist.enabled', True);
-	for i := 0 to High(Window.FileList.ColumnVisible) do
-		Window.FileList.ColumnVisible[i] :=
-			Ini.ReadBool(Sect, Format('filelist.columns.%d.visible', [i]), True);
-	Window.Tracklist.Visible := Ini.ReadBool(Sect, 'tracklist.visible', False);
-	Window.DeckPanelHeight := Ini.ReadInteger(Sect, 'deckheight', 0);
-	Window.Zoom := Ini.ReadInteger(Sect, 'zoom', 100);
-	Window.ShowTitlebar := Ini.ReadBool(Sect, 'titlebar.enabled', True);
-
-	Sect := 'audio';
-	Audio.Hz           := Ini.ReadInteger(Sect, 'hz', 44100);
-	Audio.Buffer       := Ini.ReadInteger(Sect, 'buffer', 20);
-	Audio.UpdatePeriod := Ini.ReadInteger(Sect, 'updateperiod', 60);
-	Audio.Threads      := Ini.ReadInteger(Sect, 'threads', 1);
-	Audio.TargetLUFS   := Ini.ReadInteger(Sect, 'normalize', -16);
-	for i := 1 to High(Audio.Device) do
-		Audio.Device[i] := Ini.ReadInteger(Sect, 'device.' + IntToStr(i), 0);
-	for i := 1 to High(Audio.SubDevice) do
-		Audio.SubDevice[i] := Ini.ReadInteger(Sect, 'subdevice.' + IntToStr(i), 0);
-
-	Sect := 'controller';
-	Controller.Config := Ini.ReadString(Sect, 'config', '');
-
-	Sect := 'mixer';
-	Mixer.Enabled := Ini.ReadBool(Sect, 'enabled', True);
-	Mixer.Enable_Crossfader := Ini.ReadBool(Sect, 'crossfader', True);
-	Mixer.Enable_Equalizer  := Ini.ReadBool(Sect, 'eq',         True);
-	Mixer.EQ.Low := Ini.ReadInteger(Sect, 'low',  125);
-	Mixer.EQ.Mid := Ini.ReadInteger(Sect, 'mid',  1000);
-	Mixer.EQ.High:= Ini.ReadInteger(Sect, 'high', 8000);
-
-	Sect := 'effects';
-	Effects.Enabled := Ini.ReadBool(Sect, 'enabled', False);
-
-	Sect := 'deck';
-	Deck.Bend.Normal   := Ini.ReadInteger(Sect, 'bend.normal',   800);
-	Deck.Bend.JogWheel := Ini.ReadInteger(Sect, 'bend.jogwheel', 100);
-	Deck.Bend.Max      := Ini.ReadInteger(Sect, 'bend.max',      4000);
-
-	Deck.BeatGraph.ShowHorizontalLines := Ini.ReadBool(Sect, 'graph.horizontallines', False);
-	Deck.Waveform.ShowDual := Ini.ReadBool(Sect, 'wave.showdual', False);
-
-	Deck.FirstSetsMasterBPM := Ini.ReadBool(Sect, 'setmasterbpm', True);
-
-	Sect := 'theme.strings';
-	with Theme.Strings.FileList do
-	begin
-		Directory := Ini.ReadString(Sect, 'filelist.directory', Directory);
-		ParentDirectory := Ini.ReadString(Sect, 'filelist.parent', ParentDirectory);
-		Drives := Ini.ReadString(Sect, 'filelist.drives', Drives);
-	end;
-
-	Sect := 'theme.colors';
+{	Sect := 'theme.colors';
 	with Theme.Colors.FileList do
 	begin
 		ReadColor(@GridLines, 'list.gridlines');
@@ -340,98 +404,77 @@ begin
 	end;
 
 	Ini.Free;
+}
 	Result := True;
 end;
 
 procedure TDecksConfig.Save;
+begin
+	Manager.Save(GetConfigFilePath);
+end;
+
+procedure TDecksConfig.Setup;
 var
-	Ini: TIniFile;
+	Cfg: TConfigManager;
 	Sect: String;
 	i: Integer;
 begin
-	Ini := TIniFile.Create(GetConfigFilePath);
+	Cfg := Config.Manager;
+	Cfg.Clear;
 
 	Sect := 'directory';
-//	Ini.WriteString(Sect, 'bpm',   WritePath(Directory.BPM));
-//	Ini.WriteString(Sect, 'audio', WritePath(Directory.Audio));
-	Ini.WriteBool(Sect, 'autoupdate', Directory.AutoUpdate);
+	Cfg.Add(cfgString, Sect, 'bpm',   @Directory.BPM,   cfgRead);
+	Cfg.Add(cfgString, Sect, 'audio', @Directory.Audio, cfgRead);
+	Cfg.Add(cfgBoolean, Sect, 'autoupdate', @Directory.AutoUpdate);
 
 	Sect := 'window';
-	Ini.WriteInteger(Sect, 'zoom', Window.Zoom);
-	Ini.WriteInteger(Sect, 'deckheight', Window.DeckPanelHeight);
-	Ini.WriteBool(Sect, 'titlebar.enabled', Window.ShowTitlebar);
-	Ini.WriteBool(Sect, 'dirlist.enabled', Window.DirList.Enabled);
+	Cfg.Add(cfgWord,    Sect, 'zoom',             @Window.Zoom);
+	Cfg.Add(cfgWord,    Sect, 'deckheight',       @Window.DeckPanelHeight);
+	Cfg.Add(cfgBoolean, Sect, 'titlebar.enabled', @Window.ShowTitlebar);
+	Cfg.Add(cfgBoolean, Sect, 'dirlist.enabled',  @Window.DirList.Enabled);
 	for i := 0 to High(Window.FileList.ColumnVisible) do
-		Ini.WriteBool(Sect, Format('filelist.columns.%d.visible', [i]),
-			Window.FileList.ColumnVisible[i]);
-	Ini.WriteBool(Sect, 'tracklist.visible', Window.Tracklist.Visible);
+		Cfg.Add(cfgBoolean, Sect, Format('filelist.columns.%d.visible', [i]),
+			@Window.FileList.ColumnVisible[i]);
+	Cfg.Add(cfgBoolean, Sect, 'tracklist.visible', @Window.Tracklist.Visible);
 
 	Sect := 'audio';
-	Ini.WriteInteger(Sect, 'hz',           Audio.Hz);
-	Ini.WriteInteger(Sect, 'buffer',       Audio.Buffer);
-	Ini.WriteInteger(Sect, 'updateperiod', Audio.UpdatePeriod);
-	Ini.WriteInteger(Sect, 'threads',      Audio.Threads);
-	Ini.WriteInteger(Sect, 'normalize',    Audio.TargetLUFS);
+	Cfg.Add(cfgWord,    Sect, 'hz',           @Audio.Hz);
+	Cfg.Add(cfgInteger, Sect, 'buffer',       @Audio.Buffer);
+	Cfg.Add(cfgWord,    Sect, 'updateperiod', @Audio.UpdatePeriod);
+	Cfg.Add(cfgByte,    Sect, 'threads',      @Audio.Threads);
+	Cfg.Add(cfgInteger, Sect, 'normalize',    @Audio.TargetLUFS);
 	for i := 1 to High(Audio.Device) do
-		Ini.WriteInteger(Sect, 'device.' + IntToStr(i), Audio.Device[i]);
+		Cfg.Add(cfgByte, Sect, 'device.' + IntToStr(i), @Audio.Device[i]);
 	for i := 1 to High(Audio.SubDevice) do
-		Ini.WriteInteger(Sect, 'subdevice.' + IntToStr(i), Audio.SubDevice[i]);
+		Cfg.Add(cfgByte, Sect, 'subdevice.' + IntToStr(i), @Audio.SubDevice[i]);
 
 	Sect := 'mixer';
-	Ini.WriteBool(Sect, 'enabled', Mixer.Enabled);
+	Cfg.Add(cfgBoolean, Sect, 'enabled', @Mixer.Enabled);
 
 	Sect := 'effects';
-	Ini.WriteBool(Sect, 'enabled', Effects.Enabled);
+	Cfg.Add(cfgBoolean, Sect, 'enabled', @Effects.Enabled);
 
 	Sect := 'deck';
-	Ini.WriteBool(Sect, 'graph.horizontallines', Deck.BeatGraph.ShowHorizontalLines);
-	Ini.WriteBool(Sect, 'wave.showdual', Deck.Waveform.ShowDual);
-	Ini.WriteBool(Sect, 'setmasterbpm', Deck.FirstSetsMasterBPM);
+	Cfg.Add(cfgBoolean, Sect, 'graph.horizontallines', @Deck.BeatGraph.ShowHorizontalLines);
+	Cfg.Add(cfgBoolean, Sect, 'wave.showdual', @Deck.Waveform.ShowDual);
+	Cfg.Add(cfgBoolean, Sect, 'setmasterbpm',  @Deck.FirstSetsMasterBPM);
 
 	Sect := 'theme.strings';
 	with Theme.Strings.FileList do
 	begin
-		Ini.WriteString(Sect, 'filelist.directory', Directory);
-		Ini.WriteString(Sect, 'filelist.parent', ParentDirectory);
-		Ini.WriteString(Sect, 'filelist.drives', Drives);
+		Cfg.Add(cfgString, Sect, 'filelist.directory', @Directory);
+		Cfg.Add(cfgString, Sect, 'filelist.parent',    @ParentDirectory);
+		Cfg.Add(cfgString, Sect, 'filelist.drives',    @Drives);
 	end;
-{
-	Sect := 'theme.colors';
-	with Theme.Colors.FileList do
-	begin
-		Ini.WriteString(Sect, 'filelist.background',
-			ColorToString(Background.Normal));
-		Ini.WriteString(Sect, 'filelist.background.focused',
-			ColorToString(Background.Focused));
-
-		Ini.WriteString(Sect, 'filelist.fg',
-			ColorToString(FileItem.FgDefault));
-		Ini.WriteString(Sect, 'filelist.fg.hasbpm',
-			ColorToString(FileItem.FgHasBPM));
-		Ini.WriteString(Sect, 'filelist.fg.played',
-			ColorToString(FileItem.FgPlayed));
-
-		Ini.WriteString(Sect, 'filelist.fg.parent',
-			ColorToString(DirectoryItem.FgParent));
-		Ini.WriteString(Sect, 'filelist.bg.parent',
-			ColorToString(DirectoryItem.BgParent));
-		Ini.WriteString(Sect, 'filelist.fg.dir',
-			ColorToString(DirectoryItem.FgDirectory));
-		Ini.WriteString(Sect, 'filelist.bg.dir',
-			ColorToString(DirectoryItem.BgDirectory));
-		Ini.WriteString(Sect, 'filelist.fg.drive',
-			ColorToString(DirectoryItem.FgDrive));
-		Ini.WriteString(Sect, 'filelist.bg.drive',
-			ColorToString(DirectoryItem.BgDrive));
-	end;
-}
-	Ini.Free;
 end;
+
 
 initialization
 
 	SupportedFormats := '.mp3 .ogg .wav'; //' .it .s3m .xm .mod .sid .nsf';
-	Config.Filename := 'decks.ini';
+	Config.Filename := AppName + '.ini';
+
+	Config.Manager := TConfigManager.Create;
 
 	Config.GetAppPath;
 	Config.GetPluginPath;
@@ -439,6 +482,12 @@ initialization
 
 	Config.Directory.Audio := Config.AppPath;
 	Config.Directory.BPM   := IncludeTrailingPathDelimiter(Config.GetPath + 'bpm');
+
+	Config.Setup;
+
+finalization
+
+	FreeAndNil(Config.Manager);
 
 end.
 
