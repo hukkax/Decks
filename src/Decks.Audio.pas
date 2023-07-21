@@ -43,6 +43,7 @@ type
 		BASSVersion: String;
 
 		function	InitDevice(WinHandle: QWord; Device: Integer = -1): Boolean;
+		function	InitPlugins(const Path: String): Integer;
 
 		constructor	Create;
 		destructor	Destroy; override;
@@ -59,7 +60,7 @@ var
 implementation
 
 uses
-	Dialogs,
+	FileUtil,
 	Decks.Config;
 	//basszxtune;
 
@@ -201,6 +202,55 @@ begin
 	Result := True;
 //showmessage('Outputs=' + deviceinfo.Outputs.ToString);
 //showmessage('lat=' + deviceinfo.latency.ToString);
+end;
+
+function TAudioManager.InitPlugins(const Path: String): Integer;
+const
+	{$IFDEF MSWINDOWS}
+	Ext = 'dll';
+	{$ELSE}
+	Ext = 'so';
+	{$ENDIF}
+var
+	FileList: TStringList;
+	i: Integer;
+	S, FS: String;
+	Plugin: HPLUGIN;
+	Info: PBASS_PLUGININFO;
+begin
+	FileList := TStringList.Create;
+	try
+		try
+			FindAllFiles(FileList, Path, '*.' + Ext, False);
+		except
+			Exit(-1);
+		end;
+
+		Result := FileList.Count;
+		if Result < 1 then Exit;
+
+		Result := 0;
+		for S in FileList do
+		begin
+			Plugin := BASS_PluginLoad(PChar(S), 0);
+			if Plugin = 0 then Continue;
+
+			Info := BASS_PluginGetInfo(Plugin);
+			for i := 0 to Info.formatc-1 do
+			begin
+				FS := StrPas(Info.Formats[i].exts);
+				if S.IsEmpty then Continue;
+
+				FS := FS.Replace('*', '', [rfReplaceAll]);
+				FS := FS.Replace(';', ' ', [rfReplaceAll]);
+				SupportedFormats += FS;
+				Inc(Result);
+			end;
+
+		end;
+	finally
+		FileList.Free;
+	end;
 end;
 
 end.

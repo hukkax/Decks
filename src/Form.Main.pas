@@ -16,8 +16,6 @@ uses
 {$WARN 5024 off : Parameter "$1" not used}
 
 const
-	SupportedFormats = '.mp3 .ogg .wav .it .s3m .xm .mod .sid .nsf';
-
 	STR_SYM_PARENT = '📂';
 	STR_SYM_FOLDER = '🖿 ';
 	STR_SYM_DRIVES = '🖴';
@@ -1036,7 +1034,10 @@ begin
 		Inc(i);
 	end;}
 
+	bMainMenu.Caption := AppName;
 	ApplyTheme;
+
+	AudioManager.InitPlugins(Config.PluginPath);
 
 	eFileFilterChange(Self);
 end;
