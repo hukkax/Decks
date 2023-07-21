@@ -312,7 +312,7 @@ begin
 	if DeviceName <> '' then
 	begin
 		{$IFDEF USEMIDI}
-		Input := TRtMidiIn.Create(RTMIDI_API_UNSPECIFIED, 'Decks3', 100);
+		Input := TRtMidiIn.Create(RTMIDI_API_UNSPECIFIED, AppName, 100);
 		InputDeviceList := Input.GetDeviceList;
 		for i := 0 to InputDeviceList.Count-1 do
 			if InputDeviceList[i] = DeviceName then
@@ -323,7 +323,7 @@ begin
 				Break;
 			end;
 
-		Output := TRtMidiOut.Create(RTMIDI_API_UNSPECIFIED, 'Decks3', 100);
+		Output := TRtMidiOut.Create(RTMIDI_API_UNSPECIFIED, AppName, 100);
 		OutputDeviceList := Output.GetDeviceList;
 		for i := 0 to OutputDeviceList.Count-1 do
 			if OutputDeviceList[i] = DeviceName then

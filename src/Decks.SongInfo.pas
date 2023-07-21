@@ -197,7 +197,9 @@ begin
 		begin
 			SplitInt(P, iL, iR);
 			Result.Amp := iL + (iR / 1000);
-		end;
+		end
+		else
+			Result.Amp := 1.0;
 
 		Result.Bitrate := Ini.ReadInteger(Sect, 'bitrate', 0);
 

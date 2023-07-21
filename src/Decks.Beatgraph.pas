@@ -50,10 +50,10 @@ type
 	TZone = class
 		Pos:			QWord;
 		BPM:			Single;
-		step:			Single;
+		step:			Double;
 		length,
 		amount_bars:	Cardinal;
-		length_bar:		Single;
+		length_bar:		Double;
 		barindex:		Word;
 		Kind:			TZoneKind;
 		Data:			QWord;
@@ -251,7 +251,7 @@ end;
 
 procedure TZone.Calculate;
 var
-	t: Single;
+	t: Double;
 	b: Integer;
 begin
 	{$IFDEF DEBUGLOG} Log('[TZone.Calculate]');	{$ENDIF}

@@ -8,8 +8,8 @@ uses
 	Classes, SysUtils, Forms, Graphics;
 
 const
-	AppName = 'Decks 3';
-	Version = '0.6b';
+	AppName = 'CaniMix';
+	Version = '0.7a';
 	ReleaseType = {$IFDEF DEBUG} ' [DEBUG]' {$ELSE} '' {$ENDIF};
 	ReleaseDate = {$I %DATE%};
 	AppVersionString = Appname + ' v' + Version + ' by hukka (' + ReleaseDate + ')' + ReleaseType;
@@ -108,6 +108,7 @@ type
 		Audio: record
 			Hz: Word;
 			Buffer: Integer;
+			TargetLUFS: Integer;
 			UpdatePeriod: Word;
 			Threads: Byte;
 			Device: array[1..4] of Byte;
@@ -163,6 +164,7 @@ type
 
 var
 	Config: TDecksConfig;
+	SupportedFormats: String;
 
 implementation
 
@@ -211,8 +213,7 @@ end;
 
 function TDecksConfig.GetPluginPath: String;
 begin
-	if AppPath = '' then GetAppPath;
-	PluginPath := IncludeTrailingPathDelimiter(AppPath + 'plugins');
+	PluginPath := IncludeTrailingPathDelimiter(GetPath + 'plugins');
 	Result := PluginPath;
 end;
 
@@ -275,6 +276,7 @@ begin
 	Audio.Buffer       := Ini.ReadInteger(Sect, 'buffer', 20);
 	Audio.UpdatePeriod := Ini.ReadInteger(Sect, 'updateperiod', 60);
 	Audio.Threads      := Ini.ReadInteger(Sect, 'threads', 1);
+	Audio.TargetLUFS   := Ini.ReadInteger(Sect, 'normalize', -16);
 	for i := 1 to High(Audio.Device) do
 		Audio.Device[i] := Ini.ReadInteger(Sect, 'device.' + IntToStr(i), 0);
 	for i := 1 to High(Audio.SubDevice) do
@@ -369,6 +371,7 @@ begin
 	Ini.WriteInteger(Sect, 'buffer',       Audio.Buffer);
 	Ini.WriteInteger(Sect, 'updateperiod', Audio.UpdatePeriod);
 	Ini.WriteInteger(Sect, 'threads',      Audio.Threads);
+	Ini.WriteInteger(Sect, 'normalize',    Audio.TargetLUFS);
 	for i := 1 to High(Audio.Device) do
 		Ini.WriteInteger(Sect, 'device.' + IntToStr(i), Audio.Device[i]);
 	for i := 1 to High(Audio.SubDevice) do
@@ -427,6 +430,7 @@ end;
 
 initialization
 
+	SupportedFormats := '.mp3 .ogg .wav'; //' .it .s3m .xm .mod .sid .nsf';
 	Config.Filename := 'decks.ini';
 
 	Config.GetAppPath;

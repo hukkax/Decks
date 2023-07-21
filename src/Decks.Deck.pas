@@ -376,7 +376,7 @@ begin
 		NewVolume := CurrVolume
 	else
 		CurrVolume := NewVolume;
-	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, NewVolume * Graph.{Calc}Brightness);
+	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, NewVolume * Graph.{Calc}Brightness * Amp);
 end;
 
 //
