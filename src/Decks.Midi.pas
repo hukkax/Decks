@@ -315,13 +315,13 @@ begin
 		Input := TRtMidiIn.Create(RTMIDI_API_UNSPECIFIED, AppName, 100);
 		InputDeviceList := Input.GetDeviceList;
 		for i := 0 to InputDeviceList.Count-1 do
-			if InputDeviceList[i] = DeviceName then
-			begin
-				InDevice := i;
-				Input.OpenPort(i);
-				Input.SetCallback(MIDIInCallback, nil);
-				Break;
-			end;
+		begin
+			if InputDeviceList[i] <> DeviceName then Continue;
+			InDevice := i;
+			Input.OpenPort(i);
+			Input.SetCallback(MIDIInCallback, nil);
+			Break;
+		end;
 
 		Output := TRtMidiOut.Create(RTMIDI_API_UNSPECIFIED, AppName, 100);
 		OutputDeviceList := Output.GetDeviceList;

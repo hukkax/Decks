@@ -1111,7 +1111,7 @@ begin
 		if FDropDownMenuVisible or (Now < FDropDownClosingTime + DropDownReopenDelay) then
 			FDropDownMenuVisible := False // Prevent redropping
 		else
-		if ((FActiveButt = bbtDropDown) or (FStyle = bbtButton)) and (Button = mbLeft) and
+		if (Button = mbLeft) and ((FActiveButt = bbtDropDown) or (FStyle = bbtButton)) and
 			(FDropDownMenu <> nil) and Enabled then
 		begin
 			ClientToScreenPoint := ClientToScreen(Point(0, Height));

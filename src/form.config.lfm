@@ -1,0 +1,208 @@
+object ConfigForm: TConfigForm
+  Left = 453
+  Height = 774
+  Top = 30
+  Width = 834
+  Caption = 'Settings'
+  ClientHeight = 774
+  ClientWidth = 834
+  object PageControl1: TPageControl
+    Left = 16
+    Height = 400
+    Top = 16
+    Width = 512
+    ActivePage = TabSheet3
+    TabIndex = 2
+    TabOrder = 0
+    object TabSheet1: TTabSheet
+      Caption = 'Program'
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'Audio'
+    end
+    object TabSheet3: TTabSheet
+      Caption = 'Input'
+      ClientHeight = 367
+      ClientWidth = 504
+      object Label1: TLabel
+        Left = 16
+        Height = 20
+        Top = 16
+        Width = 69
+        Caption = 'Buffer size'
+      end
+      object Label2: TLabel
+        Left = 16
+        Height = 20
+        Top = 64
+        Width = 93
+        Caption = 'Sampling rate'
+      end
+      object Label3: TLabel
+        Left = 16
+        Height = 20
+        Top = 112
+        Width = 97
+        Caption = 'Update period'
+      end
+      object Label4: TLabel
+        Left = 16
+        Height = 20
+        Top = 160
+        Width = 87
+        Caption = 'Thread count'
+      end
+      object Label5: TLabel
+        Left = 16
+        Height = 20
+        Top = 208
+        Width = 146
+        Caption = 'Volume normalization'
+      end
+      object ScrollBar1: TScrollBar
+        Left = 176
+        Height = 20
+        Top = 208
+        Width = 192
+        Anchors = [akTop, akLeft, akRight]
+        Max = 24
+        PageSize = 0
+        TabOrder = 0
+      end
+      object ScrollBar2: TScrollBar
+        Left = 176
+        Height = 20
+        Top = 160
+        Width = 192
+        Anchors = [akTop, akLeft, akRight]
+        Max = 4
+        Min = 1
+        PageSize = 0
+        Position = 1
+        TabOrder = 1
+      end
+      object ScrollBar3: TScrollBar
+        Left = 176
+        Height = 20
+        Top = 112
+        Width = 192
+        Anchors = [akTop, akLeft, akRight]
+        LargeChange = 10
+        Min = 10
+        PageSize = 10
+        Position = 60
+        SmallChange = 5
+        TabOrder = 2
+      end
+      object ScrollBar4: TScrollBar
+        Left = 176
+        Height = 20
+        Top = 64
+        Width = 192
+        Anchors = [akTop, akLeft, akRight]
+        PageSize = 0
+        TabOrder = 3
+      end
+      object ScrollBar5: TScrollBar
+        Left = 176
+        Height = 20
+        Top = 16
+        Width = 192
+        Anchors = [akTop, akLeft, akRight]
+        LargeChange = 10
+        Max = 1000
+        Min = 10
+        PageSize = 10
+        Position = 10
+        SmallChange = 5
+        TabOrder = 4
+      end
+      object Label6: TLabel
+        Left = 424
+        Height = 20
+        Top = 16
+        Width = 19
+        Anchors = [akTop, akRight]
+        Caption = 'ms'
+      end
+      object Label7: TLabel
+        Left = 424
+        Height = 20
+        Top = 64
+        Width = 18
+        Anchors = [akTop, akRight]
+        Caption = 'Hz'
+      end
+      object Label9: TLabel
+        Left = 425
+        Height = 20
+        Top = 112
+        Width = 19
+        Anchors = [akTop, akRight]
+        Caption = 'ms'
+      end
+      object Label11: TLabel
+        Left = 425
+        Height = 20
+        Top = 208
+        Width = 32
+        Anchors = [akTop, akRight]
+        Caption = 'LUFS'
+      end
+      object Label10: TLabel
+        Left = 425
+        Height = 20
+        Top = 160
+        Width = 49
+        Anchors = [akTop, akRight]
+        Caption = 'threads'
+      end
+      object Label12: TLabel
+        Left = 381
+        Height = 20
+        Top = 16
+        Width = 32
+        Anchors = [akTop, akRight]
+        Caption = '0000'
+      end
+      object Label13: TLabel
+        Left = 381
+        Height = 20
+        Top = 64
+        Width = 32
+        Anchors = [akTop, akRight]
+        Caption = '0000'
+      end
+      object Label14: TLabel
+        Left = 381
+        Height = 20
+        Top = 112
+        Width = 32
+        Anchors = [akTop, akRight]
+        Caption = '0000'
+      end
+      object Label15: TLabel
+        Left = 381
+        Height = 20
+        Top = 160
+        Width = 32
+        Anchors = [akTop, akRight]
+        Caption = '0000'
+      end
+      object Label16: TLabel
+        Left = 381
+        Height = 20
+        Top = 208
+        Width = 32
+        Anchors = [akTop, akRight]
+        Caption = '0000'
+      end
+    end
+  end
+  object Label8: TLabel
+    Left = 479
+    Height = 1
+    Top = 16
+    Width = 1
+  end
+end

@@ -2170,28 +2170,12 @@ begin
 			Enabled := False;
 		end;
 
-		MODE_LOAD_FINISH:
-		begin
-			Log('MODE_LOAD_FINISH');
-			RedrawGraph(True);
-			SetCue(TPoint.Zero);
-			DrawWaveform;
-			SliderGraphX.Position := 0;
-			lTime.Tag := -1;
-			Invalidate;
-			InitSubDevice(Config.Audio.SubDevice[Deck.Index]);
-			Timer.Enabled := True;
-			MainForm.ApplyMixer;
-			ApplyEffects;
-		end;
-
 		MODE_LOAD_GRAPH:
 		begin
 			Log('MODE_LOAD_GRAPH:');
 			Deck.Graph.Generate;
 			Deck.Graph.BitmapSize := Point(pb.ClientWidth, pb.ClientHeight);
 			Enabled := True;
-			SetSlider(SliderAmp, 100);
 		end;
 
 		MODE_LOAD_SUCCESS:
@@ -2235,6 +2219,21 @@ begin
 			//ErrorMessage('Load error: ' + S);
 			bMaster.Caption := S;
 			bMaster.Background.Color := clMaroon;
+		end;
+
+		MODE_LOAD_FINISH:
+		begin
+			Log('MODE_LOAD_FINISH');
+			RedrawGraph(True);
+			SetCue(TPoint.Zero);
+			DrawWaveform;
+			SliderGraphX.Position := 0;
+			lTime.Tag := -1;
+			Invalidate;
+			InitSubDevice(Config.Audio.SubDevice[Deck.Index]);
+			Timer.Enabled := True;
+			MainForm.ApplyMixer;
+			ApplyEffects;
 		end;
 
 		MODE_PLAY_START, MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:

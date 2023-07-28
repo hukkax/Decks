@@ -492,6 +492,7 @@ object DeckFrame: TDeckFrame
       Arc = 1
       Position = 100
       FloatPosition = 100
+      PageSize = 0
       OnChange = SliderFxParam0Change
       OnMouseEnter = SliderFxParam0MouseEnter
       OnMouseLeave = SliderFxParam0MouseLeave
@@ -534,6 +535,7 @@ object DeckFrame: TDeckFrame
       Arc = 1
       Position = 100
       FloatPosition = 100
+      PageSize = 0
     end
     object SliderFxParam2: ThKnob
       Tag = 2
@@ -573,6 +575,7 @@ object DeckFrame: TDeckFrame
       Arc = 1
       Position = 100
       FloatPosition = 100
+      PageSize = 0
     end
     object SliderFxParam3: ThKnob
       Tag = 3
@@ -612,6 +615,7 @@ object DeckFrame: TDeckFrame
       Arc = 1
       Position = 100
       FloatPosition = 100
+      PageSize = 0
     end
     object SliderFxParam4: ThKnob
       Tag = 4
@@ -651,6 +655,7 @@ object DeckFrame: TDeckFrame
       Arc = 1
       Position = 100
       FloatPosition = 100
+      PageSize = 0
     end
     object SliderFxParam5: ThKnob
       Tag = 5
@@ -690,6 +695,7 @@ object DeckFrame: TDeckFrame
       Arc = 1
       Position = 100
       FloatPosition = 100
+      PageSize = 0
     end
     object bStoreFx: TDecksButton
       Left = 533

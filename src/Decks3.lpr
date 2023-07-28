@@ -9,7 +9,7 @@ uses
 	Forms, lazcontrols, Form.Main, Frame.Deck,
 	Decks.Audio, Decks.Song, Decks.Beatgraph,
 	Decks.SongInfo, Decks.TagScanner, Decks.Effects, TextInputDialog,
-	Form.Tracklist, FocusRectangleUnit;
+	Form.Tracklist, FocusRectangleUnit, Form.Config;
 
 {$R *.res}
 
@@ -35,11 +35,12 @@ begin
 	GlobalSkipIfNoLeaks := True;
 	SetHeapTraceOutput('trace.log');
 	{$ENDIF}
-	Application.Title := 'Decks 3';
+	Application.Title := 'CaniMix';
 	RequireDerivedFormResource := True;
 	Application.Initialize;
 	Application.CreateForm(TMainForm, MainForm);
 	Application.CreateForm(TFormTracklist, FormTracklist);
+	Application.CreateForm(TConfigForm, ConfigForm);
 	Application.Run;
 end.
 
