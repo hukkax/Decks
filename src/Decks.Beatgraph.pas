@@ -20,8 +20,6 @@ const
 	Iterations = 3;
 
 type
-	TBGRAPalette = array[0..255] of TBGRAPixel;
-
 	TBeatGraph = class; // forward
 
 	TZoneKind = (
@@ -130,6 +128,7 @@ type
 
 		procedure	Clear;
 		procedure	Generate;
+		procedure	Amplify;
 		procedure	ColorizeArea(Buffer: TBGRABitmap; P1, P2: QWord; Color: TBGRAPixel);
 		procedure	Draw(AWidth: Word = 0; AHeight: Word = 0);
 		procedure	DoDraw;
@@ -142,7 +141,8 @@ const
 	ZoneKindNames: array [TZoneKind] of String = ( '', 'loop', 'jump', 'skip', 'end' );
 
 var
-	Grays, Grays2: TBGRAPalette;
+	Grays:  array[0..511] of TBGRAPixel;
+	Grays2: array[0..255] of TBGRAPixel;
 	AlphaBlack: array[1..10] of TBGRAPixel;
 
 
@@ -753,7 +753,7 @@ begin
 		begin
 			Grays[i] := Bitmap.GetPixel(i*st, 0);
 			Grays2[i] := Grays[i];
-			Grays2[i].red := Grays2[i].red div 2;
+			Grays2[i].red  := Grays2[i].red div 2;
 			Grays2[i].blue := Grays2[i].blue div 2;
 		end;
 	end
@@ -762,6 +762,8 @@ begin
 		for i := 0 to 255 do
 			Grays[i] := BGRA(i, Trunc(i*0.92), Trunc(i*0.85));
 	end;
+	for i := 256 to 511 do
+		Grays[i] := Grays[255];
 
 	for i := 1 to 10 do
 		AlphaBlack[i] := BGRA(0, 0, 0, Alphas[i]);
@@ -832,20 +834,23 @@ begin
 			if s > m then m := s;
 			Inc(sam);
 		end;
-
-		Percentage := Round(p / maxlen * 100);
-		if Percentage <> OldPercentage then
+		if Assigned(OnLoadProgress) then
 		begin
-			OldPercentage := Percentage;
-			if Assigned(OnLoadProgress) then
+			Percentage := Round(p / maxlen * 100);
+			if Percentage <> OldPercentage then
+			begin
+				OldPercentage := Percentage;
 				OnLoadProgress(Percentage);
+			end;
 		end;
-
-	until len < LoadChunkSize;
+	until len <> LoadChunkSize;
 
 	//SetLength(AudioData, p);
 	length_audio := p;
-	CalcBrightness := 256 / m;
+	if m > 0 then
+		CalcBrightness := 256 / m
+	else
+		CalcBrightness := 1.0;
 	Brightness := CalcBrightness;
 
 	BASS_StreamFree(GraphStream);
@@ -857,7 +862,28 @@ begin
 		BASS_SYNC_END or BASS_SYNC_MIXTIME, 0,
 		@Audio_Callback_ZoneSync_MixTime, @EndSyncEvent);
 
+	if Assigned(OnLoadProgress) then
+		OnLoadProgress(100);
+
 	Generating := False;
+end;
+
+procedure TBeatGraph.Amplify;
+var
+	i: Integer;
+	sam: PByte;
+begin
+	if Generating then Exit;
+
+	if Brightness <> 1.0 then
+	begin
+		sam := @AudioData[0];
+		for i := 0 to High(AudioData) do
+		begin
+			sam^ := Min(255, Trunc(sam^ * Brightness));
+			Inc(sam);
+		end;
+	end;
 end;
 
 procedure TBeatGraph.ColorizeArea(Buffer: TBGRABitmap; P1, P2: QWord; Color: TBGRAPixel);
@@ -935,13 +961,14 @@ procedure TBeatGraph.DoDraw;
 var
 	i, BB, X1, X2: Integer;
 	b: Cardinal;
+	inverse: Single;
 	Z: TZone;
 
 	procedure DrawBar(Z: TZone; bar, X, W: Word);
 	var
 		avg: QWord;
 		px, Y, H: Integer;
-		Bri: Single;
+		//Bri: Single;
 		col: TBGRAPixel;
 		PP: PBGRAPixel;
 		bp: PByte;
@@ -970,7 +997,8 @@ var
 
 		if (W < 1) or (Z.barpos[bar] + Z.length_bar >= length_audio) then Exit;
 
-		Bri := Brightness * 2;
+		//Bri := Brightness * 2;
+		inverse := 1.0 / Z.step; // avoid divisions in draw loop
 
 		// draw
 		for Y := 0 to H do
@@ -982,7 +1010,9 @@ var
 				avg := avg + bp^;
 				Inc(bp);
 			end;
-			col := Grays[Min(((Trunc(avg * Bri / Z.step))), 255)];
+
+			//col := Grays[Trunc(avg * Bri / Z.step)];
+			col := Grays[Trunc((avg + avg) * inverse) and $1FF]; // limit to 0..511
 
 			//Bitmap.HorizLine(X, Y, X+W, col);
 
