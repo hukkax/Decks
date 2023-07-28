@@ -139,6 +139,7 @@ type
 			Hz: Word;
 			Buffer: Integer;
 			TargetLUFS: Integer;
+			GraphLUFS: Integer;
 			UpdatePeriod: Word;
 			Threads: Byte;
 			Device:    array[1..4] of Byte;
@@ -241,7 +242,7 @@ var
 	Ini: TIniFile;
 	Item: TConfigItem;
 	S: String;
-	PS: PAnsiString;
+	PS: PString;
 begin
 	Ini := TIniFile.Create(Filename);
 	try
@@ -438,11 +439,12 @@ begin
 	Cfg.Add(cfgBoolean, Sect, 'tracklist.visible', @Window.Tracklist.Visible);
 
 	Sect := 'audio';
-	Cfg.Add(cfgWord,    Sect, 'hz',           @Audio.Hz);
-	Cfg.Add(cfgInteger, Sect, 'buffer',       @Audio.Buffer);
-	Cfg.Add(cfgWord,    Sect, 'updateperiod', @Audio.UpdatePeriod);
-	Cfg.Add(cfgByte,    Sect, 'threads',      @Audio.Threads);
-	Cfg.Add(cfgInteger, Sect, 'normalize',    @Audio.TargetLUFS);
+	Cfg.Add(cfgWord,    Sect, 'hz',             @Audio.Hz);
+	Cfg.Add(cfgInteger, Sect, 'buffer',         @Audio.Buffer);
+	Cfg.Add(cfgWord,    Sect, 'updateperiod',   @Audio.UpdatePeriod);
+	Cfg.Add(cfgByte,    Sect, 'threads',        @Audio.Threads);
+	Cfg.Add(cfgInteger, Sect, 'normalize',      @Audio.TargetLUFS);
+	Cfg.Add(cfgInteger, Sect, 'normalizegraph', @Audio.GraphLUFS);
 	for i := 1 to High(Audio.Device) do
 		Cfg.Add(cfgByte, Sect, 'device.' + IntToStr(i), @Audio.Device[i]);
 	for i := 1 to High(Audio.SubDevice) do
@@ -459,6 +461,9 @@ begin
 	Cfg.Add(cfgBoolean, Sect, 'wave.showdual', @Deck.Waveform.ShowDual);
 	Cfg.Add(cfgBoolean, Sect, 'setmasterbpm',  @Deck.FirstSetsMasterBPM);
 
+	Sect := 'controller';
+	Cfg.Add(cfgString, Sect, 'config', @Controller.Config);
+
 	Sect := 'theme.strings';
 	with Theme.Strings.FileList do
 	begin
@@ -471,7 +476,7 @@ end;
 
 initialization
 
-	SupportedFormats := '.mp3 .ogg .wav'; //' .it .s3m .xm .mod .sid .nsf';
+	SupportedFormats := '.mp3 .ogg .wav' {$IFDEF MSWINDOWS} + ' .wma' {$ENDIF}; //' .it .s3m .xm .mod .sid .nsf';
 	Config.Filename := AppName + '.ini';
 
 	Config.Manager := TConfigManager.Create;

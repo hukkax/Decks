@@ -8,7 +8,7 @@ interface
 
 uses
 	Classes, SysUtils, Forms, Menus, IniFiles,
-	BASS, BASSmix, BASS_FX,
+	BASS, BASSmix, BASSloud, BASS_FX,
 	Decks.Audio, Decks.Song, Decks.SongInfo, Decks.BeatGraph,
 	Decks.Effects;
 
@@ -87,6 +87,8 @@ type
 		function 	GetPlayPosition(FromMixer: Boolean = True): Int64; inline;
 		function 	GetCurrentBar: Word; inline;
 
+		function	CalculateLUFS: Single;
+
 		procedure	BendStart(Up, Fast: Boolean);
 		procedure	BendUpdate;
 		procedure	BendStop;
@@ -118,7 +120,7 @@ type
 implementation
 
 uses
-	Math,
+	Math, Dialogs,
 	Form.Main,
 	Decks.Config, Decks.TagScanner;
 
@@ -225,14 +227,17 @@ function TDeck.Load(const AFilename: String): Boolean;
 begin
 	ModeChange(MODE_LOAD_START);
 
-	PlayingZone := 0;
 	Filename := AFilename;
+	PlayingZone := 0;
+	Info.Amp := 1.0;
+	Info.LUFS := 0.0;
+
 	Result := inherited Load(AFilename);
 
 	if Result then
 	begin
 		ModeChange(MODE_LOAD_SUCCESS);
-		BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, Graph.CalcBrightness / 2);
+//		BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, Graph.CalcBrightness / 2);
 		Equalizer.Init(Stream);
 	end
 	else
@@ -243,6 +248,68 @@ begin
 	end;
 
 	ModeChange(MODE_LOAD_FINISH);
+end;
+
+function TDeck.CalculateLUFS: Single;
+const
+	buflen = 1024 * 64;
+var
+	P, maxlen: QWord;
+	C: Integer;
+	level: Single;
+	Percentage, OldPercentage: Integer;
+	loudness: HLOUDNESS;
+	loudbuf: array of Byte;
+{const
+	volumetarget = -23; // EBU R-128}
+begin
+	// calculate loudness normalization value
+	Info.NormalizedAmp := 1.0;
+	if Config.Audio.TargetLUFS < 0 then
+	begin
+		if Info.LUFS >= 0.0 then
+		begin
+			SetLength(loudbuf{%H-}, buflen);
+			P := Graph.Zones.First.Pos;
+			maxlen := BASS_ChannelGetLength(FileStream, BASS_POS_BYTE) - P;
+			BASS_ChannelSetPosition(FileStream, P, BASS_POS_BYTE);
+			loudness := BASS_Loudness_Start(FileStream, BASS_LOUDNESS_INTEGRATED, 0);
+			P := 0;
+			OldPercentage := 0;
+			repeat
+				C := Integer(BASS_ChannelGetData(FileStream, @loudbuf[0], buflen));
+				if C > 0 then
+				begin
+					Inc(P, C);
+					Percentage := Round(P / maxlen * 100);
+				end;
+				if Percentage <> OldPercentage then
+				begin
+					OldPercentage := Percentage;
+					if (Percentage mod 5 = 0) and (Assigned(Graph.OnLoadProgress)) then
+						Graph.OnLoadProgress(Percentage);
+				end;
+			until (C < buflen) or (Percentage >= 99);
+			BASS_Loudness_GetLevel(loudness, BASS_LOUDNESS_INTEGRATED, level{%H-});
+			BASS_Loudness_Stop(loudness);
+			if (level = Infinity) or (level = NegInfinity) then
+				level := 0.0
+			else
+				Info.LUFS := Trunc(level * 100) / 100;
+		end;
+		if Info.LUFS < 0.0 then
+		try
+			Info.NormalizedAmp := Power(10, (Config.Audio.TargetLUFS - Info.LUFS) / 20);
+			if Config.Audio.GraphLUFS < 0.0 then
+				Graph.Brightness := Power(10, (Config.Audio.GraphLUFS - Info.LUFS) / 20);
+		except
+		end;
+	end
+	else
+	{if Info.NormalizedAmp >= 0.1 then
+		BASS_ChannelSetAttribute(OrigStream, BASS_ATTRIB_VOLDSP, Info.NormalizedAmp);}
+	BASS_ChannelSetPosition(FileStream, 0, BASS_POS_BYTE);
+	Result := Info.NormalizedAmp;
 end;
 
 //
@@ -376,7 +443,7 @@ begin
 		NewVolume := CurrVolume
 	else
 		CurrVolume := NewVolume;
-	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, NewVolume * Graph.{Calc}Brightness * Amp);
+	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, NewVolume * (*Graph.{Calc}Brightness *) Info.NormalizedAmp * Info.Amp);
 end;
 
 //
@@ -408,7 +475,8 @@ begin
 			Ini.WriteString(Sect, 'file', ExtractFileName(Filename));
 
 			Ini.WriteString(Sect, 'bpm',      FloatToString(aBPM));
-			Ini.WriteString(Sect, 'amp',      FloatToString(Info.Amp));
+			Ini.WriteString(Sect, 'gain',     FloatToString(Info.Amp));
+			Ini.WriteString(Sect, 'lufs',     FloatToString(Info.LUFS));
 			Ini.WriteInteger(Sect, 'bitrate', Bitrate);
 			Ini.WriteString(Sect, 'duration', FloatToString(Duration));
 
@@ -423,10 +491,10 @@ begin
 				Z := Graph.Zones[i];
 				Sect := Format('zone.%d', [i]);
 
-				Ini.WriteString(Sect, 'bpm', FloatToString(Z.BPM));
-				Ini.WriteInt64(Sect, 'bar', Z.barindex);
+				Ini.WriteString(Sect, 'bpm',  FloatToString(Z.BPM));
+				Ini.WriteInt64 (Sect, 'bar',  Z.barindex);
 				Ini.WriteString(Sect, 'kind', ZoneKindNames[Z.Kind]);
-				Ini.WriteInt64(Sect, 'data', Z.Data);
+				Ini.WriteInt64 (Sect, 'data', Z.Data);
 			end;
 		end;
 		if Assigned(OnSaveInfo) then

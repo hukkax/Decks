@@ -17,14 +17,16 @@ type
 	TInfoFileAccessEvent = procedure(const Filename: String; Ini: TIniFile) of object;
 
 	TSongInfo = record
-		Initialized: Boolean;  // loaded
-		OldVersion:  Boolean;  // true=Decks 2, false=Decks 3
-		BPM:         Single;
-		Amp:         Single;
-		Length:      Single;   // song length in seconds
-		Bitrate:     Word;     // song bitrate in kbps
-		FileSize:    QWord;
-		FileDate:    TDateTime;
+		Initialized:   Boolean;  // loaded
+		OldVersion:    Boolean;  // true=Decks 2, false=Decks 3
+		BPM:           Single;
+		Amp:           Single;
+		NormalizedAmp: Single;
+		LUFS:          Single;
+		Length:        Single;   // song length in seconds
+		Bitrate:       Word;     // song bitrate in kbps
+		FileSize:      QWord;
+		FileDate:      TDateTime;
 		//StartPos:    QWord;    // graph start offset in songdata bytes
 	end;
 
@@ -192,7 +194,7 @@ begin
 			end;
 		end;
 
-		P := GetValue('amp');
+		P := GetValue('gain');
 		if P <> '' then
 		begin
 			SplitInt(P, iL, iR);
@@ -200,6 +202,15 @@ begin
 		end
 		else
 			Result.Amp := 1.0;
+
+		P := GetValue('lufs');
+		if P <> '' then
+		begin
+			SplitInt(P, iL, iR);
+			Result.LUFS := iL + (iR / 1000);
+		end
+		else
+			Result.LUFS := 0.0;
 
 		Result.Bitrate := Ini.ReadInteger(Sect, 'bitrate', 0);
 

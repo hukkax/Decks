@@ -271,7 +271,7 @@ type
 		procedure JumpToZone(Zone: Word);
 		procedure JumpToBar(Bar: Word);
 
-		function  DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; const Palette: TBGRAPalette): QWord;
+		function  DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; Palette: PBGRAPixel): QWord;
 		procedure DrawWaveform;
 		procedure DrawZones(Recalc: Boolean = True);
 		procedure DrawRuler(Recalc: Boolean = True);
@@ -1320,9 +1320,28 @@ begin
 end;
 
 procedure TDeckFrame.SetKnob(const Knob: ThKnob; Value: Integer);
+var
+	Ghost: TKnobIndicator;
 begin
-	if (Knob <> nil) and (Abs(Knob.Position - Value) <= Knob.Sensitivity) then
-		Knob.Position := Value;
+	if Knob = nil then Exit;
+
+	Ghost := Knob.GetExtraIndicator(-1);
+
+	if Abs(Abs(Knob.Position) - Abs(Value)) <= Knob.PageSize then
+	begin
+		if Ghost.Visible then
+		begin
+			Ghost.Visible := False;
+			Knob.Refresh;
+		end
+		else
+			Knob.Position := Value;
+	end
+	else
+	begin
+		Ghost.Position := Value;
+		Ghost.Visible  := True;
+	end;
 end;
 
 procedure TDeckFrame.pbMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1813,7 +1832,7 @@ begin
 	pbRuler.Invalidate;
 end;
 
-function TDeckFrame.DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; const Palette: TBGRAPalette): QWord;
+function TDeckFrame.DoDrawWaveform(Pos: QWord; Bar: Cardinal; Brightness: Single; Palette: PBGRAPixel): QWord;
 var
 	X, W: Cardinal;
 	HY, Y: Integer;
@@ -1876,7 +1895,7 @@ begin
 
 			// draw the sample data
 			FPos += FAdd;
-			Sam := Min(255, Trunc(Sam / FAdd * Brightness));
+			Sam := Min(255, Trunc(Sam / FAdd {* Brightness}));
 			Y := Trunc(Sam / 256 * HY);
 			pbWave.Bitmap.VertLine(X, HY-Y, HY+Y, Palette[Sam]);
 		end;
@@ -1892,14 +1911,14 @@ begin
 	pbWave.Bitmap.Fill(BGRABlack);
 
 	X := Deck.Graph.GraphToBar(GraphCue.X);
-	CuePos := DoDrawWaveform(CuePos, X, Deck.Graph.Brightness, Grays);
+	CuePos := DoDrawWaveform(CuePos, X, Deck.Graph.Brightness, @Grays[0]);
 
 	if Config.Deck.Waveform.ShowDual then
 	begin
 		X := Deck.Graph.GetZoneIndexAt(CuePos);
 		X := Deck.Graph.Zones[X].barindex + Deck.Graph.Zones[X].amount_bars - 1;
 		DoDrawWaveform(Deck.Graph.GraphToPos(Point(Deck.Graph.BarToGraph(X), GraphCue.Y), True),
-			X, Deck.Graph.Brightness, Grays2);
+			X, Deck.Graph.Brightness, @Grays2[0]);
 	end;
 
 	pbWave.Repaint;
@@ -2027,7 +2046,7 @@ begin
 		Deck.GetAvgBPM;
 		Deck.BPM := MasterBPM;
 		Deck.Info.Amp := SliderAmp.Position / 100;
-		Deck.Graph.Brightness := Deck.Graph.CalcBrightness * Deck.Info.Amp;
+//		Deck.Graph.Brightness := Deck.Graph.CalcBrightness * Deck.Info.Amp;
 		Deck.SetVolume(-1); // update volume
 	end;
 
@@ -2087,7 +2106,7 @@ begin
 	begin
 		W := ClientWidth; H := ClientHeight;
 		Bitmap.FillRect(Bounds(0, 0, W, H), BGRABlack, dmSet);
-		if Percentage > 0 then
+		if (Percentage >= 0) and (Percentage <= 100) then
 		begin
 			X := Trunc(W / 100 * Percentage);
 			Bitmap.FillRect(Bounds(0, 0, X, H), Grays[Trunc(255 / 100 * Percentage)], dmSet);
@@ -2141,6 +2160,9 @@ begin
 			Deck.Graph.Zones.Clear;
 			Deck.Graph.Scroll.X := 0;
 			Deck.Graph.Zoom := 1;
+			Deck.Info.LUFS := 0.0;
+			Deck.Info.Amp := 1.0;
+			Deck.Info.BPM := 0.0;
 			Timer.Enabled := False;
 			bMaster.Caption := Deck.Filename;
 			Invalidate;
@@ -2176,16 +2198,15 @@ begin
 		begin
 			Log('MODE_LOAD_SUCCESS');
 			if not Deck.GetInfo then
-			begin
 				Deck.Graph.Clear;
-				Deck.Info.BPM := 0.0;
-				Deck.Info.Amp := 1.0;
-			end;
 			if Deck.Graph.Zones.Count < 1 then
 				Deck.Graph.AddZone(0, IfThen(Deck.Info.BPM >= 60, Deck.Info.BPM, MasterBPM), True);
 			UpdateCaption;
+			Deck.CalculateLUFS;
 			SetSlider(lBPM, Deck.Graph.Zones.First.BPM);
+			SliderAmp.GetExtraIndicator(0).Position := 200 - Trunc(Deck.Info.NormalizedAmp * 100);
 			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
+			Deck.Graph.Amplify;
 			Deck.Graph.ZonesLoaded;
 			Deck.GetAvgBPM;
 			SetCue(TPoint.Zero);
@@ -2498,6 +2519,7 @@ begin
 	Knob := GetEffectKnob(Sender);
 	if Knob <> nil then
 	begin
+		Knob.GetExtraIndicator(-1).Visible := False;
 		Param := Effects[SelectedEffect].Effect.Params[Knob.Tag];
 		Param.Value := Knob.FloatPosition;
 		ShowEffectValue(Knob);

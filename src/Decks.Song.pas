@@ -7,7 +7,7 @@ interface
 
 uses
 	Classes, SysUtils,
-	BASS, BASSMIX, BASS_FX, BASSloud; //, basszxtune;
+	BASS, BASSMIX, BASS_FX; //, basszxtune;
 
 const
 	MODE_PLAY_STOP    = 0;
@@ -50,8 +50,6 @@ type
 
 		OrigFreq,
 		PlayFreq:	Cardinal;
-		MeasuredLUFS,
-		Amp,
 		BPM,
 		AvgBPM:		Single;
 		ByteLength: QWord;
@@ -72,7 +70,6 @@ type
 		Filename:	String;
 
 		function	Load(const AFilename: String): Boolean; virtual;
-
 		procedure	SetReverse(Reversed, KeepSync: Boolean);
 
 		procedure	Play;
@@ -87,8 +84,6 @@ type
 implementation
 
 uses
-	Dialogs,
-	Math,
 	Decks.Audio, Decks.Config;
 
 //
@@ -134,17 +129,10 @@ end;
 //
 
 function TSong.Load(const AFilename: String): Boolean;
-const
-	buflen = 20000;
 var
 	UF: UnicodeString;
 	F: Cardinal;
-	C: DWord;
-	TmpBitrate, level: Single;
-	loudness: HLOUDNESS;
-	loudbuf: array [0..buflen] of Byte;
-{const
-	volumetarget = -23; // EBU R-128}
+	TmpBitrate: Single;
 begin
 	Stop;
 	FreeStream(FileStream);
@@ -163,25 +151,6 @@ begin
 	Duration := BASS_ChannelBytes2Seconds(OrigStream, ByteLength);
 	BASS_ChannelGetAttribute(OrigStream, BASS_ATTRIB_BITRATE, TmpBitrate{%H-});
 	Bitrate := Trunc(TmpBitrate);
-
-	// calculate loudness normalization value
-	if Config.Audio.TargetLUFS < 0 then
-	begin
-		loudness := BASS_Loudness_Start(OrigStream, BASS_LOUDNESS_INTEGRATED, 0);
-		repeat
-			C := BASS_ChannelGetData(OrigStream, @loudbuf[0], buflen);
-		until (C < buflen) or (C = DWord(-1));
-		BASS_Loudness_GetLevel(loudness, BASS_LOUDNESS_INTEGRATED, level{%H-});
-		BASS_Loudness_Stop(loudness);
-		BASS_ChannelSetPosition(OrigStream, 0, BASS_POS_BYTE);
-		// apply loudness normalization
-		MeasuredLUFS := level;
-		Amp := Power(10, (Config.Audio.TargetLUFS - level) / 20);
-	end
-	else
-		Amp := 1.0;
-	{if Amp >= 0.1 then
-		BASS_ChannelSetAttribute(OrigStream, BASS_ATTRIB_VOLDSP, Amp);}
 
 	// resample and downmix
 	FreeStream(Stream);
