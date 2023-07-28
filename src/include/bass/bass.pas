@@ -1,6 +1,6 @@
 {
   BASS 2.4 Delphi unit
-  Copyright (c) 1999-2021 Un4seen Developments Ltd.
+  Copyright (c) 1999-2022 Un4seen Developments Ltd.
 
   See the BASS.CHM file for more detailed documentation
 
@@ -39,6 +39,7 @@ const
   BASS_ERROR_POSITION     = 7;    // invalid position
   BASS_ERROR_INIT         = 8;    // BASS_Init has not been successfully called
   BASS_ERROR_START        = 9;    // BASS_Start has not been successfully called
+  BASS_ERROR_SSL          = 10;   // SSL/HTTPS support isn't available
   BASS_ERROR_REINIT       = 11;   // device needs to be reinitialized
   BASS_ERROR_ALREADY      = 14;   // already initialized/paused/whatever
   BASS_ERROR_NOTAUDIO     = 17;   // file does not contain audio
@@ -52,7 +53,7 @@ const
   BASS_ERROR_FREQ         = 25;   // illegal sample rate
   BASS_ERROR_NOTFILE      = 27;   // the stream is not a file stream
   BASS_ERROR_NOHW         = 29;   // no hardware voices available
-  BASS_ERROR_EMPTY        = 31;   // the MOD music has no sequence data
+  BASS_ERROR_EMPTY        = 31;   // the file has no sample data
   BASS_ERROR_NONET        = 32;   // no internet connection could be opened
   BASS_ERROR_CREATE       = 33;   // couldn't create the file
   BASS_ERROR_NOFX         = 34;   // effects are not available
@@ -68,6 +69,7 @@ const
   BASS_ERROR_BUSY         = 46;   // the device is busy
   BASS_ERROR_UNSTREAMABLE = 47;   // unstreamable file
   BASS_ERROR_PROTOCOL     = 48;   // unsupported protocol
+  BASS_ERROR_DENIED       = 49;   // access denied
   BASS_ERROR_UNKNOWN      = -1;   // some other mystery problem
 
   // BASS_SetConfig options
@@ -122,14 +124,17 @@ const
   BASS_CONFIG_REC_WASAPI    = 66;
   BASS_CONFIG_ANDROID_AAUDIO = 67;
   BASS_CONFIG_SAMPLE_ONEHANDLE = 69;
-  BASS_CONFIG_DEV_TIMEOUT   = 70;
   BASS_CONFIG_NET_META      = 71;
   BASS_CONFIG_NET_RESTRATE  = 72;
+  BASS_CONFIG_REC_DEFAULT = 73;
+  BASS_CONFIG_NORAMP = 74;
 
   // BASS_SetConfigPtr options
   BASS_CONFIG_NET_AGENT     = 16;
   BASS_CONFIG_NET_PROXY     = 17;
+  BASS_CONFIG_ANDROID_JAVAVM = 63;
   BASS_CONFIG_LIBSSL        = 64;
+  BASS_CONFIG_FILENAME      = 75;
 
   BASS_CONFIG_THREAD = $40000000; // flag: thread-specific setting
 
@@ -139,6 +144,10 @@ const
   BASS_IOS_SESSION_AMBIENT  = 4;
   BASS_IOS_SESSION_SPEAKER  = 8;
   BASS_IOS_SESSION_DISABLE  = 16;
+  BASS_IOS_SESSION_DEACTIVATE = 32;
+  BASS_IOS_SESSION_AIRPLAY = 64;
+  BASS_IOS_SESSION_BTHFP = 128;
+  BASS_IOS_SESSION_BTA2DP = $100;
 
   // BASS_Init flags
   BASS_DEVICE_8BITS       = 1;    // unused
@@ -256,9 +265,9 @@ const
 
   // Speaker assignment flags
   BASS_SPEAKER_FRONT      = $1000000;  // front speakers
-  BASS_SPEAKER_REAR       = $2000000;  // rear/side speakers
+  BASS_SPEAKER_REAR       = $2000000;  // rear speakers
   BASS_SPEAKER_CENLFE     = $3000000;  // center & LFE speakers (5.1)
-  BASS_SPEAKER_REAR2      = $4000000;  // rear center speakers (7.1)
+  BASS_SPEAKER_SIDE       = $4000000;  // side speakers (7.1)
   BASS_SPEAKER_LEFT       = $10000000; // modifier: left
   BASS_SPEAKER_RIGHT      = $20000000; // modifier: right
   BASS_SPEAKER_FRONTLEFT  = BASS_SPEAKER_FRONT or BASS_SPEAKER_LEFT;
@@ -267,8 +276,11 @@ const
   BASS_SPEAKER_REARRIGHT  = BASS_SPEAKER_REAR or BASS_SPEAKER_RIGHT;
   BASS_SPEAKER_CENTER     = BASS_SPEAKER_CENLFE or BASS_SPEAKER_LEFT;
   BASS_SPEAKER_LFE        = BASS_SPEAKER_CENLFE or BASS_SPEAKER_RIGHT;
-  BASS_SPEAKER_REAR2LEFT  = BASS_SPEAKER_REAR2 or BASS_SPEAKER_LEFT;
-  BASS_SPEAKER_REAR2RIGHT = BASS_SPEAKER_REAR2 or BASS_SPEAKER_RIGHT;
+  BASS_SPEAKER_SIDELEFT   = BASS_SPEAKER_SIDE or BASS_SPEAKER_LEFT;
+  BASS_SPEAKER_SIDERIGHT  = BASS_SPEAKER_SIDE or BASS_SPEAKER_RIGHT;
+  BASS_SPEAKER_REAR2      = BASS_SPEAKER_SIDE;
+  BASS_SPEAKER_REAR2LEFT  = BASS_SPEAKER_SIDELEFT;
+  BASS_SPEAKER_REAR2RIGHT = BASS_SPEAKER_SIDERIGHT;
 
   BASS_ASYNCFILE          = $40000000; // read file asynchronously
   BASS_UNICODE            = $80000000; // UTF-16
@@ -309,6 +321,9 @@ const
   BASS_CTYPE_MUSIC_XM     = $20003;
   BASS_CTYPE_MUSIC_IT     = $20004;
   BASS_CTYPE_MUSIC_MO3    = $00100; // MO3 flag
+
+  // BASS_PluginLoad flags
+  BASS_PLUGIN_PROC        = 1;
 
   // 3D channel modes
   BASS_3DMODE_NORMAL      = 0; // normal 3D processing
@@ -393,6 +408,9 @@ const
   BASS_ATTRIB_USER                  = 15;
   BASS_ATTRIB_TAIL                  = 16;
   BASS_ATTRIB_PUSH_LIMIT            = 17;
+  BASS_ATTRIB_DOWNLOADPROC          = 18;
+  BASS_ATTRIB_VOLDSP                = 19;
+  BASS_ATTRIB_VOLDSP_PRIORITY       = 20;
   BASS_ATTRIB_MUSIC_AMPLIFY         = $100;
   BASS_ATTRIB_MUSIC_PANSEP          = $101;
   BASS_ATTRIB_MUSIC_PSCALER         = $102;
@@ -409,7 +427,7 @@ const
   // BASS_ChannelGetData flags
   BASS_DATA_AVAILABLE = 0;        // query how much data is buffered
   BASS_DATA_NOREMOVE  = $10000000; // flag: don't remove data from recording buffer
-  BASS_DATA_FIXED     = $20000000; // flag: return 8.24 fixed-point data
+  BASS_DATA_FIXED     = $20000000; // unused
   BASS_DATA_FLOAT     = $40000000; // flag: return floating-point sample data
   BASS_DATA_FFT256    = $80000000; // 256 sample FFT
   BASS_DATA_FFT512    = $80000001; // 512 FFT
@@ -831,7 +849,7 @@ const
 {$ENDIF}
 {$IFDEF MACOS}
   {$IFDEF IOS}
-    bassdll = 'libbass.a';
+    bassdll = 'bass.framework/bass';
   {$ELSE}
     bassdll = 'libbass.dylib';
   {$ENDIF}
@@ -926,6 +944,7 @@ function BASS_ChannelUpdate(handle, length: DWORD): BOOL; {$IFDEF MSWINDOWS}stdc
 function BASS_ChannelLock(handle: DWORD; lock: BOOL): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
 function BASS_ChannelFree(handle: DWORD): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
 function BASS_ChannelPlay(handle: DWORD; restart: BOOL): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
+function BASS_ChannelStart(handle: DWORD): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
 function BASS_ChannelStop(handle: DWORD): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
 function BASS_ChannelPause(handle: DWORD): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
 function BASS_ChannelSetAttribute(handle, attrib: DWORD; value: Single): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
