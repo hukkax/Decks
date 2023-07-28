@@ -179,6 +179,10 @@ var
 
 begin
 	Ini := TIniFile.Create(BPMFilename);
+
+	Result.Amp  := 1.0;
+	Result.LUFS := 0.0;
+
 	try
 		Sect := 'song';
 
@@ -199,18 +203,14 @@ begin
 		begin
 			SplitInt(P, iL, iR);
 			Result.Amp := iL + (iR / 1000);
-		end
-		else
-			Result.Amp := 1.0;
+		end;
 
 		P := GetValue('lufs');
 		if P <> '' then
 		begin
 			SplitInt(P, iL, iR);
 			Result.LUFS := iL + (iR / 1000);
-		end
-		else
-			Result.LUFS := 0.0;
+		end;
 
 		Result.Bitrate := Ini.ReadInteger(Sect, 'bitrate', 0);
 
@@ -343,7 +343,7 @@ begin
 				end;
 			end;
 
-			if (not Result.OldVersion) and (Ver <> '3.0a') then
+			{if (not Result.OldVersion) and (Ver <> '3.0a') then
 			begin
 				P := GetValue('AMP');
 				if P <> '' then
@@ -351,7 +351,7 @@ begin
 					SplitInt(P, iL, iR);
 					Result.Amp := iL + (iR / 1000);
 				end;
-			end;
+			end;}
 
 			P := GetValue('BPM');
 			if P <> '' then

@@ -7,7 +7,7 @@ interface
 uses
 	SysUtils, Classes, //SyncObjs, LMessages,
 	Decks.SongInfo,
-	AudioTag, basetag, file_Wave, file_mp3, file_ogg;
+	AudioTag, basetag, file_Wave, file_mp3, file_ogg, file_flac, file_wma;
 
 type
 	TTagScannerEventKind = (
@@ -258,6 +258,7 @@ begin
 		Result.Info.Bitrate := TagReader.MediaProperty.Bitrate;
 		Result.Info.Length := Tags.Duration / 1000; // ms->s
 		Result.HasImage := Tags.HasImage;
+		Result.Info.Amp := 1.0;
 		Result.Info.Initialized := True;
 	finally
 		TagReader.Free;
