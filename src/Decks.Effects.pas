@@ -357,11 +357,11 @@ begin
 	AddParam(fDelay,		'Delay',		+0,	+6,	1,	'Delay in beats').ValueNames :=
 		['1/8', '1/4', '1/2', '3/4', '1/1', '2/1', '4/1'];
 
-{	AddPreset([1.0,	1.0,  0.0, 0.2], 'Small Echo');
-	AddPreset([1.0,	1.0,  0.7, 0.5], 'Many Echoes');
-	AddPreset([1.0,	1.0, -0.7, 0.8], 'Reverse Echoes');
+{	AddPreset([1.0,	0.5,  0.0, 0.2], 'Small Echo');
+	AddPreset([1.0,	0.5,  0.7, 0.5], 'Many Echoes');
+	AddPreset([1.0,	0.5, -0.7, 0.8], 'Reverse Echoes');
 	AddPreset([0.5,	0.8,  0.5, 0.1], 'Robotic Voice');}
-	AddPreset([1, 1, 0, 2], 'Default');
+	AddPreset([1, 0.5, 0, 2], 'Default');
 	ApplyPreset(Presets.First);
 end;
 
