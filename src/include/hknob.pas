@@ -20,58 +20,144 @@ uses
 {$WARN 5024 off : Parameter "$1" not used}
 
 type
-	TKnobLineSubProperty = class(TPersistent)
+	ThKnob            = class;
+	TKnobBase         = class;
+	TKnobIndicator    = class;
+	TKnobIndicators   = class;
+
+	TIndicators = class(TOwnedCollection)
 	private
-		FOnChange: TNotifyEvent;
-		FLineColor: TColor;
-	protected
-		procedure SetLineColor(const Value: TColor);
-	public
+		FKnob: ThKnob;
+
 		procedure Changed;
-		property OnChange: TNotifyEvent read FOnChange write FOnChange;
-	published
-		property LineColor: TColor read FLineColor write SetLineColor;
+		function  GetItem(Index: Integer): TKnobIndicator;
+		procedure SetItem(Index: Integer; const Value: TKnobIndicator);
+	public
+		constructor Create(AOwner: ThKnob);
+
+		function Add: TKnobIndicator;
+
+		property Items[Index: Integer]: TKnobIndicator read GetItem write SetItem;
 	end;
 
-	TKnobLineProperty = class(TPersistent)
+	TKnobBase = class(TPersistent)
 	private
-		FOnChange: TNotifyEvent;
-		FOwner: TObject;
-		FLineWidth: Integer;
-		FActive, FDisabled, FHovered: TKnobLineSubProperty;
-		FIndicatorInnerPos, FIndicatorOuterPos: Integer; // radius
-		FOffsetX, FOffsetY: Integer; // pixel offset bias of indicator
+		FOwner:       ThKnob;
+
+		FFillColor:   TColor;
+		FBorderColor: TColor;
+		FBorderWidth: Integer;
 	protected
 		procedure Changed;
-		procedure StyleChanged(Sender: TObject);
-		procedure SetLineWidth(const Value: Integer);
+
+		procedure SetFillColor  (NewColor: TColor);
+		procedure SetBorderColor(NewColor: TColor);
+		procedure SetBorderWidth(NewWidth: Integer);
+	public
+		constructor Create(AOwner: ThKnob);
+	published
+		property FillColor:   TColor  read FFillColor   write SetFillColor   stored True;
+		property BorderColor: TColor  read FBorderColor write SetBorderColor stored True;
+		property BorderWidth: Integer read FBorderWidth write SetBorderWidth stored True;
+	end;
+
+	TKnobIndicator = class(TCollectionItem)
+	private
+		FOwner:        TIndicators;
+		FKnob:         ThKnob;
+
+		FVisible:      Boolean;
+		FPosition:     Integer;
+
+		FLineColor:    TColor;
+		FLineWidth:    Integer;
+		FInnerRadius,
+		FOuterRadius:  Integer;
+	protected
+		procedure Changed;
+
+		procedure SetVisible(Value: Boolean);
+		procedure SetPosition(Value: Integer);
+
+		procedure SetLineColor  (Value: TColor);
+		procedure SetLineWidth  (Value: Integer);
 		procedure SetInnerRadius(Value: Integer);
 		procedure SetOuterRadius(Value: Integer);
-		procedure SetOffsetX(Value: Integer);
-		procedure SetOffsetY(Value: Integer);
 	public
-		constructor Create(AOwner: TObject);
-		destructor  Destroy; override;
-		property OnChange: TNotifyEvent read FOnChange write FOnChange;
+		constructor Create(AOwner: TCollection); override;
 	published
-		property Normal: TKnobLineSubProperty read FActive write FActive;
-		//property Inactive: TKnobLineSubProperty read FInactive write FInactive;
-		property Hovered:  TKnobLineSubProperty read FHovered write FHovered;
-		property Disabled: TKnobLineSubProperty read FDisabled write FDisabled;
-		property LineWidth: Integer read FLineWidth write SetLineWidth;
-		property RadiusInner: Integer read FIndicatorInnerpos write SetInnerRadius;
-		property RadiusOuter: Integer read FIndicatorOuterpos write SetOuterRadius;
-		property OffsetX: Integer read FOffsetX write SetOffsetX;
-		property OffsetY: Integer read FOffsetY write SetOffsetY;
+		property Visible:     Boolean read FVisible     write SetVisible     stored True;
+		property Position:    Integer read FPosition    write SetPosition    stored True;
+
+		property LineColor:   TColor  read FLineColor   write SetLineColor   stored True;
+		property LineWidth:   Integer read FLineWidth   write SetLineWidth   stored True;
+		property RadiusInner: Integer read FInnerRadius write SetInnerRadius stored True;
+		property RadiusOuter: Integer read FOuterRadius write SetOuterRadius stored True;
+	end;
+
+	TKnobIndicators = class(TPersistent)
+	private
+		FOwner:           ThKnob;
+		FOnChange:        TNotifyEvent;
+
+		FExtraIndicators: TIndicators;
+		FDummy:           TKnobIndicator;
+
+		FLineColor:       TColor;
+		FLineWidth:       Integer;
+		FInnerRadius,
+		FOuterRadius:     Integer;
+		FOffsetX,
+		FOffsetY:         Integer; // pixel offset bias of indicator
+
+		FDefault,
+		FFocused,
+		FUnfocused,
+		FChanging,
+		FHovered,
+		FDisabled:        TColor;
+	protected
+		procedure SetLineColor  (Value: TColor);
+		procedure SetLineWidth  (Value: Integer);
+		procedure SetInnerRadius(Value: Integer);
+		procedure SetOuterRadius(Value: Integer);
+		procedure SetOffsetX    (Value: Integer);
+		procedure SetOffsetY    (Value: Integer);
+	public
+		constructor Create(AOwner: ThKnob);
+		destructor  Destroy; override;
+
+		function  AddIndicator: TKnobIndicator;
+
+		procedure Changed;
+	published
+		property OnChange:  TNotifyEvent read FOnChange write FOnChange;
+
+		property ExtraIndicators: TIndicators read FExtraIndicators write FExtraIndicators stored True;
+
+		property LineColor:   TColor  read FLineColor   write SetLineColor   stored True;
+		property LineWidth:   Integer read FLineWidth   write SetLineWidth   stored True;
+		property RadiusInner: Integer read FInnerRadius write SetInnerRadius stored True;
+		property RadiusOuter: Integer read FOuterRadius write SetOuterRadius stored True;
+		property OffsetX:     Integer read FOffsetX     write SetOffsetX stored True;
+		property OffsetY:     Integer read FOffsetY     write SetOffsetY stored True;
+
+		property Default:   TColor read FDefault   write FDefault   stored True;
+		property Focused:   TColor read FFocused   write FFocused   stored True;
+		property Unfocused: TColor read FUnfocused write FUnfocused stored True;
+		property Changing:  TColor read FChanging  write FChanging  stored True;
+		property Hovered:   TColor read FHovered   write FHovered   stored True;
+		property Disabled:  TColor read FDisabled  write FDisabled  stored True;
 	end;
 
 	ThKnob = class(TBGRAGraphicCtrl)
 	private
-		Buffer: TBGRABitmap;
+		Buffer:   TBGRABitmap;
 		FDrawing: Boolean;
-		FKnobColor: TColor;			{ Knob color }
-		FBorderColor: TColor; 		{ Knob border color }
-		FBorderWidth: Integer; 		{ Knob border width }
+
+		FKnob:       TKnobBase;
+		FIndicators: TKnobIndicators;
+		FIndicator:  TKnobIndicator;
 		FMin: Integer;				{ Minimum value }
 		FMax: Integer;				{ Maximum value }
 		FSnap: Integer;				{ Snap threshold (in pixels) }
@@ -83,15 +169,13 @@ type
 		FSteps: Integer;			{ Number of steps from Min to Max }
 		FSmallChange: Integer;		{ Smallchange }
 		FAngleInterval: Single;		{ The angle each step represents }
-		FAngle: Integer;			{ The current angle of the indicator }
 		FMouseAngle: Integer;		{ The current mouse 'angle' over the knob }
 		FArc: Word;
 		FDragging: Boolean;			{ Knob position is being 'changed' }
 		FSensitivity: Integer;		{ Movement area when fVerticalMove }
 		FMultiplier: Integer;		{ Multiplier for integer/float conversion }
 		FCursorHide: Boolean;		{ Hide mouse pointer when fVerticalMove? }
-		FIndicator: TKnobLineProperty;
-		FIndicatorState: TKnobLineSubProperty;
+
 		FOnChange: TNotifyEvent;
 
 		MouseOrigX: Integer;		{ when fVerticalMove }
@@ -104,15 +188,12 @@ type
 		procedure SetPosition(const NewPosition: Integer);
 		procedure SetParams(APosition, AMin, AMax: Integer);
 		procedure SetSteps;
-		procedure CalcAngle;
+		function  CalcAngle(APosition: Integer): Integer;
 		function  CalcPosition(TheAngle: Integer): Integer;
 
 		procedure SetPositionLabel(const NewLabel: TLabel);
 		procedure ShowPosition(const ThePosition: Integer); overload;
 		procedure SetSpringLoaded(const Sprung: Boolean);
-		procedure SetKnobColor(NewColor: TColor);
-		procedure SetBorderColor(NewColor: TColor);
-		procedure SetBorderWidth(NewWidth: Integer);
 
 		{Windows Messages}
 		{procedure WMMove(var Msg: TLMMove);             message LM_MOVE;
@@ -141,13 +222,16 @@ type
 		procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
 		//procedure KeyDown(var Key: Word; Shift: TShiftState); override;
 		procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-		procedure IndicatorChanged(Sender: TObject);
 	public
 		constructor Create(AOwner: TComponent); override;
 		destructor  Destroy; override;
 
 		procedure ShowPosition; overload;
+		function  GetExtraIndicator(Index: Integer): TKnobIndicator;
 	published
+		property Knob:       TKnobBase       read FKnob       write FKnob        stored True;
+		property Indicators: TKnobIndicators read FIndicators write FIndicators  stored True;
+		//property ExtraIndicators
 		property Anchors;
 		property ParentShowHint;
 		property ShowHint;
@@ -156,10 +240,6 @@ type
 		property SmallChange: Integer read FSmallChange write FSmallChange default 1;
 		property Caption;
 		property Arc: Word read FArc write SetArc;
-		property Indicator: TKnobLineProperty read FIndicator write FIndicator;
-		property KnobColor: TColor read FKnobColor write SetKnobColor default clBlack;
-		property BorderColor: TColor read FBorderColor write SetBorderColor default clNone;
-		property BorderWidth: Integer read FBorderWidth write SetBorderWidth default 2;
 		property Position: Integer read FPosition write SetPosition default 50;
 		property FloatPosition: Single read GetFloatPosition write SetFloatPosition;
 		property PageSize: Word read FPageSize write FPageSize default 10;
@@ -204,108 +284,6 @@ begin
 	RegisterComponents('Decks', [ThKnob]);
 end;
 
-(*********************************)
-(***   TKnobLineSubProperty    ***)
-(*********************************)
-
-procedure TKnobLineSubProperty.Changed;
-begin
-	if Assigned(FOnChange) then FOnChange(Self);
-end;
-
-procedure TKnobLineSubProperty.SetLineColor(const Value: TColor);
-begin
-	if Value <> FLineColor then
-	begin
-		FLineColor := Value;
-		Changed;
-	end;
-end;
-
-(******************************)
-(***   TKnobLineProperty    ***)
-(******************************)
-
-constructor TKnobLineProperty.Create(AOwner: TObject);
-begin
-	inherited Create;
-	FOwner := AOwner;
-	FActive := TKnobLineSubProperty.Create;
-	FActive.OnChange := StyleChanged;
-	//FInactive := TKnobLineSubProperty.Create;
-	//FInactive.OnChange := StyleChanged;
-	FDisabled := TKnobLineSubProperty.Create;
-	FDisabled.OnChange := StyleChanged;
-	FHovered := TKnobLineSubProperty.Create;
-	FHovered.OnChange := StyleChanged;
-	FIndicatorInnerpos := 14;
-	FIndicatorOuterpos := 3;
-end;
-
-destructor TKnobLineProperty.Destroy;
-begin
-	inherited;
-end;
-
-procedure TKnobLineProperty.StyleChanged(Sender: TObject);
-begin
-	Changed;
-end;
-
-procedure TKnobLineProperty.Changed;
-begin
-	if Assigned(FOnChange) then FOnChange(Self);
-end;
-
-procedure TKnobLineProperty.SetLineWidth(const Value: Integer);
-begin
-	if Value <> FLineWidth then
-	begin
-		FLineWidth := Value;
-		Changed;
-	end;
-end;
-
-procedure TKnobLineProperty.SetInnerRadius(Value: Integer);
-begin
-	if Value <> FIndicatorInnerpos then
-	begin
-		FIndicatorInnerpos := Value;
-		Changed;
-	end;
-end;
-
-procedure TKnobLineProperty.SetOuterRadius(Value: Integer);
-begin
-	if Value <> FIndicatorOuterpos then
-	begin
-		FIndicatorOuterpos := Value;
-		Changed;
-	end;
-end;
-
-procedure TKnobLineProperty.SetOffsetX(Value: Integer);
-begin
-	if Value <> FOffsetX then
-	begin
-		FOffsetX := Value;
-		Changed;
-	end;
-end;
-
-procedure TKnobLineProperty.SetOffsetY(Value: Integer);
-begin
-	if Value <> FOffsetY then
-	begin
-		FOffsetY := Value;
-		Changed;
-	end;
-end;
-
-(***********************)
-(***      ThKnob     ***)
-(***********************)
-
 constructor ThKnob.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
@@ -324,73 +302,28 @@ begin
 	//TabStop := True;
 	MouseOrigY := 0;
 
-	FKnobColor := clNone;
-	FBorderColor := clGray;
-	FBorderWidth := 3;
-	FIndicator := TKnobLineProperty.Create(Self);
-	with FIndicator do
-	begin
-		OnChange := IndicatorChanged;
+	FKnob := TKnobBase.Create(Self);
+	FIndicators := TKnobIndicators.Create(Self);
 
-		FLineWidth := 5;
-		FIndicatorInnerpos := 14;
-		FIndicatorOuterPos := 2;
+	FIndicator := TKnobIndicator.Create(nil);
 
-		Normal.FLineColor   := clSilver;
-		//Inactive.FLineColor := clWhite;
-		Disabled.FLineColor := clGray;
-		Hovered.FLineColor  := clWhite;
-	end;
-	FIndicatorState := FIndicator.Normal;
+	FIndicator.FLineColor := FIndicators.FDefault;
+	FIndicator.FVisible := True;
+
 	// ControlStyle := ControlStyle - [csOpaque];
-
 	Buffer := TBGRABitmap.Create(ClientWidth, ClientHeight);
 
 	SetSteps;
-	CalcAngle;
 end;
 
 destructor ThKnob.Destroy;
 begin
-	FIndicator.FActive.Free;
-	//FIndicator.FInactive.Free;
-	FIndicator.FDisabled.Free;
-	FIndicator.FHovered.Free;
+	FKnob.Free;
+	FIndicators.Free;
 	FIndicator.Free;
 	Buffer.Free;
+
 	inherited Destroy;
-end;
-
-procedure ThKnob.IndicatorChanged(Sender: TObject);
-begin
-	Invalidate;
-end;
-
-procedure ThKnob.SetKnobColor(NewColor : TColor);
-begin
-	if (FKnobColor <> NewColor) then
-	begin
-		FKnobColor := NewColor;
-		Invalidate;
-	end;
-end;
-
-procedure ThKnob.SetBorderColor(NewColor: TColor);
-begin
-	if (FBorderColor <> NewColor) then
-	begin
-		FBorderColor := NewColor;
-		Invalidate;
-	end;
-end;
-
-procedure ThKnob.SetBorderWidth(NewWidth: Integer);
-begin
-	if (FBorderWidth <> NewWidth) then
-	begin
-		FBorderWidth := NewWidth;
-		Invalidate;
-	end;
 end;
 
 procedure ThKnob.SetPositionLabel(const NewLabel: TLabel);
@@ -414,7 +347,7 @@ end;
 
 procedure ThKnob.SetPosition(const NewPosition: Integer);
 begin
-	if Position <> NewPosition then
+	if FPosition <> NewPosition then
 		SetParams(NewPosition, FMin, FMax);
 end;
 
@@ -466,41 +399,40 @@ begin
 	begin
 		FArc := Value;
 		SetSteps;
-		CalcAngle;
 		Invalidate;
 	end;
 end;
 
-{Calculate characteristics of knob when Position, Max or Min are changed}
+// Calculate characteristics of knob when Position, Max or Min are changed
 procedure ThKnob.SetParams(APosition, AMin, AMax: Integer);
 begin
-	if (fMin <> AMin) then {Min has Changed}
+	if FMin <> AMin then
 	begin
-		fMin := AMin;
-		SetSteps;	  {updates fSteps and fAngleInterval}
+		FMin := AMin;
+		SetSteps; // updates FSteps and FAngleInterval
 	end;
-	if (fMax <> AMax) then
+	if FMax <> AMax then
 	begin
-		fMax := AMax;
-		SetSteps;	  {updates fSteps and fAngleInterval}
+		FMax := AMax;
+		SetSteps; // updates FSteps and FAngleInterval
 	end;
-	if fAngleInterval >= 0 then {Max is greater than Min}
+	if FAngleInterval >= 0 then // Max is greater than Min
 	begin
 		APosition := EnsureRange(APosition, AMin, AMax);
 	end else
-	begin						 {Min is Greater than Max}
+	begin						// Min is Greater than Max
 		if APosition > AMin then APosition := AMax;
 		if APosition < AMax then APosition := AMin;
 	end;
-	if fPosition <> APosition then fPosition := APosition;
+	if FPosition <> APosition then FPosition := APosition;
+	FIndicator.FPosition := FPosition;
 
-	CalcAngle;					{Set fAngle}
-	ShowPosition(fPosition);	{Update the PositionLabel caption}
+	ShowPosition(FPosition); // update the PositionLabel caption
 	Invalidate;
 
-	{Fire the OnChange event if not in Designing state}
-	if (Assigned(fOnChange)) and not (csDesigning in ComponentState) then
-		fOnChange(Self);
+	// fire the OnChange event if not in Designing state
+	if (Assigned(FOnChange)) and not (csDesigning in ComponentState) then
+		FOnChange(Self);
 end;
 
 {If the PositionLabel is removed then point it to nil }
@@ -586,7 +518,7 @@ begin
 	MouseEnter;
 	if Enabled then
 	begin
-		FIndicatorState := FIndicator.Hovered;
+		FIndicator.FLineColor := FIndicators.FHovered;
 		Invalidate;
 	end;
 end;
@@ -599,9 +531,9 @@ begin
 	if Enabled then
 	begin
 		//if Focused then
-			FIndicatorState := FIndicator.FActive;
+			FIndicator.FLineColor := FIndicators.FDefault;
 		//else
-		//	FIndicatorState := FIndicator.FInactive;
+		//	FIndicatorColor := @FIndicator.FInactive;
 		Invalidate;
 	end;
 	inherited;
@@ -610,9 +542,9 @@ end;
 procedure ThKnob.CMEnabledChanged(var Msg: TLMessage);
 begin
 	if not Enabled then
-		FIndicatorState := FIndicator.Disabled
+		FIndicator.FLineColor := FIndicators.FDisabled
 	else
-		FIndicatorState := FIndicator.Normal;
+		FIndicator.FLineColor := FIndicators.FDefault;
 	if PositionLabel <> nil then
 		PositionLabel.Enabled := Enabled;
 	Invalidate;
@@ -793,9 +725,9 @@ begin
 end;
 
 {Calculate fAngle based on fMin, fPosition and fAngleInterval}
-procedure ThKnob.CalcAngle;
+function ThKnob.CalcAngle(APosition: Integer): Integer;
 begin
-	fAngle := (180+FArc) - Round((fPosition - fMin) * fAngleInterval);
+	Result := (180 + FArc) - Round((APosition - FMin) * FAngleInterval);
 end;
 
 {Calculate fPosition based on fMin, fMax, Angle parameter and fAngleInterval}
@@ -838,7 +770,28 @@ end;
 
 procedure ThKnob.Draw;
 var
-	Radius, AngleInRadians, CosAngle, SinAngle: Single;
+	Radius: Single;
+
+	procedure DrawIndicator(const Ind: TKnobIndicator);
+	var
+		AngleInRadians, CosAngle, SinAngle: Single;
+	begin
+		if (Ind = nil) or (not Ind.FVisible) or
+			(Ind.FLineWidth <= 0) or (Ind.FLineColor = clNone) then Exit;
+
+		AngleInRadians := CalcAngle(Ind.FPosition) * Pi / 180;
+		CosAngle := Cos(AngleInRadians);
+		SinAngle := Sin(AngleInRadians);
+		Buffer.DrawLineAntialias(
+			Radius + ((Radius-Ind.FOuterRadius) * CosAngle) + FIndicators.FOffsetX,
+			Radius - ((Radius-Ind.FOuterRadius) * SinAngle) + FIndicators.FOffsetY,
+			Radius + ((Radius-Ind.FInnerRadius) * CosAngle) + FIndicators.FOffsetX,
+			Radius - ((Radius-Ind.FInnerRadius) * SinAngle) + FIndicators.FOffsetY,
+			ColorToBGRA(Ind.FLineColor), Ind.FLineWidth);
+	end;
+
+var
+	i: Integer;
 	Save: Boolean;
 	FillColor: TBGRAPixel;
 begin
@@ -846,40 +799,32 @@ begin
 	FDrawing := True;
 
 	Radius := (ClientWidth-1) / 2; //(Math.Min(ClientWidth, ClientHeight) - 1) / 2;
-	AngleInRadians := FAngle * Pi / 180;
-	CosAngle := Cos(AngleInRadians);
-	SinAngle := Sin(AngleInRadians);
 
 	Buffer.Fill(BGRAPixelTransparent);
 
-	if FKnobColor = clNone then
+	if FKnob.FFillColor = clNone then
 		FillColor := BGRAPixelTransparent
 	else
-		FillColor := ColorToBGRA(FKnobColor);
+		FillColor := ColorToBGRA(FKnob.FFillColor);
 
-	if (FBorderWidth < 1) or (FBorderColor = clNone) then
+	if (FKnob.FBorderWidth < 1) or (FKnob.FBorderColor = clNone) then
 	begin
-		Buffer.FillEllipseAntialias(Radius, Radius, Radius, Radius,
-			FillColor);
-		if FBorderColor <> clNone then
+		Buffer.FillEllipseAntialias(Radius, Radius, Radius, Radius, FillColor);
+		if FKnob.FBorderColor <> clNone then
 			Buffer.EllipseAntialias(Radius, Radius, Radius, Radius,
-				ColorToBGRA(FBorderColor), FBorderWidth);
+				ColorToBGRA(FKnob.FBorderColor), FKnob.FBorderWidth);
 	end
 	else
-		Buffer.Arc(Radius, Radius, Radius-FBorderWidth, Radius-FBorderWidth,
+	begin
+		Buffer.Arc(Radius, Radius, Radius-FKnob.FBorderWidth, Radius-FKnob.FBorderWidth,
 			DegToRad(0-FArc), DegToRad(180+FArc),
-			ColorToBGRA(FBorderColor),
-			FBorderWidth, False,
-			FillColor);
+			ColorToBGRA(FKnob.FBorderColor),
+			FKnob.FBorderWidth, False, FillColor);
+	end;
 
-	if FIndicator.FLineWidth > 0 then
-		Buffer.DrawLineAntialias(
-			Radius + ((Radius-FIndicator.FIndicatorOuterPos)*CosAngle) + FIndicator.FOffsetX,
-			Radius - ((Radius-FIndicator.FIndicatorOuterPos)*SinAngle) + FIndicator.FOffsetY,
-			Radius + ((Radius-FIndicator.FIndicatorInnerPos)*CosAngle) + FIndicator.FOffsetX,
-			Radius - ((Radius-FIndicator.FIndicatorInnerPos)*SinAngle) + FIndicator.FOffsetY,
-			ColorToBGRA(FIndicatorState.FLineColor),
-			FIndicator.FLineWidth);
+	for i := 0 to Indicators.ExtraIndicators.Count-1 do
+		DrawIndicator(Indicators.ExtraIndicators.Items[i]);
+	DrawIndicator(FIndicator);
 
 	Buffer.Draw(Canvas, 0, 0, False);
 	FDrawing := Save;
@@ -897,6 +842,282 @@ begin
 	ShowPosition(FPosition);
 end;
 
+function ThKnob.GetExtraIndicator(Index: Integer): TKnobIndicator;
+var
+	C: Integer;
+begin
+	C := Indicators.ExtraIndicators.Count;
+	if Index < 0 then Index := C-1;
+	if (C > 0) and (Index >= 0) and (Index < C) then
+		Result := Indicators.ExtraIndicators.Items[Index]
+	else
+		Result := Indicators.FDummy;
+end;
+
+// ======================================================================================
+// TKnobBase
+// ======================================================================================
+
+constructor TKnobBase.Create(AOwner: ThKnob);
+begin
+	inherited Create;
+
+	FOwner := AOwner;
+	FBorderColor := clGray;
+	FBorderWidth := 3;
+	FFillColor   := clNone;
+end;
+
+procedure TKnobBase.Changed;
+begin
+	if FOwner <> nil then FOwner.Changed;
+end;
+
+procedure TKnobBase.SetFillColor(NewColor: TColor);
+begin
+	if FFillColor <> NewColor then
+	begin
+		FFillColor := NewColor;
+		Changed;
+	end;
+end;
+
+procedure TKnobBase.SetBorderColor(NewColor: TColor);
+begin
+	if FBorderColor <> NewColor then
+	begin
+		FBorderColor := NewColor;
+		Changed;
+	end;
+end;
+
+procedure TKnobBase.SetBorderWidth(NewWidth: Integer);
+begin
+	if FBorderWidth <> NewWidth then
+	begin
+		FBorderWidth := NewWidth;
+		Changed;
+	end;
+end;
+
+// ======================================================================================
+// TKnobIndicators
+// ======================================================================================
+
+constructor TKnobIndicators.Create(AOwner: ThKnob);
+begin
+	inherited Create;
+
+	FOwner := AOwner;
+	FExtraIndicators := TIndicators.Create(AOwner);
+
+	FDummy     := TKnobIndicator.Create(nil);
+	FDummy.FKnob := AOwner;
+
+	FDefault   := clSilver;
+	FFocused   := clWhite;
+	FUnfocused := clSilver;
+	FDisabled  := clGray;
+	FHovered   := clWhite;
+end;
+
+destructor TKnobIndicators.Destroy;
+begin
+	FExtraIndicators.Free;
+	FDummy.Free;
+
+	inherited Destroy;
+end;
+
+function TKnobIndicators.AddIndicator: TKnobIndicator;
+begin
+	Result := FExtraIndicators.Add;
+	if Result <> nil then
+	with Result do
+	begin
+		FKnob        := Self.FOwner;
+		FLineColor   := clGray;
+		FLineWidth   := 4;
+		FInnerRadius := 14;
+		FOuterRadius := 2;
+		FPosition    := Result.FOwner.FKnob.Position;
+	end;
+end;
+
+procedure TKnobIndicators.Changed;
+begin
+	if (FOwner <> nil) and (FOwner.FIndicator <> nil) then
+	begin
+		FOwner.FIndicator.FLineColor   := FLineColor;
+		FOwner.FIndicator.FLineWidth   := FLineWidth;
+		FOwner.FIndicator.FInnerRadius := FInnerRadius;
+		FOwner.FIndicator.FOuterRadius := FOuterRadius;
+	end;
+	if Assigned(FOnChange) then FOnChange(Self);
+	FOwner.Invalidate;
+end;
+
+procedure TKnobIndicators.SetLineColor(Value: TColor);
+begin
+	if Value <> FLineColor then
+	begin
+		FLineColor := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicators.SetLineWidth(Value: Integer);
+begin
+	if Value <> FLineWidth then
+	begin
+		FLineWidth := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicators.SetInnerRadius(Value: Integer);
+begin
+	if Value <> FInnerRadius then
+	begin
+		FInnerRadius := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicators.SetOuterRadius(Value: Integer);
+begin
+	if Value <> FOuterRadius then
+	begin
+		FOuterRadius := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicators.SetOffsetX(Value: Integer);
+begin
+	if Value <> FOffsetX then
+	begin
+		FOffsetX := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicators.SetOffsetY(Value: Integer);
+begin
+	if Value <> FOffsetY then
+	begin
+		FOffsetY := Value;
+		Changed;
+	end;
+end;
+
+// ======================================================================================
+// TIndicators
+// ======================================================================================
+
+constructor TIndicators.Create(AOwner: ThKnob);
+begin
+	inherited Create(AOwner, TKnobIndicator);
+	FKnob := AOwner;
+end;
+
+function TIndicators.Add: TKnobIndicator;
+begin
+	Result := TKnobIndicator(inherited Add);
+end;
+
+procedure TIndicators.Changed;
+begin
+	inherited Changed;
+	if FKnob <> nil then
+		FKnob.Invalidate;
+end;
+
+function TIndicators.GetItem(Index: Integer): TKnobIndicator;
+begin
+	Result := TKnobIndicator(inherited GetItem(Index));
+end;
+
+procedure TIndicators.SetItem(Index: Integer; const Value: TKnobIndicator);
+begin
+	inherited SetItem(Index, Value);
+end;
+
+// ======================================================================================
+// TKnobIndicator
+// ======================================================================================
+
+constructor TKnobIndicator.Create(AOwner: TCollection);
+begin
+	inherited Create(AOwner);
+
+	FOwner       := TIndicators(AOwner);
+	FVisible     := True;
+	FPosition    := 0;
+	FLineColor   := clGray;
+	FLineWidth   := 3;
+	FInnerRadius := 4;
+	FOuterRadius := 14;
+end;
+
+procedure TKnobIndicator.Changed;
+begin
+	if FOwner <> nil then FOwner.Changed;
+end;
+
+procedure TKnobIndicator.SetLineColor(Value: TColor);
+begin
+	if Value <> FLineColor then
+	begin
+		FLineColor := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicator.SetLineWidth(Value: Integer);
+begin
+	if Value <> FLineWidth then
+	begin
+		FLineWidth := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicator.SetInnerRadius(Value: Integer);
+begin
+	if Value <> FInnerRadius then
+	begin
+		FInnerRadius := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicator.SetOuterRadius(Value: Integer);
+begin
+	if Value <> FOuterRadius then
+	begin
+		FOuterRadius := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicator.SetVisible(Value: Boolean);
+begin
+	if FVisible <> Value then
+	begin
+		FVisible := Value;
+		Changed;
+	end;
+end;
+
+procedure TKnobIndicator.SetPosition(Value: Integer);
+begin
+	if FPosition <> Value then
+	begin
+		FPosition := Value;
+		Changed;
+	end;
+end;
 
 end.
 

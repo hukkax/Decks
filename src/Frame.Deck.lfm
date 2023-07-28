@@ -461,25 +461,37 @@ object DeckFrame: TDeckFrame
       Hint = 'Amplification'
       Top = 30
       Width = 46
+      Knob.FillColor = clNone
+      Knob.BorderColor = clGray
+      Knob.BorderWidth = 3
+      Indicators.ExtraIndicators = <      
+        item
+          Visible = True
+          Position = 0
+          LineColor = clWhite
+          LineWidth = 5
+          RadiusInner = 4
+          RadiusOuter = 4
+        end>
+      Indicators.LineColor = clSilver
+      Indicators.LineWidth = 4
+      Indicators.RadiusInner = 4
+      Indicators.RadiusOuter = 15
+      Indicators.OffsetX = 0
+      Indicators.OffsetY = 0
+      Indicators.Default = clSilver
+      Indicators.Focused = clWhite
+      Indicators.Unfocused = clSilver
+      Indicators.Changing = clWhite
+      Indicators.Hovered = clWhite
+      Indicators.Disabled = clGray
       Anchors = [akLeft, akBottom]
       Max = 200
       SmallChange = 0
       Caption = 'SliderFxParam0'
       Arc = 1
-      Indicator.Normal.LineColor = clSilver
-      Indicator.Hovered.LineColor = clWhite
-      Indicator.Disabled.LineColor = clGray
-      Indicator.LineWidth = 5
-      Indicator.RadiusInner = 14
-      Indicator.RadiusOuter = 2
-      Indicator.OffsetX = 0
-      Indicator.OffsetY = 0
-      KnobColor = clNone
-      BorderColor = clGray
-      BorderWidth = 3
       Position = 100
       FloatPosition = 100
-      PageSize = 0
       OnChange = SliderFxParam0Change
       OnMouseEnter = SliderFxParam0MouseEnter
       OnMouseLeave = SliderFxParam0MouseLeave
@@ -491,25 +503,37 @@ object DeckFrame: TDeckFrame
       Hint = 'Amplification'
       Top = 30
       Width = 46
+      Knob.FillColor = clNone
+      Knob.BorderColor = clGray
+      Knob.BorderWidth = 3
+      Indicators.ExtraIndicators = <      
+        item
+          Visible = True
+          Position = 0
+          LineColor = clWhite
+          LineWidth = 5
+          RadiusInner = 4
+          RadiusOuter = 4
+        end>
+      Indicators.LineColor = clSilver
+      Indicators.LineWidth = 4
+      Indicators.RadiusInner = 4
+      Indicators.RadiusOuter = 15
+      Indicators.OffsetX = 0
+      Indicators.OffsetY = 0
+      Indicators.Default = clSilver
+      Indicators.Focused = clWhite
+      Indicators.Unfocused = clSilver
+      Indicators.Changing = clWhite
+      Indicators.Hovered = clWhite
+      Indicators.Disabled = clGray
       Anchors = [akLeft, akBottom]
       Max = 200
       SmallChange = 0
       Caption = 'SliderFxParam1'
       Arc = 1
-      Indicator.Normal.LineColor = clSilver
-      Indicator.Hovered.LineColor = clWhite
-      Indicator.Disabled.LineColor = clGray
-      Indicator.LineWidth = 5
-      Indicator.RadiusInner = 14
-      Indicator.RadiusOuter = 2
-      Indicator.OffsetX = 0
-      Indicator.OffsetY = 0
-      KnobColor = clNone
-      BorderColor = clGray
-      BorderWidth = 3
       Position = 100
       FloatPosition = 100
-      PageSize = 0
     end
     object SliderFxParam2: ThKnob
       Tag = 2
@@ -518,25 +542,37 @@ object DeckFrame: TDeckFrame
       Hint = 'Amplification'
       Top = 30
       Width = 46
+      Knob.FillColor = clNone
+      Knob.BorderColor = clGray
+      Knob.BorderWidth = 3
+      Indicators.ExtraIndicators = <      
+        item
+          Visible = True
+          Position = 0
+          LineColor = clWhite
+          LineWidth = 5
+          RadiusInner = 4
+          RadiusOuter = 4
+        end>
+      Indicators.LineColor = clSilver
+      Indicators.LineWidth = 4
+      Indicators.RadiusInner = 4
+      Indicators.RadiusOuter = 15
+      Indicators.OffsetX = 0
+      Indicators.OffsetY = 0
+      Indicators.Default = clSilver
+      Indicators.Focused = clWhite
+      Indicators.Unfocused = clSilver
+      Indicators.Changing = clWhite
+      Indicators.Hovered = clWhite
+      Indicators.Disabled = clGray
       Anchors = [akLeft, akBottom]
       Max = 200
       SmallChange = 0
       Caption = 'SliderFxParam2'
       Arc = 1
-      Indicator.Normal.LineColor = clSilver
-      Indicator.Hovered.LineColor = clWhite
-      Indicator.Disabled.LineColor = clGray
-      Indicator.LineWidth = 5
-      Indicator.RadiusInner = 14
-      Indicator.RadiusOuter = 2
-      Indicator.OffsetX = 0
-      Indicator.OffsetY = 0
-      KnobColor = clNone
-      BorderColor = clGray
-      BorderWidth = 3
       Position = 100
       FloatPosition = 100
-      PageSize = 0
     end
     object SliderFxParam3: ThKnob
       Tag = 3
@@ -545,25 +581,37 @@ object DeckFrame: TDeckFrame
       Hint = 'Amplification'
       Top = 30
       Width = 46
+      Knob.FillColor = clNone
+      Knob.BorderColor = clGray
+      Knob.BorderWidth = 3
+      Indicators.ExtraIndicators = <      
+        item
+          Visible = True
+          Position = 0
+          LineColor = clWhite
+          LineWidth = 5
+          RadiusInner = 4
+          RadiusOuter = 4
+        end>
+      Indicators.LineColor = clSilver
+      Indicators.LineWidth = 4
+      Indicators.RadiusInner = 4
+      Indicators.RadiusOuter = 15
+      Indicators.OffsetX = 0
+      Indicators.OffsetY = 0
+      Indicators.Default = clSilver
+      Indicators.Focused = clWhite
+      Indicators.Unfocused = clSilver
+      Indicators.Changing = clWhite
+      Indicators.Hovered = clWhite
+      Indicators.Disabled = clGray
       Anchors = [akLeft, akBottom]
       Max = 200
       SmallChange = 0
       Caption = 'SliderFxParam3'
       Arc = 1
-      Indicator.Normal.LineColor = clSilver
-      Indicator.Hovered.LineColor = clWhite
-      Indicator.Disabled.LineColor = clGray
-      Indicator.LineWidth = 5
-      Indicator.RadiusInner = 14
-      Indicator.RadiusOuter = 2
-      Indicator.OffsetX = 0
-      Indicator.OffsetY = 0
-      KnobColor = clNone
-      BorderColor = clGray
-      BorderWidth = 3
       Position = 100
       FloatPosition = 100
-      PageSize = 0
     end
     object SliderFxParam4: ThKnob
       Tag = 4
@@ -572,25 +620,37 @@ object DeckFrame: TDeckFrame
       Hint = 'Amplification'
       Top = 30
       Width = 46
+      Knob.FillColor = clNone
+      Knob.BorderColor = clGray
+      Knob.BorderWidth = 3
+      Indicators.ExtraIndicators = <      
+        item
+          Visible = True
+          Position = 0
+          LineColor = clWhite
+          LineWidth = 5
+          RadiusInner = 4
+          RadiusOuter = 4
+        end>
+      Indicators.LineColor = clSilver
+      Indicators.LineWidth = 4
+      Indicators.RadiusInner = 4
+      Indicators.RadiusOuter = 15
+      Indicators.OffsetX = 0
+      Indicators.OffsetY = 0
+      Indicators.Default = clSilver
+      Indicators.Focused = clWhite
+      Indicators.Unfocused = clSilver
+      Indicators.Changing = clWhite
+      Indicators.Hovered = clWhite
+      Indicators.Disabled = clGray
       Anchors = [akLeft, akBottom]
       Max = 200
       SmallChange = 0
       Caption = 'SliderFxParam4'
       Arc = 1
-      Indicator.Normal.LineColor = clSilver
-      Indicator.Hovered.LineColor = clWhite
-      Indicator.Disabled.LineColor = clGray
-      Indicator.LineWidth = 5
-      Indicator.RadiusInner = 14
-      Indicator.RadiusOuter = 2
-      Indicator.OffsetX = 0
-      Indicator.OffsetY = 0
-      KnobColor = clNone
-      BorderColor = clGray
-      BorderWidth = 3
       Position = 100
       FloatPosition = 100
-      PageSize = 0
     end
     object SliderFxParam5: ThKnob
       Tag = 5
@@ -599,25 +659,37 @@ object DeckFrame: TDeckFrame
       Hint = 'Amplification'
       Top = 30
       Width = 46
+      Knob.FillColor = clNone
+      Knob.BorderColor = clGray
+      Knob.BorderWidth = 3
+      Indicators.ExtraIndicators = <      
+        item
+          Visible = True
+          Position = 0
+          LineColor = clWhite
+          LineWidth = 5
+          RadiusInner = 4
+          RadiusOuter = 4
+        end>
+      Indicators.LineColor = clSilver
+      Indicators.LineWidth = 4
+      Indicators.RadiusInner = 4
+      Indicators.RadiusOuter = 15
+      Indicators.OffsetX = 0
+      Indicators.OffsetY = 0
+      Indicators.Default = clSilver
+      Indicators.Focused = clWhite
+      Indicators.Unfocused = clSilver
+      Indicators.Changing = clWhite
+      Indicators.Hovered = clWhite
+      Indicators.Disabled = clGray
       Anchors = [akLeft, akBottom]
       Max = 200
       SmallChange = 0
       Caption = 'SliderFxParam5'
       Arc = 1
-      Indicator.Normal.LineColor = clSilver
-      Indicator.Hovered.LineColor = clWhite
-      Indicator.Disabled.LineColor = clGray
-      Indicator.LineWidth = 5
-      Indicator.RadiusInner = 14
-      Indicator.RadiusOuter = 2
-      Indicator.OffsetX = 0
-      Indicator.OffsetY = 0
-      KnobColor = clNone
-      BorderColor = clGray
-      BorderWidth = 3
       Position = 100
       FloatPosition = 100
-      PageSize = 0
     end
     object bStoreFx: TDecksButton
       Left = 533
@@ -1477,28 +1549,50 @@ object DeckFrame: TDeckFrame
     object SliderAmp: ThKnob
       Left = 511
       Height = 53
-      Hint = 'Amplification'
+      Hint = 'Gain'
       Top = 4
       Width = 63
+      Knob.FillColor = clNone
+      Knob.BorderColor = clGray
+      Knob.BorderWidth = 3
+      Indicators.ExtraIndicators = <      
+        item
+          Visible = True
+          Position = 100
+          LineColor = 6806010
+          LineWidth = 6
+          RadiusInner = 10
+          RadiusOuter = 10
+        end      
+        item
+          Visible = False
+          Position = 0
+          LineColor = 8943445
+          LineWidth = 4
+          RadiusInner = 5
+          RadiusOuter = 14
+        end>
+      Indicators.LineColor = clSilver
+      Indicators.LineWidth = 4
+      Indicators.RadiusInner = 4
+      Indicators.RadiusOuter = 16
+      Indicators.OffsetX = 0
+      Indicators.OffsetY = 0
+      Indicators.Default = clSilver
+      Indicators.Focused = clWhite
+      Indicators.Unfocused = clSilver
+      Indicators.Changing = clWhite
+      Indicators.Hovered = clWhite
+      Indicators.Disabled = clGray
       Anchors = [akTop, akRight]
       Max = 200
       SmallChange = 0
       Caption = 'SliderAmp'
       Arc = 40
-      Indicator.Normal.LineColor = clSilver
-      Indicator.Hovered.LineColor = clWhite
-      Indicator.Disabled.LineColor = clGray
-      Indicator.LineWidth = 5
-      Indicator.RadiusInner = 14
-      Indicator.RadiusOuter = 2
-      Indicator.OffsetX = 0
-      Indicator.OffsetY = 0
-      KnobColor = clNone
-      BorderColor = clGray
-      BorderWidth = 3
       Position = 100
       FloatPosition = 100
-      PageSize = 0
+      PageSize = 15
+      Snap = 11
       OnChange = SliderTempoChange
     end
     object bSync: TDecksButton

@@ -555,7 +555,7 @@ begin
 
 		MODE_EQ_KILL_ON, MODE_EQ_KILL_OFF:
 		begin
-			EQControls[Num, EQ_BAND_LOW].BorderColor :=
+			EQControls[Num, EQ_BAND_LOW].Knob.BorderColor :=
 				IfThen(Event = MODE_EQ_KILL_ON, MixerPanel.Color, $00727578);
 			MIDI.SetLed(MIXER_EQ_KILL, B, Event = MODE_EQ_KILL_ON);
 		end;
@@ -2233,13 +2233,13 @@ begin
 		S := Sender as ThKnob;
 		D := IfThen(S.Left > MixerPanel.ClientWidth div 2, 2, 1);
 		if S.Position = 0 then
-			S.BorderColor := $727578
+			S.Knob.BorderColor := $727578
 		else
 		if S.Position < 0 then
-			S.BorderColor := clMaroon
+			S.Knob.BorderColor := clMaroon
 		else
 		if S.Position > 0 then
-			S.BorderColor := clGreen;
+			S.Knob.BorderColor := clGreen;
 		MixerDeck[D].EQ[TEQBand(S.Tag)] := S.Position / 100;
 		MixerDeck[D].Apply;
 	end;
