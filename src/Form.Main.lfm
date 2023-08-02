@@ -187,6 +187,7 @@ object MainForm: TMainForm
         FontEx.Style = [fsBold]
         Rounding.RoundX = 0
         Rounding.RoundY = 0
+        OnMouseDown = lBPMMouseDown
       end
       object sBPM: TDecksGaugeBar
         Left = 320

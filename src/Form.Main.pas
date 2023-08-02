@@ -199,6 +199,8 @@ type
 		procedure ListDirsMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 		procedure eFileFilterChange(Sender: TObject);
 		procedure eFileFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+		procedure lBPMMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -303,7 +305,7 @@ uses
 	BCTypes, BCButton, TeeGenericTree, FocusRectangleUnit,
 	Form.Tracklist,
 	BASS, AudioTag, basetag, file_Wave, file_mp3, file_ogg,
-	Decks.Song, Decks.Beatgraph;
+	Decks.Song, Decks.Beatgraph, Decks.TapTempo;
 
 var
 	TagScanner: TTagScannerJob;
@@ -397,6 +399,8 @@ procedure SetMasterBPM(BPM: Single);
 var
 	Deck: TDeck;
 begin
+	if BPM < 10.0 then Exit;
+
 	MasterBPM := BPM;
 	for Deck in DeckList do
 		Deck.SetBPM(BPM);
@@ -478,42 +482,40 @@ begin
 
 	case Action.Kind of
 
-	DECK_PLAY:			if Pressed then Form.bPlayClick(Self);
-	DECK_CUE:			if (Deck.Paused) or (Deck.Cueing) then //Form.Cue(Pressed)
-							Form.bPlay.SetMouseDown(mbRight, Pressed)
-							else if Pressed then Form.JumpToCue;
-	DECK_SYNC:			Form.bSync.SetMouseDown(mbLeft, Pressed); //if Pressed then Form.SetSynced(not Deck.Synced);
-	DECK_REVERSE:		Deck.SetReverse(Pressed, Deck.Synced);
-	DECK_LOAD:			if Pressed then LoadDeck(DeckNum);
-	DECK_AMP:			Form.SetKnob(Form.SliderAmp, Trunc(((Value) / 128) * 200));
-	DECK_BEND:			{if Pressed then Deck.BendStart(Value > 0, False)
-							else Deck.BendStop;}
-						if Value > 0 then Form.bBendUp.SetMouseDown(mbLeft, Pressed)
-							else Form.bBendDown.SetMouseDown(mbLeft, Pressed);
-	DECK_SEEK:			Form.SetCue(Types.Point(Max(0, Form.GraphCue.X + Value), 0));
+	DECK_PLAY:	if Pressed then Form.bPlayClick(Self);
+	DECK_CUE:	if (Deck.Paused) or (Deck.Cueing) then //Form.Cue(Pressed)
+			Form.bPlay.SetMouseDown(mbRight, Pressed)
+		else if Pressed then Form.JumpToCue;
+	DECK_SYNC:	Form.bSync.SetMouseDown(mbLeft, Pressed); //if Pressed then Form.SetSynced(not Deck.Synced);
+	DECK_REVERSE:	Deck.SetReverse(Pressed, Deck.Synced);
+	DECK_LOAD:	if Pressed then LoadDeck(DeckNum);
+	DECK_AMP:	Form.SetKnob(Form.SliderAmp, Trunc(((Value) / 128) * 200));
+	DECK_BEND:	{if Pressed then Deck.BendStart(Value > 0, False) else Deck.BendStop;}
+		if Value > 0 then Form.bBendUp.SetMouseDown(mbLeft, Pressed)
+			else Form.bBendDown.SetMouseDown(mbLeft, Pressed);
+	DECK_SEEK:	Form.SetCue(Types.Point(Max(0, Form.GraphCue.X + Value), 0));
 
 	MIXER_CROSSFADER:	sFader.Position := Round((Value / 127) * 1000);
-	MIXER_EQ_KILL:		if Pressed then Deck.ToggleEQKill(EQ_BAND_LOW);
+	MIXER_EQ_KILL:	if Pressed then Deck.ToggleEQKill(EQ_BAND_LOW);
 	MIXER_EQ_LOW..
-	MIXER_EQ_HIGH:		if DeckNum > 0 then Form.SetKnob(EQControls[DeckNum, EQBandFrom[Action.Kind]],
-							Trunc(((Value - 64) / 128) * 3000));
-	DECK_FX_FILTER:		if DeckNum > 0 then
-							Form.SliderFxParam0.FloatPosition := ((Value - 64) / 127) * 2;
+	MIXER_EQ_HIGH:	if DeckNum > 0 then
+		Form.SetKnob(EQControls[DeckNum, EQBandFrom[Action.Kind]], Trunc(((Value - 64) / 128) * 3000));
+	DECK_FX_FILTER:	if DeckNum > 0 then Form.SliderFxParam0.FloatPosition := ((Value - 64) / 127) * 2;
 
-	UI_LIST:			if Pressed then SetActiveList(not FileListIsActive); //(Value > 0);
-	UI_SELECT:			if Pressed then ListBrowse(Value);
+	UI_LIST:	if Pressed then SetActiveList(not FileListIsActive); //(Value > 0);
+	UI_SELECT:	if Pressed then ListBrowse(Value);
 	UI_SELECT_TOGGLE:	if Pressed then ListDirs.Selected.Expanded := not ListDirs.Selected.Expanded;
-	UI_SELECT_OPEN:		if Pressed then ListDirsChange(ListDirs, ListDirs.Selected);
+	UI_SELECT_OPEN:	if Pressed then ListDirsChange(ListDirs, ListDirs.Selected);
 
 	UI_SELECT_ENTER:	if not ClickButton(FocusableControls.ActiveControl, Pressed) then
-							if Pressed then FocusableControls.Descend;
-	UI_SELECT_EXIT:		if Pressed then FocusableControls.Ascend;
+			if Pressed then FocusableControls.Descend;
+	UI_SELECT_EXIT:	if Pressed then FocusableControls.Ascend;
 
 	UI_MENU:			; // TODO
 
 	DECK_LOOP,
 	DECK_LOOP_SONG,
-	DECK_LOOP_ZONE:		if Pressed then ClickButton(Form.LoopControls[Action.Kind], Pressed);
+	DECK_LOOP_ZONE:	if Pressed then ClickButton(Form.LoopControls[Action.Kind], Pressed);
 
 	end;
 end;
@@ -763,6 +765,14 @@ begin
 	begin
 		Key := 0;
 		eFileFilter.Text := '';
+	end;
+end;
+
+procedure TMainForm.lBPMMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+	case Button of
+		mbLeft:  SetMasterTempo(TempoTap.Tap);
+		mbRight: TempoTap.Reset;
 	end;
 end;
 
@@ -1815,8 +1825,12 @@ begin
 end;
 
 procedure TMainForm.SetMasterTempo(BPM: Single);
+var
+	NewBPM: Cardinal;
 begin
-	sBPM.Position := Trunc(BPM * 1000);
+	NewBPM := Trunc(BPM * 1000);
+	if NewBPM >= sBPM.Min then
+		sBPM.Position := NewBPM;
 end;
 
 procedure TMainForm.PopupFilePopup(Sender: TObject);
