@@ -6,10 +6,10 @@ unit Decks.TapTempo;
 interface
 
 uses
-	Classes, SysUtils, DateUtils, StdCtrls;
+	Classes, SysUtils, DateUtils;
 
 const
-	TOTAL_TAP_VALUES = 8;
+	TOTAL_TAP_VALUES = 64;
 	MS_UNTIL_CHAIN_RESET = 2000;
 	SKIPPED_TAP_THRESHOLD_LOW  = 1.75;
 	SKIPPED_TAP_THRESHOLD_HIGH = 2.75;
@@ -18,6 +18,7 @@ type
 	TTempoTap = record
 	private
 		BeatMS: Single;
+		ResetTime,
 		LastTapTime: TDateTime;
 		LastTapSkipped: Boolean;
 		TapDurationIndex: Integer;
@@ -44,26 +45,28 @@ uses
 function TTempoTap.GetAverageTapDuration: Single;
 var
 	i, amount: Integer;
-	RunningTotal: Integer = 0;
+	RunningTotal: Cardinal = 0;
 begin
-	amount := Min(TapsInChain-1, Length(TapDurations));
+	amount := Min(TapsInChain, TOTAL_TAP_VALUES);
+	if amount < 1 then Exit(ZeroValue);
 	for i := 0 to amount-1 do
 		Inc(RunningTotal, TapDurations[i]);
-	Result := Math.Floor(RunningTotal / amount);
+	Result := {Math.Floor}(RunningTotal / amount);
 end;
 
 function TTempoTap.DoTap(NowTime: TDateTime): Single;
 var
 	duration: Cardinal;
 begin
-	if TapsInChain < TOTAL_TAP_VALUES then
-		Inc(TapsInChain);
-
-	if TapsInChain = 1 then
+	if NowTime = ResetTime then
 	begin
 		LastTapTime := NowTime;
+		ResetTime := 0;
 		Exit(ZeroValue);
 	end;
+
+	if TapsInChain < TOTAL_TAP_VALUES then
+		Inc(TapsInChain);
 
 	duration := Abs(MilliSecondsBetween(NowTime, LastTapTime));
 
@@ -84,6 +87,7 @@ begin
 		TapDurationIndex := 0;
 
 	LastTapTime := NowTime;
+
 	Result := GetAverageTapDuration;
 end;
 
@@ -102,7 +106,7 @@ begin
 	if NewBeatMS >= 10.0 then
 	begin
 		BeatMS := NewBeatMS;
-		Result := 60000 / BeatMS;
+		Result := Round((60000 / BeatMS) + 0.5);
 	end
 	else
 		Result := ZeroValue;
@@ -116,6 +120,7 @@ begin
 	TapDurationIndex := 0;
 	LastTapSkipped := False;
 	LastTapTime := NowTime;
+	ResetTime := NowTime;
 	for i := 0 to High(TapDurations) do
 		TapDurations[i] := 0;
 end;
@@ -132,10 +137,6 @@ begin
 	Reset;
 end;
 
-initialization
-
-	TempoTap := Default(TTempoTap);
-	TempoTap.Init;
 
 end.
 
