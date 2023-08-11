@@ -506,6 +506,8 @@ var
 	Dev: TAudioDevice;
 	mi: TMenuItem;
 begin
+	ShowRemainingTime := Config.Deck.ShowRemainingTime;
+
 	Deck.Graph.WantedZoom := 1;
 	SampleZoom := 1;
 
@@ -1035,7 +1037,10 @@ end;
 procedure TDeckFrame.lTimeClick(Sender: TObject);
 begin
 	if not Enabled then Exit;
-	ShowRemainingTime := not ShowRemainingTime;
+
+	Config.Deck.ShowRemainingTime := not Config.Deck.ShowRemainingTime;
+	ShowRemainingTime := Config.Deck.ShowRemainingTime;
+
 	lTime.Tag := 0;
 	ShowPosition;
 end;
@@ -2003,13 +2008,15 @@ begin
 	end;
 
 	X := P.X - ScrollX;
+
+	lMeasure.Caption := IntToStr(X div Deck.Graph.Zoom + 1 {Deck.Graph.PosToBar(PlayPosition, False)}) + '.' + IntToStr(Y+1);
+
 	Y := P.Y;
 	R.TopLeft := Point(X, 0);
 	R.BottomRight := Point(X+Z, H);
 	pb.Bitmap.FillRect(R, BGRA(255, 100, 30, 130), dmLinearBlend);
 	pb.Bitmap.HorizLine(X, Y, X+Z-1, ColorToBGRA(clYellow));
 
-	lMeasure.Caption := IntToStr(X div Deck.Graph.Zoom + 1 {Deck.Graph.PosToBar(PlayPosition, False)});
 
 	if Config.Deck.BeatGraph.ShowHorizontalLines then
 	begin

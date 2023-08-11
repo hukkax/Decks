@@ -2147,6 +2147,9 @@ begin
 		end;
 	end;
 
+	for Deck in DeckList do // sync additional decks to the first deck by default
+		if Deck <> nil then
+			Deck.OtherDeck := DeckList.First;
 	if MixerDeck[1].Deck <> nil then
 		MixerDeck[1].Deck.OtherDeck := MixerDeck[2].Deck;
 	if MixerDeck[2].Deck <> nil then

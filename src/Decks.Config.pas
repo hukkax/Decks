@@ -177,6 +177,7 @@ type
 				Height:   Byte;
 			end;
 			FirstSetsMasterBPM: Boolean;
+			ShowRemainingTime: Boolean;
 			WarnTime:  Word;
 			WarnSpeed: Word;
 		end;
@@ -461,6 +462,7 @@ begin
 
 	Sect := 'deck';
 	Cfg.Add(cfgBoolean, Sect, 'setmasterbpm',  @Deck.FirstSetsMasterBPM);
+	Cfg.Add(cfgBoolean, Sect, 'showremainingtime', @Deck.ShowRemainingTime);
 
 	Cfg.Add(cfgBoolean, Sect, 'graph.horizontallines', @Deck.BeatGraph.ShowHorizontalLines);
 

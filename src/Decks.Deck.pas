@@ -54,7 +54,7 @@ type
 		PlayingZone:	Word;
 		Synced:			Boolean;
 		Cueing:			Boolean;
-		OtherDeck:		TDeck;
+		OtherDeck:			TDeck;
 
 		Cue:		array[0..9] of Integer;
 
