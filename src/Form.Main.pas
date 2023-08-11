@@ -831,6 +831,10 @@ begin
 	Config.Theme.Strings.FileList.ParentDirectory := STR_SYM_PARENT;
 	Config.Theme.Strings.FileList.Drives := STR_SYM_DRIVES;
 
+	Config.Deck.FirstSetsMasterBPM := True;
+	Config.Deck.WarnTime  := 60;
+	Config.Deck.WarnSpeed := 25;
+
 	with Config.Theme.Colors.FileList do
 	begin
 		Background.Normal  := $212223;
@@ -1050,6 +1054,9 @@ begin
 	AudioManager.InitPlugins(Config.PluginPath);
 
 	eFileFilterChange(Self);
+
+	TempoTap := Default(TTempoTap);
+	TempoTap.Init;
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);

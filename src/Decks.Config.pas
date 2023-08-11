@@ -176,6 +176,8 @@ type
 				ShowDual: Boolean;
 			end;
 			FirstSetsMasterBPM: Boolean;
+			WarnTime:  Word;
+			WarnSpeed: Word;
 		end;
 
 		Theme: TDecksVisualTheme;
@@ -460,6 +462,8 @@ begin
 	Cfg.Add(cfgBoolean, Sect, 'graph.horizontallines', @Deck.BeatGraph.ShowHorizontalLines);
 	Cfg.Add(cfgBoolean, Sect, 'wave.showdual', @Deck.Waveform.ShowDual);
 	Cfg.Add(cfgBoolean, Sect, 'setmasterbpm',  @Deck.FirstSetsMasterBPM);
+	Cfg.Add(cfgWord,    Sect, 'warn.time',     @Deck.WarnTime);
+	Cfg.Add(cfgWord,    Sect, 'warn.speed',    @Deck.WarnSpeed);
 
 	Sect := 'controller';
 	Cfg.Add(cfgString, Sect, 'config', @Controller.Config);

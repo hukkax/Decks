@@ -13,7 +13,7 @@ object DeckFrame: TDeckFrame
   object pnlEffects: TDecksPanel
     Left = 0
     Height = 78
-    Top = 259
+    Top = 199
     Width = 580
     Align = alBottom
     Background.Color = 3553082
@@ -884,7 +884,7 @@ object DeckFrame: TDeckFrame
   end
   object pnlGraph: TDecksPanel
     Left = 0
-    Height = 229
+    Height = 169
     Top = 30
     Width = 580
     Align = alClient
@@ -931,7 +931,7 @@ object DeckFrame: TDeckFrame
     object pb: TBGRAVirtualScreen
       Cursor = crNone
       Left = 5
-      Height = 136
+      Height = 76
       Top = 17
       Width = 570
       Align = alClient
@@ -948,7 +948,7 @@ object DeckFrame: TDeckFrame
     object pbZones: TBGRAVirtualScreen
       Left = 5
       Height = 21
-      Top = 153
+      Top = 93
       Width = 570
       OnRedraw = pbZonesRedraw
       Align = alBottom
@@ -977,7 +977,7 @@ object DeckFrame: TDeckFrame
     object SliderGraphX: TDecksRangeBar
       Left = 5
       Height = 21
-      Top = 174
+      Top = 114
       Width = 570
       Align = alBottom
       Color = 3553082
@@ -997,7 +997,7 @@ object DeckFrame: TDeckFrame
     object pnlZone: TDecksPanel
       Left = 5
       Height = 29
-      Top = 195
+      Top = 135
       Width = 570
       Align = alBottom
       Background.Color = 3553082
@@ -1314,24 +1314,6 @@ object DeckFrame: TDeckFrame
         Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
         TextApplyGlobalOpacity = False
         ClickOffset = True
-      end
-      object pbWave: TBGRAVirtualScreen
-        Tag = -1
-        Cursor = crSizeWE
-        Left = 115
-        Height = 28
-        Top = 1
-        Width = 238
-        OnRedraw = pbWaveRedraw
-        Alignment = taLeftJustify
-        Anchors = [akTop, akLeft, akRight, akBottom]
-        Color = clBlack
-        ParentColor = False
-        TabOrder = 0
-        OnMouseDown = pbWaveMouseDown
-        OnMouseMove = pbWaveMouseMove
-        OnMouseUp = pbWaveMouseUp
-        OnMouseWheel = pbWaveMouseWheel
       end
     end
   end
@@ -2125,6 +2107,71 @@ object DeckFrame: TDeckFrame
       Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
       TextApplyGlobalOpacity = False
       ClickOffset = True
+    end
+  end
+  object pnlWaveform: TDecksPanel
+    Left = 0
+    Height = 60
+    Top = 277
+    Width = 580
+    Align = alBottom
+    Background.Color = 3553082
+    Background.Gradient1.StartColor = clWhite
+    Background.Gradient1.EndColor = clBlack
+    Background.Gradient1.GradientType = gtLinear
+    Background.Gradient1.Point1XPercent = 0
+    Background.Gradient1.Point1YPercent = 0
+    Background.Gradient1.Point2XPercent = 0
+    Background.Gradient1.Point2YPercent = 100
+    Background.Gradient2.StartColor = clWhite
+    Background.Gradient2.EndColor = clBlack
+    Background.Gradient2.GradientType = gtLinear
+    Background.Gradient2.Point1XPercent = 0
+    Background.Gradient2.Point1YPercent = 0
+    Background.Gradient2.Point2XPercent = 0
+    Background.Gradient2.Point2YPercent = 100
+    Background.Gradient1EndPercent = 35
+    Background.Style = bbsColor
+    Background.FillStyle = bsClear
+    Background.FillColor = 2105376
+    Bevel.Opacity = 255
+    Bevel.ColorLight = 2236962
+    Bevel.ColorDark = 2236962
+    Bevel.InnerBevel = bcbNone
+    Bevel.OuterBevel = bcbTop
+    Bevel.Sides = [bcsLeft, bcsRight]
+    Border.Color = clGray
+    Border.Style = bboNone
+    Border.Width = 5
+    FontEx.Color = 13421772
+    FontEx.FontQuality = fqFineAntialiasing
+    FontEx.Shadow = False
+    FontEx.ShadowColorOpacity = 120
+    FontEx.ShadowRadius = 5
+    FontEx.ShadowOffsetX = 5
+    FontEx.ShadowOffsetY = 5
+    FontEx.Style = []
+    ParentBackground = False
+    Rounding.RoundX = 0
+    Rounding.RoundY = 0
+    TabOrder = 4
+    object pbWave: TBGRAVirtualScreen
+      Tag = -1
+      Cursor = crSizeWE
+      Left = 5
+      Height = 50
+      Top = 5
+      Width = 570
+      OnRedraw = pbWaveRedraw
+      Align = alClient
+      Alignment = taLeftJustify
+      Color = clBlack
+      ParentColor = False
+      TabOrder = 0
+      OnMouseDown = pbWaveMouseDown
+      OnMouseMove = pbWaveMouseMove
+      OnMouseUp = pbWaveMouseUp
+      OnMouseWheel = pbWaveMouseWheel
     end
   end
   object Timer: TTimer

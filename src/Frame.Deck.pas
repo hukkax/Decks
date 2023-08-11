@@ -118,6 +118,7 @@ type
 		miShowFile: TMenuItem;
 		bStoreFx: TDecksButton;
 		miAudioSubDevices: TMenuItem;
+		pnlWaveform: TDecksPanel;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -202,6 +203,8 @@ type
 		ShowRemainingTime: Boolean;
 		ZoneTextStyle: TTextStyle;
 		BeatDrag: TBeatDrag;
+		FlashTimer: Integer;
+		Flash, NeedFlash: Boolean;
 
 		procedure InitDevice(Dev: Integer);
 		procedure InitSubDevice(SubDev: Byte);
@@ -581,16 +584,28 @@ begin
 		time_e := Max(0, Round(BASS_ChannelBytes2Seconds(Deck.OrigStream, PlayPosition)));
 	end;
 
+	Inc(FlashTimer);
+	if FlashTimer > Config.Deck.WarnSpeed then
+	begin
+		FlashTimer := 0;
+		Flash := not Flash;
+		if (Flash) and (NeedFlash) then
+			lTime.Color := clRed
+		else
+			lTime.Color := $00212223;
+	end;
+
 	if time_e <> lTime.Tag then
 	begin
 		time_r := Round(BASS_ChannelBytes2Seconds(Deck.OrigStream, Deck.ByteLength - PlayPosition));
 
 		tm := time_e div 60;
 		ts := time_e - (tm * 60);
-		se := Format('%d:%.2d', [tm, ts]);
+		se := Format('%d:%.2d',  [tm, ts]);  // elapsed
 		tm := time_r div 60;
 		ts := time_r - (tm * 60);
-		sr := Format('-%d:%.2d', [tm, ts]);
+		sr := Format('-%d:%.2d', [tm, ts]);  // remaining
+		NeedFlash := (time_r <= Config.Deck.WarnTime);
 
 		if ShowRemainingTime then
 		begin
