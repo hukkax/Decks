@@ -9,7 +9,7 @@ uses
 	Forms, lazcontrols, Form.Main, Frame.Deck,
 	Decks.Audio, Decks.Song, Decks.Beatgraph,
 	Decks.SongInfo, Decks.TagScanner, Decks.Effects, TextInputDialog,
-	Form.Tracklist, FocusRectangleUnit, Form.Config;
+	Form.Tracklist, FocusRectangleUnit, Form.Config, Decks.TapTempo;
 
 {$R *.res}
 

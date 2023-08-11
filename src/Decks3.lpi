@@ -46,7 +46,6 @@
           <Linking>
             <Debugging>
               <GenerateDebugInfo Value="False"/>
-              <RunWithoutDebug Value="True"/>
               <DebugInfoType Value="dsDwarf2Set"/>
               <StripSymbols Value="True"/>
               <UseExternalDbgSyms Value="True"/>
@@ -111,7 +110,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="21">
+    <Units Count="19">
       <Unit0>
         <Filename Value="Decks3.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -155,68 +154,56 @@
         <ResourceBaseClass Value="Frame"/>
       </Unit8>
       <Unit9>
-        <Filename Value="include\hlistview.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="hListView"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="include\hslider.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="hSlider"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="include\hknob.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="hKnob"/>
-      </Unit11>
-      <Unit12>
         <Filename Value="Decks.MIDI.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit12>
-      <Unit13>
+      </Unit9>
+      <Unit10>
         <Filename Value="Decks.TagScanner.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit13>
-      <Unit14>
+      </Unit10>
+      <Unit11>
         <Filename Value="include\mousewheelaccelerator.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MouseWheelAccelerator"/>
-      </Unit14>
-      <Unit15>
+      </Unit11>
+      <Unit12>
         <Filename Value="Decks.Effects.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit15>
-      <Unit16>
+      </Unit12>
+      <Unit13>
         <Filename Value="TextInputDialog.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FormTextInput"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit16>
-      <Unit17>
+      </Unit13>
+      <Unit14>
         <Filename Value="Form.Tracklist.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FormTracklist"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit17>
-      <Unit18>
+      </Unit14>
+      <Unit15>
         <Filename Value="include\teegenerictree.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TeeGenericTree"/>
-      </Unit18>
-      <Unit19>
+      </Unit15>
+      <Unit16>
         <Filename Value="include\focusrectangleunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FocusRectangleUnit"/>
-      </Unit19>
-      <Unit20>
-        <Filename Value="form.config.pas"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="Form.Config.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ConfigForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="Form.Config"/>
-      </Unit20>
+      </Unit17>
+      <Unit18>
+        <Filename Value="Decks.TapTempo.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit18>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -249,7 +236,6 @@
         <RunWithoutDebug Value="True"/>
         <DebugInfoType Value="dsDwarf2Set"/>
         <StripSymbols Value="True"/>
-        <UseExternalDbgSyms Value="True"/>
       </Debugging>
       <LinkSmart Value="True"/>
       <Options>
