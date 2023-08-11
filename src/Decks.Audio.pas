@@ -50,6 +50,7 @@ type
 	end;
 
 
+	function  FormatTime(Seconds: Double): String;
 	function  StreamLengthInSeconds(Stream: HSTREAM): Double;
 	function  TranslateStreamLength(OriginalStream, MixerStream: HSTREAM): QWord;
 	procedure FreeStream(Stream: HSTREAM);
@@ -72,6 +73,16 @@ begin
 		SpeakerFlags := Spk;
 		Caption := ACaption;
 	end;
+end;
+
+function FormatTime(Seconds: Double): String;
+var
+	t, tm, ts: Integer;
+begin
+	t := Round(Seconds);
+	tm := t div 60;
+	ts := t - (tm * 60);
+	Result := Format('%d:%.2d',  [tm, ts]);
 end;
 
 function StreamLengthInSeconds(Stream: HSTREAM): Double;

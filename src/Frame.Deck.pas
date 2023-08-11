@@ -119,6 +119,8 @@ type
 		bStoreFx: TDecksButton;
 		miAudioSubDevices: TMenuItem;
 		pnlWaveform: TDecksPanel;
+		lTimeTotal: TLabel;
+		lMeasure: TLabel;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -2007,6 +2009,8 @@ begin
 	pb.Bitmap.FillRect(R, BGRA(255, 100, 30, 130), dmLinearBlend);
 	pb.Bitmap.HorizLine(X, Y, X+Z-1, ColorToBGRA(clYellow));
 
+	lMeasure.Caption := IntToStr(X div Deck.Graph.Zoom + 1 {Deck.Graph.PosToBar(PlayPosition, False)});
+
 	if Config.Deck.BeatGraph.ShowHorizontalLines then
 	begin
 		for X := 0 to 3 do
@@ -2246,6 +2250,7 @@ begin
 			DrawWaveform;
 			SliderGraphX.Position := 0;
 			lTime.Tag := -1;
+			lTimeTotal.Caption := FormatTime(StreamLengthInSeconds(Deck.OrigStream));
 			Invalidate;
 			InitSubDevice(Config.Audio.SubDevice[Deck.Index]);
 			Timer.Enabled := True;

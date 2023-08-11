@@ -2108,6 +2108,46 @@ object DeckFrame: TDeckFrame
       TextApplyGlobalOpacity = False
       ClickOffset = True
     end
+    object lTimeTotal: TLabel
+      Left = 205
+      Height = 22
+      Top = 6
+      Width = 83
+      Alignment = taCenter
+      Anchors = [akTop, akRight]
+      AutoSize = False
+      Caption = '00:00'
+      Color = 2171427
+      Font.Color = 9346678
+      Font.Height = 20
+      Font.Style = [fsBold]
+      Layout = tlCenter
+      ParentColor = False
+      ParentFont = False
+      ShowAccelChar = False
+      Transparent = False
+      OnClick = lTimeClick
+    end
+    object lMeasure: TLabel
+      Left = 205
+      Height = 22
+      Top = 33
+      Width = 83
+      Alignment = taCenter
+      Anchors = [akTop, akRight]
+      AutoSize = False
+      Caption = '0 / 0'
+      Color = 2171427
+      Font.Color = 9346678
+      Font.Height = 20
+      Font.Style = [fsBold]
+      Layout = tlCenter
+      ParentColor = False
+      ParentFont = False
+      ShowAccelChar = False
+      Transparent = False
+      OnClick = lTimeClick
+    end
   end
   object pnlWaveform: TDecksPanel
     Left = 0
