@@ -834,6 +834,7 @@ begin
 	Config.Deck.FirstSetsMasterBPM := True;
 	Config.Deck.WarnTime  := 60;
 	Config.Deck.WarnSpeed := 25;
+	Config.Deck.Waveform.Height := 60;
 
 	with Config.Theme.Colors.FileList do
 	begin

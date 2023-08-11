@@ -174,6 +174,7 @@ type
 			end;
 			Waveform: record
 				ShowDual: Boolean;
+				Height:   Byte;
 			end;
 			FirstSetsMasterBPM: Boolean;
 			WarnTime:  Word;
@@ -459,9 +460,13 @@ begin
 	Cfg.Add(cfgBoolean, Sect, 'enabled', @Effects.Enabled);
 
 	Sect := 'deck';
-	Cfg.Add(cfgBoolean, Sect, 'graph.horizontallines', @Deck.BeatGraph.ShowHorizontalLines);
-	Cfg.Add(cfgBoolean, Sect, 'wave.showdual', @Deck.Waveform.ShowDual);
 	Cfg.Add(cfgBoolean, Sect, 'setmasterbpm',  @Deck.FirstSetsMasterBPM);
+
+	Cfg.Add(cfgBoolean, Sect, 'graph.horizontallines', @Deck.BeatGraph.ShowHorizontalLines);
+
+	Cfg.Add(cfgBoolean, Sect, 'wave.showdual', @Deck.Waveform.ShowDual);
+	Cfg.Add(cfgByte,    Sect, 'wave.height',   @Deck.Waveform.Height);
+
 	Cfg.Add(cfgWord,    Sect, 'warn.time',     @Deck.WarnTime);
 	Cfg.Add(cfgWord,    Sect, 'warn.speed',    @Deck.WarnSpeed);
 

@@ -521,6 +521,8 @@ begin
 	bMaster.Background.Color := lTime.Color;
 	GraphHover := Point(-1, -1);
 
+	pnlWaveform.Height := Max(40, Config.Deck.Waveform.Height);
+
 	for Dev in AudioManager.Devices do
 	begin
 		mi := TMenuItem.Create(miAudioDevices);
@@ -592,7 +594,7 @@ begin
 		if (Flash) and (NeedFlash) then
 			lTime.Color := clRed
 		else
-			lTime.Color := $00212223;
+			lTime.Color := bDeckMenu.StateNormal.Background.Color;
 	end;
 
 	if time_e <> lTime.Tag then
