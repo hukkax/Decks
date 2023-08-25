@@ -380,20 +380,32 @@ begin
 	end;
 end;
 
+
 procedure TDeckFrame.InitSubDevice(SubDev: Byte);
 var
 	SF: DWord;
+	CM: Byte;
 begin
 	if Deck.Stream = 0 then Exit;
 
-	SF := SpeakerAssignmentInfo[Config.Audio.SubDevice[Deck.Index]].SpeakerFlags;
-	BASS_Mixer_ChannelFlags(Deck.OrigStream, 0, SF);
+	CM := Config.Mixer.CueMode;
+
+	if CM = CUE_NONE then
+	begin
+		SF := SpeakerAssignmentInfo[Config.Audio.SubDevice[Deck.Index]].SpeakerFlags;
+		BASS_Mixer_ChannelFlags(Deck.OrigStream, 0, SF);
+	end;
 
 	Config.Audio.SubDevice[Deck.Index] := SubDev;
 	AudioManager.Devices[Config.Audio.Device[Deck.Index]].Speakers := SubDev;
 
-	SF := SpeakerAssignmentInfo[SubDev].SpeakerFlags;
-	BASS_Mixer_ChannelFlags(Deck.OrigStream, SF, SF);
+	Deck.UpdateCueOutput;
+
+	if CM = CUE_NONE then
+	begin
+		SF := SpeakerAssignmentInfo[SubDev].SpeakerFlags;
+		BASS_Mixer_ChannelFlags(Deck.OrigStream, SF, SF);
+	end;
 end;
 
 procedure TDeckFrame.SetSlider(var Slider: TDecksGaugeBar; Position: Integer);

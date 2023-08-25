@@ -11,6 +11,10 @@ const
 	OUTPUTS: array[0..3] of Integer = (
 		BASS_SPEAKER_FRONT, BASS_SPEAKER_REAR, BASS_SPEAKER_CENLFE, BASS_SPEAKER_REAR2);
 
+	CUE_NONE  = 0;
+	CUE_MIX   = 1;
+	CUE_SPLIT = 2;
+
 type
 	TSpeakerAssignmentInfo = record
 		SpeakerFlags: DWord;

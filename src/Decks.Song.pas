@@ -154,7 +154,7 @@ begin
 
 	// resample and downmix
 	FreeStream(Stream);
-	Stream := BASS_Mixer_StreamCreate(Config.Audio.Hz, 8, BASS_MIXER_RESUME);
+	Stream := BASS_Mixer_StreamCreate(Config.Audio.Hz, 4, BASS_MIXER_RESUME);
 	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_BUFFER, 0); // disable playback buffering
 
 	// generate the graph externally here before plugging the
@@ -171,7 +171,7 @@ begin
 	OrigStream := Reverse.Stream;
 
 	BASS_Mixer_StreamAddChannel(Stream, OrigStream,
-		BASS_MIXER_CHAN_MATRIX or BASS_MIXER_DOWNMIX or BASS_MIXER_NORAMPIN);
+		BASS_MIXER_CHAN_MATRIX {or BASS_MIXER_DOWNMIX} or BASS_MIXER_NORAMPIN);
 
 	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_MIXER_THREADS, Config.Audio.Threads);
 

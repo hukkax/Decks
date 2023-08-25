@@ -137,6 +137,12 @@ type
 		bLoadDeck3: TDecksButton;
 		bFileRename: TDecksButton;
 		bFileDelete: TDecksButton;
+		bFileCue: TDecksButton;
+		bCue1: TDecksButton;
+		bCue2: TDecksButton;
+		sCueMix: ThKnob;
+		lCueMixL: TLabel;
+		lCueMixR: TLabel;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -201,6 +207,8 @@ type
 		procedure eFileFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 		procedure lBPMMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
 			X, Y: Integer);
+		procedure bCue1SetDown(Sender: TObject);
+		procedure sCueMixChange(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -776,6 +784,31 @@ begin
 	end;
 end;
 
+procedure TMainForm.bCue1SetDown(Sender: TObject);
+var
+	D: Integer;
+	Btn: TDecksButton;
+begin
+	if not (Sender is TDecksButton) then Exit;
+	Btn := Sender as TDecksButton;
+	D := Btn.Tag;
+	Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
+	if D in [1..2] then
+	begin
+		MixerDeck[D].Deck.CueOn := Btn.Down;
+		MixerDeck[D].Deck.UpdateCueOutput;
+	end;
+end;
+
+procedure TMainForm.sCueMixChange(Sender: TObject);
+var
+	Deck: TDeck;
+begin
+	Config.Mixer.CueMix := sCueMix.Position;
+	for Deck in DeckList do
+		Deck.UpdateCueOutput;
+end;
+
 procedure TMainForm.miDirCopyFileClick(Sender: TObject);
 var
 	Dir, Filename: String;
@@ -1048,6 +1081,25 @@ begin
 			Memo1.Lines.Add(Format('    %d children', [CC.Count]));
 		Inc(i);
 	end;}
+
+	sCueMix.Position := Config.Mixer.CueMix;
+
+	case Config.Mixer.CueMode of
+		CUE_NONE: // hide cue controls
+		begin
+			sCueMix.Visible := False;
+			bFileCue.Visible := False;
+			bCue1.Visible := False;
+			bCue2.Visible := False;
+			lCueMixL.Visible := False;
+			lCueMixR.Visible := False;
+		end;
+		CUE_SPLIT:
+		begin
+			lCueMixL.Caption := 'Sep';
+			lCueMixR.Caption := 'Full';
+		end;
+	end;
 
 	bMainMenu.Caption := AppName;
 	ApplyTheme;
@@ -2253,21 +2305,20 @@ var
 	S: ThKnob;
 	D: Integer;
 begin
-	if (Sender is ThKnob) then
-	begin
-		S := Sender as ThKnob;
-		D := IfThen(S.Left > MixerPanel.ClientWidth div 2, 2, 1);
-		if S.Position = 0 then
-			S.Knob.BorderColor := $727578
-		else
-		if S.Position < 0 then
-			S.Knob.BorderColor := clMaroon
-		else
-		if S.Position > 0 then
-			S.Knob.BorderColor := clGreen;
-		MixerDeck[D].EQ[TEQBand(S.Tag)] := S.Position / 100;
-		MixerDeck[D].Apply;
-	end;
+	if not (Sender is ThKnob) then Exit;
+
+	S := Sender as ThKnob;
+	D := IfThen(S.Left > MixerPanel.ClientWidth div 2, 2, 1);
+	if S.Position = 0 then
+		S.Knob.BorderColor := $727578
+	else
+	if S.Position < 0 then
+		S.Knob.BorderColor := clMaroon
+	else
+	if S.Position > 0 then
+		S.Knob.BorderColor := clGreen;
+	MixerDeck[D].EQ[TEQBand(S.Tag)] := S.Position / 100;
+	MixerDeck[D].Apply;
 end;
 
 procedure TMainForm.sEQ1LMouseDown(Sender: TObject; Button: TMouseButton;

@@ -54,7 +54,8 @@ type
 		PlayingZone:	Word;
 		Synced:			Boolean;
 		Cueing:			Boolean;
-		OtherDeck:			TDeck;
+		CueOn:			Boolean;
+		OtherDeck:		TDeck;
 
 		Cue:		array[0..9] of Integer;
 
@@ -95,6 +96,7 @@ type
 
 		procedure	SetVolume(NewVolume: Single);
 		procedure	ToggleEQKill(BandNum: TEQBand);
+		procedure	UpdateCueOutput;
 
 		procedure	LoopZone(ZoneIndex: Word);
 		procedure	UnloopZone;
@@ -143,6 +145,50 @@ begin
 			ModeChange(MODE_EQ_KILL_OFF);
 		end;
 	end;
+end;
+
+procedure TDeck.UpdateCueOutput;
+var
+	Vol, Mix, Cue, Per: Single;
+	matrix: array[0..7] of Single;
+begin
+	Per := Config.Mixer.CueMix / 100; // cue mix knob value 0..1
+	Vol := Info.NormalizedAmp * Info.Amp; // amplified volume
+	Mix := CurrVolume * Vol; // apply crossfader for master
+	Cue := 0.0;
+
+	// master
+	matrix[0] := Mix; matrix[1] := 0.0; // FL = master left
+	matrix[2] := 0.0; matrix[3] := Mix; // FR = master right
+
+	case Config.Mixer.CueMode of
+		CUE_MIX:
+		begin
+			if CueOn then
+				Cue := Vol
+			else
+				Cue := Mix * (1.0 - Per);
+			matrix[4] := Cue; matrix[5] := 0;   // RL = cue left
+			matrix[6] := 0;   matrix[7] := Cue; // RR = cue right
+		end;
+		CUE_SPLIT:
+		begin
+			if CueOn then Cue := Vol;
+			Per := 1 - Per;
+			// rear left out
+			Vol := Min(1.0, Mix + (Per * Cue)); // RL = master + n% cue
+			matrix[4] := Vol;
+			matrix[5] := Vol;
+			// rear right out
+			Vol := Min(1.0, Cue + (Per * Mix)); // RR = cue + n% master
+			matrix[6] := Vol;
+			matrix[7] := Vol;
+		end;
+	else
+		Exit;
+	end;
+
+	BASS_Mixer_ChannelSetMatrix(OrigStream, @matrix[0]);
 end;
 
 { TBaseDeckFrame }
@@ -443,7 +489,11 @@ begin
 		NewVolume := CurrVolume
 	else
 		CurrVolume := NewVolume;
-	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, NewVolume * (*Graph.{Calc}Brightness *) Info.NormalizedAmp * Info.Amp);
+
+	if Config.Mixer.CueMode = CUE_NONE then
+		BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, NewVolume * (*Graph.{Calc}Brightness *) Info.NormalizedAmp * Info.Amp)
+	else
+		UpdateCueOutput;
 end;
 
 //

@@ -89,9 +89,9 @@ object MainForm: TMainForm
       TabOrder = 0
       OnMouseDown = shpBorderMouseDown
       object bToggleTracklist: TDecksButton
-        Left = 232
+        Left = 448
         Height = 29
-        Top = 9
+        Top = 32
         Width = 48
         StateNormal.Background.Color = 10773183
         StateNormal.Background.Gradient1.StartColor = 6249562
@@ -190,10 +190,10 @@ object MainForm: TMainForm
         OnMouseDown = lBPMMouseDown
       end
       object sBPM: TDecksGaugeBar
-        Left = 320
+        Left = 489
         Height = 29
         Top = 9
-        Width = 662
+        Width = 493
         Anchors = [akTop, akLeft, akRight]
         Color = 2171427
         BorderStyle = bsNone
@@ -372,7 +372,7 @@ object MainForm: TMainForm
         ClickOffset = True
       end
       object bToggleLeftPane: TDecksButton
-        Left = 392
+        Left = 246
         Height = 29
         Hint = 'Toggle directory listing'
         Top = 9
@@ -425,15 +425,14 @@ object MainForm: TMainForm
         Bevel.OuterBevel = bcbNone
         Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
         TextApplyGlobalOpacity = False
-        Visible = False
         ClickOffset = True
       end
       object bToggleWaveDual: TDecksButton
-        Left = 304
+        Left = 400
         Height = 29
         Hint = '⚌⏦'
-        Top = 9
-        Width = 36
+        Top = 32
+        Width = 45
         StateNormal.Background.Color = 10773183
         StateNormal.Background.Gradient1.StartColor = 6249562
         StateNormal.Background.Gradient1.EndColor = 4210494
@@ -487,7 +486,7 @@ object MainForm: TMainForm
       end
       object lCPU: TDecksLabel
         AnchorSideRight.Control = sBPM
-        Left = 260
+        Left = 429
         Height = 29
         Top = 9
         Width = 60
@@ -584,6 +583,55 @@ object MainForm: TMainForm
         Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
         TextApplyGlobalOpacity = False
         ClickOffset = True
+      end
+      object sCueMix: ThKnob
+        Left = 336
+        Height = 30
+        Hint = 'Amplification'
+        Top = 8
+        Width = 50
+        Knob.FillColor = clNone
+        Knob.BorderColor = clGray
+        Knob.BorderWidth = 3
+        Indicators.ExtraIndicators = <>
+        Indicators.LineColor = clSilver
+        Indicators.LineWidth = 4
+        Indicators.RadiusInner = 4
+        Indicators.RadiusOuter = 15
+        Indicators.OffsetX = 0
+        Indicators.OffsetY = 0
+        Indicators.Default = clSilver
+        Indicators.Focused = clWhite
+        Indicators.Unfocused = clSilver
+        Indicators.Changing = clWhite
+        Indicators.Hovered = clWhite
+        Indicators.Disabled = clGray
+        Anchors = [akLeft, akBottom]
+        SmallChange = 0
+        Caption = 'sCueMix'
+        Arc = 1
+        FloatPosition = 50
+        PageSize = 0
+        OnChange = sCueMixChange
+      end
+      object lCueMixL: TLabel
+        Left = 295
+        Height = 28
+        Top = 10
+        Width = 37
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = 'Mix'
+        Layout = tlCenter
+      end
+      object lCueMixR: TLabel
+        Left = 389
+        Height = 28
+        Top = 10
+        Width = 37
+        AutoSize = False
+        Caption = 'Cue'
+        Layout = tlCenter
       end
     end
     object PanelWin: TDecksPanel
@@ -872,8 +920,9 @@ object MainForm: TMainForm
     ResizeStyle = rsLine
   end
   object MixerPanel: TDecksPanel
+    Tag = 51
     Left = 0
-    Height = 50
+    Height = 51
     Top = 371
     Width = 1200
     Align = alTop
@@ -949,7 +998,7 @@ object MainForm: TMainForm
       Min = -1500
       Max = 1500
       SmallChange = 0
-      Caption = 'sEQ1L'
+      Caption = 'Bass'
       Arc = 60
       Position = 0
       PageSize = 120
@@ -990,7 +1039,7 @@ object MainForm: TMainForm
       Min = -1500
       Max = 1500
       SmallChange = 0
-      Caption = 'sEQ1M'
+      Caption = 'Mid'
       Arc = 60
       Position = 0
       PageSize = 120
@@ -1030,7 +1079,7 @@ object MainForm: TMainForm
       Min = -1500
       Max = 1500
       SmallChange = 0
-      Caption = 'sEQ1H'
+      Caption = 'Treble'
       Arc = 60
       Position = 0
       PageSize = 120
@@ -1070,7 +1119,7 @@ object MainForm: TMainForm
       Min = -1500
       Max = 1500
       SmallChange = 0
-      Caption = 'sEQ2L'
+      Caption = 'Bass'
       Arc = 60
       Position = 0
       PageSize = 120
@@ -1111,7 +1160,7 @@ object MainForm: TMainForm
       Min = -1500
       Max = 1500
       SmallChange = 0
-      Caption = 'sEQ2M'
+      Caption = 'Mid'
       Arc = 60
       Position = 0
       PageSize = 120
@@ -1152,7 +1201,7 @@ object MainForm: TMainForm
       Min = -1500
       Max = 1500
       SmallChange = 0
-      Caption = 'sEQ2H'
+      Caption = 'Treble'
       Arc = 60
       Position = 0
       PageSize = 120
@@ -1161,8 +1210,8 @@ object MainForm: TMainForm
     end
     object sFader: TDecksGaugeBar
       Left = 239
-      Height = 29
-      Top = 12
+      Height = 30
+      Top = 10
       Width = 721
       Anchors = [akTop, akLeft, akRight]
       Color = 3553082
@@ -1170,8 +1219,8 @@ object MainForm: TMainForm
       HandleColor = 7501176
       ButtonColor = 2171427
       HighLightColor = clGray
-      ShadowColor = clBlack
-      BorderColor = 2171427
+      ShadowColor = 2631720
+      BorderColor = 2631720
       ArrowColor = 3553082
       LightAmount = 10
       HandleSize = 30
@@ -1194,11 +1243,124 @@ object MainForm: TMainForm
       ParentColor = False
       TabOrder = 1
     end
+    object bCue1: TDecksButton
+      Tag = 1
+      Left = 160
+      Height = 30
+      Hint = 'Rename selected file'
+      Top = 10
+      Width = 66
+      AutoToggle = True
+      StateNormal.Background.Color = 3947580
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2631720
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 14540253
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = -20
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      Caption = 'Cue'
+      DropDownWidth = 30
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      GroupIndex = 0
+      OnSetDown = bCue1SetDown
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 0
+      RoundingDropDown.RoundY = 0
+      ShowHint = True
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
+    object bCue2: TDecksButton
+      Tag = 2
+      Left = 976
+      Height = 30
+      Hint = 'Rename selected file'
+      Top = 10
+      Width = 66
+      Anchors = [akTop, akRight]
+      AutoToggle = True
+      StateNormal.Background.Color = 3947580
+      StateNormal.Background.Gradient1.StartColor = 6249562
+      StateNormal.Background.Gradient1.EndColor = 4210494
+      StateNormal.Background.Gradient1.ColorCorrection = False
+      StateNormal.Background.Gradient1.GradientType = gtLinear
+      StateNormal.Background.Gradient1.Point1XPercent = 0
+      StateNormal.Background.Gradient1.Point1YPercent = 0
+      StateNormal.Background.Gradient1.Point2XPercent = 0
+      StateNormal.Background.Gradient1.Point2YPercent = 100
+      StateNormal.Background.Gradient2.StartColor = clGray
+      StateNormal.Background.Gradient2.EndColor = 2105376
+      StateNormal.Background.Gradient2.ColorCorrection = False
+      StateNormal.Background.Gradient2.GradientType = gtLinear
+      StateNormal.Background.Gradient2.Point1XPercent = 0
+      StateNormal.Background.Gradient2.Point1YPercent = 0
+      StateNormal.Background.Gradient2.Point2XPercent = 0
+      StateNormal.Background.Gradient2.Point2YPercent = 100
+      StateNormal.Background.Gradient1EndPercent = 100
+      StateNormal.Background.Style = bbsColor
+      StateNormal.Border.Color = 2631720
+      StateNormal.Border.LightColor = 3529055
+      StateNormal.Border.Style = bboSolid
+      StateNormal.FontEx.Color = 14540253
+      StateNormal.FontEx.FontQuality = fqSystemClearType
+      StateNormal.FontEx.Height = -20
+      StateNormal.FontEx.Shadow = True
+      StateNormal.FontEx.ShadowColorOpacity = 160
+      StateNormal.FontEx.ShadowRadius = 2
+      StateNormal.FontEx.ShadowOffsetX = 1
+      StateNormal.FontEx.ShadowOffsetY = 1
+      StateNormal.FontEx.Style = [fsBold]
+      Caption = 'Cue'
+      DropDownWidth = 30
+      DropDownArrowSize = 8
+      GlobalOpacity = 255
+      GroupIndex = 0
+      OnSetDown = bCue1SetDown
+      Rounding.RoundX = 0
+      Rounding.RoundY = 0
+      RoundingDropDown.RoundX = 0
+      RoundingDropDown.RoundY = 0
+      ShowHint = True
+      Bevel.InnerBevel = bcbTop
+      Bevel.OuterBevel = bcbNone
+      Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+      TextApplyGlobalOpacity = False
+      ClickOffset = True
+    end
   end
   object BottomPanel: TDecksPanel
     Left = 0
-    Height = 279
-    Top = 421
+    Height = 278
+    Top = 422
     Width = 1200
     Align = alClient
     Background.Color = 5592405
@@ -1244,12 +1406,12 @@ object MainForm: TMainForm
     TabOrder = 4
     object LeftPanel: TPanel
       Left = 2
-      Height = 275
+      Height = 274
       Top = 2
       Width = 331
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 275
+      ClientHeight = 274
       ClientWidth = 331
       Color = 2171427
       Constraints.MinWidth = 220
@@ -1260,7 +1422,7 @@ object MainForm: TMainForm
       OnResize = LeftPanelResize
       object ListDirs: TDecksShellTree
         Left = 0
-        Height = 274
+        Height = 273
         Top = 0
         Width = 311
         Align = alClient
@@ -1294,7 +1456,7 @@ object MainForm: TMainForm
       end
       object sDirs: TDecksRangeBar
         Left = 311
-        Height = 274
+        Height = 273
         Top = 0
         Width = 20
         Align = alRight
@@ -1315,7 +1477,7 @@ object MainForm: TMainForm
       object EmbeddedImage: TImage
         Left = 0
         Height = 1
-        Top = 274
+        Top = 273
         Width = 331
         AntialiasingMode = amOn
         Align = alBottom
@@ -1327,7 +1489,7 @@ object MainForm: TMainForm
     end
     object SplitterBottom: TSplitter
       Left = 333
-      Height = 275
+      Height = 274
       Top = 2
       Width = 5
       Color = 5395800
@@ -1338,7 +1500,7 @@ object MainForm: TMainForm
     end
     object FilesPanel: TDecksPanel
       Left = 338
-      Height = 275
+      Height = 274
       Top = 2
       Width = 860
       Align = alClient
@@ -1384,7 +1546,7 @@ object MainForm: TMainForm
       TabOrder = 2
       object FileList: ThListView
         Left = 1
-        Height = 242
+        Height = 241
         Top = 32
         Width = 838
         Align = alClient
@@ -1418,7 +1580,7 @@ object MainForm: TMainForm
       end
       object sFiles: TDecksRangeBar
         Left = 839
-        Height = 242
+        Height = 241
         Top = 32
         Width = 20
         Align = alRight
@@ -1491,10 +1653,10 @@ object MainForm: TMainForm
           Pen.Style = psClear
         end
         object eFileFilter: TEdit
-          Left = 551
+          Left = 624
           Height = 22
           Top = 5
-          Width = 306
+          Width = 233
           Anchors = [akTop, akLeft, akRight]
           AutoSize = False
           BorderStyle = bsNone
@@ -1509,7 +1671,7 @@ object MainForm: TMainForm
         end
         object bLoadDeckNew: TDecksButton
           Tag = -1
-          Left = 0
+          Left = 73
           Height = 29
           Hint = 'Create new deck from selected file'
           Top = 1
@@ -1564,10 +1726,10 @@ object MainForm: TMainForm
         end
         object bLoadDeck1: TDecksButton
           Tag = 1
-          Left = 104
+          Left = 177
           Height = 29
           Top = 1
-          Width = 94
+          Width = 91
           StateNormal.Background.Color = 9530428
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1617,10 +1779,10 @@ object MainForm: TMainForm
         end
         object bLoadDeck2: TDecksButton
           Tag = 2
-          Left = 197
+          Left = 267
           Height = 29
           Top = 1
-          Width = 94
+          Width = 91
           StateNormal.Background.Color = 9530428
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1670,10 +1832,10 @@ object MainForm: TMainForm
         end
         object bLoadDeck3: TDecksButton
           Tag = 3
-          Left = 290
+          Left = 357
           Height = 29
           Top = 1
-          Width = 94
+          Width = 91
           StateNormal.Background.Color = 9530428
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -1722,7 +1884,7 @@ object MainForm: TMainForm
           ClickOffset = True
         end
         object bFileRename: TDecksButton
-          Left = 383
+          Left = 455
           Height = 29
           Hint = 'Rename selected file'
           Top = 1
@@ -1776,7 +1938,7 @@ object MainForm: TMainForm
           ClickOffset = True
         end
         object bFileDelete: TDecksButton
-          Left = 465
+          Left = 535
           Height = 29
           Hint = 'Delete selected file'
           Top = 1
@@ -1818,6 +1980,59 @@ object MainForm: TMainForm
           GlobalOpacity = 255
           GroupIndex = 0
           OnClick = miFileDeleteClick
+          Rounding.RoundX = 0
+          Rounding.RoundY = 0
+          RoundingDropDown.RoundX = 0
+          RoundingDropDown.RoundY = 0
+          ShowHint = True
+          Bevel.InnerBevel = bcbTop
+          Bevel.OuterBevel = bcbNone
+          Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+          TextApplyGlobalOpacity = False
+          ClickOffset = True
+        end
+        object bFileCue: TDecksButton
+          Left = 0
+          Height = 29
+          Hint = 'Rename selected file'
+          Top = 1
+          Width = 66
+          StateNormal.Background.Color = 3367199
+          StateNormal.Background.Gradient1.StartColor = 6249562
+          StateNormal.Background.Gradient1.EndColor = 4210494
+          StateNormal.Background.Gradient1.ColorCorrection = False
+          StateNormal.Background.Gradient1.GradientType = gtLinear
+          StateNormal.Background.Gradient1.Point1XPercent = 0
+          StateNormal.Background.Gradient1.Point1YPercent = 0
+          StateNormal.Background.Gradient1.Point2XPercent = 0
+          StateNormal.Background.Gradient1.Point2YPercent = 100
+          StateNormal.Background.Gradient2.StartColor = clGray
+          StateNormal.Background.Gradient2.EndColor = 2105376
+          StateNormal.Background.Gradient2.ColorCorrection = False
+          StateNormal.Background.Gradient2.GradientType = gtLinear
+          StateNormal.Background.Gradient2.Point1XPercent = 0
+          StateNormal.Background.Gradient2.Point1YPercent = 0
+          StateNormal.Background.Gradient2.Point2XPercent = 0
+          StateNormal.Background.Gradient2.Point2YPercent = 100
+          StateNormal.Background.Gradient1EndPercent = 100
+          StateNormal.Background.Style = bbsColor
+          StateNormal.Border.Color = 2631720
+          StateNormal.Border.LightColor = 3529055
+          StateNormal.Border.Style = bboSolid
+          StateNormal.FontEx.Color = 14540253
+          StateNormal.FontEx.FontQuality = fqSystemClearType
+          StateNormal.FontEx.Height = -20
+          StateNormal.FontEx.Shadow = True
+          StateNormal.FontEx.ShadowColorOpacity = 160
+          StateNormal.FontEx.ShadowRadius = 2
+          StateNormal.FontEx.ShadowOffsetX = 1
+          StateNormal.FontEx.ShadowOffsetY = 1
+          StateNormal.FontEx.Style = [fsBold]
+          Caption = 'Cue'
+          DropDownWidth = 30
+          DropDownArrowSize = 8
+          GlobalOpacity = 255
+          GroupIndex = 0
           Rounding.RoundX = 0
           Rounding.RoundY = 0
           RoundingDropDown.RoundX = 0
@@ -2076,8 +2291,8 @@ object MainForm: TMainForm
     Top = 488
   end
   object PopupDir: TPopupMenu
-    Left = 40
-    Top = 448
+    Left = 16
+    Top = 480
     object miDirCopyFile: TMenuItem
       Caption = 'Copy file here'
       OnClick = miDirCopyFileClick

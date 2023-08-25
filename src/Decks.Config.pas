@@ -32,7 +32,7 @@ const
 	COLUMN_LAST = COLUMN_FILEDATE;
 
 type
-	TConfigItemType = ( cfgBoolean, cfgByte, cfgWord, cfgInteger, cfgFloat, cfgString );
+	TConfigItemType   = ( cfgBoolean, cfgByte, cfgWord, cfgInteger, cfgFloat, cfgString );
 	TConfigItemAccess = ( cfgRead, cfgWrite, cfgReadWrite );
 
 	TConfigItem = class
@@ -158,6 +158,8 @@ type
 			Enabled,
 			Enable_Crossfader,
 			Enable_Equalizer: Boolean;
+			CueMode: Byte;
+			CueMix:  Byte;
 			EQ: record
 				Low, Mid, High: Integer;
 			end;
@@ -456,6 +458,8 @@ begin
 
 	Sect := 'mixer';
 	Cfg.Add(cfgBoolean, Sect, 'enabled', @Mixer.Enabled);
+	Cfg.Add(cfgByte,    Sect, 'cuemode', @Mixer.CueMode);
+	Cfg.Add(cfgByte,    Sect, 'cuemix',  @Mixer.CueMix);
 
 	Sect := 'effects';
 	Cfg.Add(cfgBoolean, Sect, 'enabled', @Effects.Enabled);
