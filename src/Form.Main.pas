@@ -518,8 +518,19 @@ begin
 	UI_SELECT_ENTER:	if not ClickButton(FocusableControls.ActiveControl, Pressed) then
 			if Pressed then FocusableControls.Descend;
 	UI_SELECT_EXIT:	if Pressed then FocusableControls.Ascend;
-
 	UI_MENU:			; // TODO
+
+	CUE_MIX:
+		sCueMix.Position  := Round((Value / 127) * 100);
+
+	DECK_PFL:
+		if Pressed then
+		begin
+			if DeckNum = 1 then
+				bCue1.Down := not bCue1.Down
+			else
+				bCue2.Down := not bCue2.Down;
+		end;
 
 	DECK_LOOP,
 	DECK_LOOP_SONG,
@@ -575,6 +586,9 @@ begin
 
 		MODE_LOOP_ON, MODE_LOOP_OFF:
 			MIDI.SetLed(DECK_LOOP, B, Event = MODE_LOOP_ON);
+
+		MODE_CUE_ON, MODE_CUE_OFF:
+			MIDI.SetLed(DECK_CUE, B, Event = MODE_CUE_ON);
 
 	end;
 end;
@@ -792,12 +806,15 @@ begin
 	if not (Sender is TDecksButton) then Exit;
 	Btn := Sender as TDecksButton;
 	D := Btn.Tag;
-	Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
-	if D in [1..2] then
+	if (D in [1..2]) and (MixerDeck[D].Deck <> nil) then
 	begin
+		MIDI.SetLed(DECK_PFL, D=2, Btn.Down);
 		MixerDeck[D].Deck.CueOn := Btn.Down;
 		MixerDeck[D].Deck.UpdateCueOutput;
-	end;
+		Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
+	end
+	else
+		Btn.Down := False;
 end;
 
 procedure TMainForm.sCueMixChange(Sender: TObject);

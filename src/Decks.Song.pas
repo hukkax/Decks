@@ -24,6 +24,8 @@ const
 	MODE_EQ_KILL_OFF  = 19;
 	MODE_LOOP_ON      = 20;
 	MODE_LOOP_OFF     = 21;
+	MODE_CUE_ON       = 22;
+	MODE_CUE_OFF      = 23;
 
 	MODE_LOAD_START   = 30;
 	MODE_LOAD_SUCCESS = 31;
