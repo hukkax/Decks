@@ -2033,6 +2033,8 @@ object MainForm: TMainForm
           DropDownArrowSize = 8
           GlobalOpacity = 255
           GroupIndex = 0
+          OnMouseDown = bFileCueMouseDown
+          OnMouseUp = bFileCueMouseUp
           Rounding.RoundX = 0
           Rounding.RoundY = 0
           RoundingDropDown.RoundX = 0

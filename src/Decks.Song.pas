@@ -82,6 +82,21 @@ type
 		destructor	Destroy; override;
 	end;
 
+	TFileCue = record
+	private
+		Playing:    Boolean;
+		FileStream,
+		OutStream:  HSTREAM;
+		Filename:   String;
+	public
+		function  Start(const AFilename: String): Boolean;
+		function  Stop: Boolean;
+		procedure UnInit;
+	end;
+
+var
+	FileCue: TFileCue;
+
 
 implementation
 
@@ -247,6 +262,60 @@ begin
 		Play;
 end;
 
+{ TFileCue }
+
+function TFileCue.Start(const AFilename: String): Boolean;
+var
+	UFilename: UnicodeString;
+begin
+	Result := False;
+
+	if AFilename <> Filename then
+	begin
+		if (AFilename.IsEmpty) or (not FileExists(AFilename)) then Exit;
+
+		UnInit;
+		Filename := AFilename;
+		UFilename := UnicodeString(AFilename);
+
+		FileStream := BASS_StreamCreateFile(False, PWideChar(UFilename), 0, 0,
+			BASS_STREAM_DECODE or BASS_SAMPLE_FLOAT or BASS_UNICODE or BASS_SAMPLE_LOOP);
+		if FileStream = 0 then Exit;
+
+		OutStream := BASS_Mixer_StreamCreate(Config.Audio.Hz, 4, BASS_MIXER_RESUME);
+		BASS_ChannelSetAttribute(OutStream, BASS_ATTRIB_BUFFER, 0);
+		BASS_Mixer_StreamAddChannel(OutStream, FileStream, BASS_MIXER_CHAN_MATRIX);
+	end;
+
+	if OutStream <> 0 then
+	begin
+		ApplyMixingMatrix(FileStream, True, 1, 0, 0);
+		Playing := BASS_ChannelPlay(OutStream, True);
+	end;
+	Result := Playing;
+end;
+
+function TFileCue.Stop: Boolean;
+begin
+	Result := Playing;
+	if Result then
+		BASS_ChannelStop(OutStream);
+	Playing := False;
+end;
+
+procedure TFileCue.UnInit;
+begin
+	FreeStream(FileStream);
+	FreeStream(OutStream);
+end;
+
+initialization
+
+	FileCue := Default(TFileCue);
+
+finalization
+
+	FileCue.Uninit;
 
 end.
 

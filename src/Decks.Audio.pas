@@ -5,7 +5,7 @@ unit Decks.Audio;
 interface
 
 uses
-	Classes, SysUtils, FGL, BASS;
+	Classes, SysUtils, FGL, BASS, BASSmix;
 
 const
 	OUTPUTS: array[0..3] of Integer = (
@@ -57,7 +57,8 @@ type
 	function  FormatTime(Seconds: Double): String;
 	function  StreamLengthInSeconds(Stream: HSTREAM): Double;
 	function  TranslateStreamLength(OriginalStream, MixerStream: HSTREAM): QWord;
-	procedure FreeStream(Stream: HSTREAM);
+	procedure FreeStream(var Stream: HSTREAM);
+	procedure ApplyMixingMatrix(Stream: HSTREAM; CueOn: Boolean; Amp, CurrentVolume, CueMix: Single);
 
 var
 	SpeakerAssignmentInfo: array [0..11] of TSpeakerAssignmentInfo;
@@ -65,7 +66,7 @@ var
 implementation
 
 uses
-	FileUtil,
+	FileUtil, Math,
 	Decks.Config;
 	//basszxtune;
 
@@ -107,10 +108,54 @@ begin
 	Result := BASS_ChannelSeconds2Bytes(MixerStream, StreamLengthInSeconds(OriginalStream));
 end;
 
-procedure FreeStream(Stream: HSTREAM);
+procedure FreeStream(var Stream: HSTREAM);
 begin
 	if Stream <> 0 then
+	begin
 		BASS_StreamFree(Stream);
+		Stream := 0;
+	end;
+end;
+
+procedure ApplyMixingMatrix(Stream: HSTREAM; CueOn: Boolean; Amp, CurrentVolume, CueMix: Single);
+var
+	Mix, Cue, Per: Single;
+	matrix: array[0..7] of Single;
+begin
+	Per := CueMix;
+	Mix := CurrentVolume * Amp; // apply crossfader for master
+	Cue := 0.0;
+
+	// master
+	matrix[0] := Mix; matrix[1] := 0.0; // FL = master left
+	matrix[2] := 0.0; matrix[3] := Mix; // FR = master right
+
+	case Config.Mixer.CueMode of
+		CUE_MIX:
+		begin
+			if CueOn then
+				Cue := Amp
+			else
+				Cue := Mix * (1.0 - Per);
+			matrix[4] := Cue; matrix[5] := 0;   // RL = cue left
+			matrix[6] := 0;   matrix[7] := Cue; // RR = cue right
+		end;
+		CUE_SPLIT:
+		begin
+			if CueOn then Cue := Amp;
+			Per := 1 - Per;
+			// rear left out
+			Amp := Min(1.0, Mix + (Per * Cue)); // RL = master + n% cue
+			matrix[4] := Amp; matrix[5] := Amp;
+			// rear right out
+			Amp := Min(1.0, Cue + (Per * Mix)); // RR = cue + n% master
+			matrix[6] := Amp; matrix[7] := Amp;
+		end;
+	else
+		Exit;
+	end;
+
+	BASS_Mixer_ChannelSetMatrix(Stream, @matrix[0]);
 end;
 
 { TAudioManager }

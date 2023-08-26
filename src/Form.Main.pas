@@ -209,6 +209,10 @@ type
 			X, Y: Integer);
 		procedure bCue1SetDown(Sender: TObject);
 		procedure sCueMixChange(Sender: TObject);
+		procedure bFileCueMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
+		procedure bFileCueMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+			X, Y: Integer);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -826,6 +830,16 @@ begin
 		Deck.UpdateCueOutput;
 end;
 
+procedure TMainForm.bFileCueMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+	FileCue.Start(SelectedListItem.Filename);
+end;
+
+procedure TMainForm.bFileCueMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+	FileCue.Stop;
+end;
+
 procedure TMainForm.miDirCopyFileClick(Sender: TObject);
 var
 	Dir, Filename: String;
@@ -1122,6 +1136,8 @@ begin
 	ApplyTheme;
 
 	AudioManager.InitPlugins(Config.PluginPath);
+	if Config.Mixer.CueMode <> CUE_NONE then
+		AudioManager.InitDevice(MainForm.Handle, Config.Audio.Device[1]);
 
 	eFileFilterChange(Self);
 
@@ -2223,6 +2239,7 @@ begin
 		MixerDeck[1].Deck.OtherDeck := MixerDeck[2].Deck;
 	if MixerDeck[2].Deck <> nil then
 		MixerDeck[2].Deck.OtherDeck := MixerDeck[1].Deck;
+	sCueMixChange(Self);
 end;
 
 function TMainForm.CreateDeck: TDeck;
