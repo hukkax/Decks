@@ -9,7 +9,7 @@ uses
 	Classes, SysUtils, DateUtils;
 
 const
-	TOTAL_TAP_VALUES = 64;
+	TOTAL_TAP_VALUES = 16;
 	MS_UNTIL_CHAIN_RESET = 2000;
 	SKIPPED_TAP_THRESHOLD_LOW  = 1.75;
 	SKIPPED_TAP_THRESHOLD_HIGH = 2.75;
@@ -49,9 +49,11 @@ var
 begin
 	amount := Min(TapsInChain, TOTAL_TAP_VALUES);
 	if amount < 1 then Exit(ZeroValue);
+
 	for i := 0 to amount-1 do
 		Inc(RunningTotal, TapDurations[i]);
-	Result := {Math.Floor}(RunningTotal / amount);
+
+	Result := Math.Floor(RunningTotal / amount);
 end;
 
 function TTempoTap.DoTap(NowTime: TDateTime): Single;
@@ -106,7 +108,7 @@ begin
 	if NewBeatMS >= 10.0 then
 	begin
 		BeatMS := NewBeatMS;
-		Result := Round((60000 / BeatMS) + 0.5);
+		Result := {Round}((60000 / BeatMS) {+ 0.5});
 	end
 	else
 		Result := ZeroValue;
