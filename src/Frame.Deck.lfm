@@ -2233,7 +2233,7 @@ object DeckFrame: TDeckFrame
       Caption = 'Select in file listing'
       OnClick = miShowFileClick
     end
-    object MenuItem2: TMenuItem
+    object miAudioSeparator: TMenuItem
       Caption = '-'
     end
     object miAudioDevices: TMenuItem

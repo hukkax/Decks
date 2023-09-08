@@ -144,6 +144,8 @@ type
 			Threads: Byte;
 			Device:    array[1..4] of Byte;
 			SubDevice: array[1..4] of Byte;
+			CueDevice: Byte;
+			CueOnFront: Boolean;
 		end;
 
 		Controller: record
@@ -455,6 +457,9 @@ begin
 		Cfg.Add(cfgByte, Sect, 'device.' + IntToStr(i), @Audio.Device[i]);
 	for i := 1 to High(Audio.SubDevice) do
 		Cfg.Add(cfgByte, Sect, 'subdevice.' + IntToStr(i), @Audio.SubDevice[i]);
+
+	Cfg.Add(cfgByte,    Sect, 'device.cue',     @Audio.CueDevice);
+	Cfg.Add(cfgBoolean, Sect, 'cueonfront',     @Audio.CueOnFront);
 
 	Sect := 'mixer';
 	Cfg.Add(cfgBoolean, Sect, 'enabled', @Mixer.Enabled);

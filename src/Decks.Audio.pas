@@ -119,6 +119,7 @@ end;
 
 procedure ApplyMixingMatrix(Stream: HSTREAM; CueOn: Boolean; Amp, CurrentVolume, CueMix: Single);
 var
+	ChMix, ChCue: Integer;
 	Mix, Cue, Per: Single;
 	matrix: array[0..7] of Single;
 begin
@@ -126,9 +127,18 @@ begin
 	Mix := CurrentVolume * Amp; // apply crossfader for master
 	Cue := 0.0;
 
+	if not Config.Audio.CueOnFront then
+	begin
+		ChMix := 0; ChCue := 4;
+	end
+	else
+	begin
+		ChMix := 4; ChCue := 0;
+	end;
+
 	// master
-	matrix[0] := Mix; matrix[1] := 0.0; // FL = master left
-	matrix[2] := 0.0; matrix[3] := Mix; // FR = master right
+	matrix[ChMix+0] := Mix; matrix[ChMix+1] := 0.0; // FL = master left
+	matrix[ChMix+2] := 0.0; matrix[ChMix+3] := Mix; // FR = master right
 
 	case Config.Mixer.CueMode of
 		CUE_MIX:
@@ -137,8 +147,8 @@ begin
 				Cue := Amp
 			else
 				Cue := Mix * (1.0 - Per);
-			matrix[4] := Cue; matrix[5] := 0;   // RL = cue left
-			matrix[6] := 0;   matrix[7] := Cue; // RR = cue right
+			matrix[ChCue+0] := Cue; matrix[ChCue+1] := 0;   // RL = cue left
+			matrix[ChCue+2] := 0;   matrix[ChCue+3] := Cue; // RR = cue right
 		end;
 		CUE_SPLIT:
 		begin
@@ -146,10 +156,10 @@ begin
 			Per := 1 - Per;
 			// rear left out
 			Amp := Min(1.0, Mix + (Per * Cue)); // RL = master + n% cue
-			matrix[4] := Amp; matrix[5] := Amp;
+			matrix[ChCue+0] := Amp; matrix[ChCue+1] := Amp;
 			// rear right out
 			Amp := Min(1.0, Cue + (Per * Mix)); // RR = cue + n% master
-			matrix[6] := Amp; matrix[7] := Amp;
+			matrix[ChCue+2] := Amp; matrix[ChCue+3] := Amp;
 		end;
 	else
 		Exit;

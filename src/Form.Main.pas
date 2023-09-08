@@ -1137,7 +1137,7 @@ begin
 
 	AudioManager.InitPlugins(Config.PluginPath);
 	if Config.Mixer.CueMode <> CUE_NONE then
-		AudioManager.InitDevice(MainForm.Handle, Config.Audio.Device[1]);
+		AudioManager.InitDevice(MainForm.Handle, Config.Audio.CueDevice);
 
 	eFileFilterChange(Self);
 

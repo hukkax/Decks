@@ -70,7 +70,7 @@ type
 		miZoneKind4: TMenuItem;
 		PopupEffectPresets: TPopupMenu;
 		miSetMasterTempo: TMenuItem;
-		MenuItem2: TMenuItem;
+		miAudioSeparator: TMenuItem;
 		pnlEffects: TDecksPanel;
 		bLoopBeat: TDecksButton;
 		bLoopBeat2: TDecksButton;
@@ -363,20 +363,26 @@ begin
 		BASS_SetDevice(Dev);
 
 		miAudioSubDevices.Clear;
-		for Dev := 0 to High(SpeakerAssignmentInfo) do
-		begin
-			mi := TMenuItem.Create(miAudioSubDevices);
-			mi.Caption := SpeakerAssignmentInfo[Dev].Caption;
-			mi.GroupIndex := 1;
-			mi.AutoCheck := True;
-			mi.RadioItem := True;
-			mi.Tag := Dev;
-			mi.Checked := (mi.Tag = Config.Audio.SubDevice[Deck.Index]);
-			mi.OnClick := cmbSubDevicesChange;
-			miAudioSubDevices.Add(mi);
-		end;
 
-		InitSubDevice(Config.Audio.SubDevice[Deck.Index]);
+		if Config.Mixer.CueMode = CUE_NONE then
+		begin
+			for Dev := 0 to High(SpeakerAssignmentInfo) do
+			begin
+				mi := TMenuItem.Create(miAudioSubDevices);
+				mi.Caption := SpeakerAssignmentInfo[Dev].Caption;
+				mi.GroupIndex := 1;
+				mi.AutoCheck := True;
+				mi.RadioItem := True;
+				mi.Tag := Dev;
+				mi.Checked := (mi.Tag = Config.Audio.SubDevice[Deck.Index]);
+				mi.OnClick := cmbSubDevicesChange;
+				miAudioSubDevices.Add(mi);
+			end;
+
+			InitSubDevice(Config.Audio.SubDevice[Deck.Index]);
+		end
+		else
+			InitSubDevice(0);
 	end;
 end;
 
@@ -394,10 +400,9 @@ begin
 	begin
 		SF := SpeakerAssignmentInfo[Config.Audio.SubDevice[Deck.Index]].SpeakerFlags;
 		BASS_Mixer_ChannelFlags(Deck.OrigStream, 0, SF);
+		Config.Audio.SubDevice[Deck.Index] := SubDev;
+		AudioManager.Devices[Config.Audio.Device[Deck.Index]].Speakers := SubDev;
 	end;
-
-	Config.Audio.SubDevice[Deck.Index] := SubDev;
-	AudioManager.Devices[Config.Audio.Device[Deck.Index]].Speakers := SubDev;
 
 	Deck.UpdateCueOutput;
 
@@ -539,19 +544,31 @@ begin
 
 	pnlWaveform.Height := Max(40, Config.Deck.Waveform.Height);
 
-	for Dev in AudioManager.Devices do
+	if Config.Mixer.CueMode = CUE_NONE then
 	begin
-		mi := TMenuItem.Create(miAudioDevices);
-		mi.Caption := Dev.Name;
-		mi.Tag := Dev.Index - 1;
-		mi.GroupIndex := 1;
-		mi.AutoCheck := True;
-		mi.RadioItem := True;
-		mi.Checked := (mi.Tag = Config.Audio.Device[Deck.Index]);
-		mi.OnClick := cmbDevicesChange;
-		miAudioDevices.Add(mi);
+		for Dev in AudioManager.Devices do
+		begin
+			mi := TMenuItem.Create(miAudioDevices);
+			mi.Caption := Dev.Name;
+			mi.Tag := Dev.Index - 1;
+			mi.GroupIndex := 1;
+			mi.AutoCheck := True;
+			mi.RadioItem := True;
+			mi.Checked := (mi.Tag = Config.Audio.Device[Deck.Index]);
+			mi.OnClick := cmbDevicesChange;
+			miAudioDevices.Add(mi);
+		end;
+
+		InitDevice(Config.Audio.Device[Deck.Index]);
+	end
+	else
+	begin
+		miAudioDevices.Visible := False;
+		miAudioSubDevices.Visible := False;
+		miAudioSeparator.Visible := False;
+
+		InitDevice(Config.Audio.CueDevice);
 	end;
-	InitDevice(Config.Audio.Device[Deck.Index]);
 
 	LoopControls[DECK_LOOP]      := bLoopBar2;
 	LoopControls[DECK_LOOP_SONG] := bLoopSong;
