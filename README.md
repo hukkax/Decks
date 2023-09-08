@@ -3,10 +3,10 @@
 A crossplatform deejaying software written in Free Pascal.
 
 - Utilizes beat graphs for tempo determination, navigation and syncing
-- Crossfader, EQ controls and simple effects are provided, but no builtin headphone cueing
+- Crossfader, EQ controls and simple effects are provided
+- Headphone cueing (requires sound card with quadraphonic channel support)
 - Each deck can be assigned to any audio output device or speaker on the fly
 - Support for MIDI controllers (config included only for Numark DJ2Go as that's the only controller I own)
-- Meant to be used with an external mixer, but it's possible to mix by visual cues only
 
 ![Screenshot](https://github.com/hukkax/Decks/blob/main/docs/images/main.png)
 
