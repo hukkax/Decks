@@ -51,6 +51,8 @@ object Form1: TForm1
       Background.Gradient2.Point2YPercent = 100
       Background.Gradient1EndPercent = 30
       Background.Style = bbsColor
+      Background.FillStyle = bsClear
+      Background.FillColor = 2105376
       Bevel.Opacity = 255
       Bevel.ColorLight = 6710886
       Bevel.ColorDark = 2236962
@@ -114,7 +116,7 @@ object Form1: TForm1
         DropDownWidth = 30
         DropDownArrowSize = 8
         GlobalOpacity = 255
-        OnClick = DecksButton1Click
+        GroupIndex = 0
         Rounding.RoundX = 0
         Rounding.RoundY = 0
         RoundingDropDown.RoundX = 1
@@ -128,6 +130,7 @@ object Form1: TForm1
         TextApplyGlobalOpacity = False
         ClickOffset = True
         DropDownArrow = True
+        DropDownMenu = PopupMenu1
         DropDownStyle = bdsCommon
       end
       object DecksButton2: TDecksButton
@@ -170,6 +173,7 @@ object Form1: TForm1
         DropDownWidth = 16
         DropDownArrowSize = 8
         GlobalOpacity = 255
+        GroupIndex = 0
         Rounding.RoundX = 0
         Rounding.RoundY = 0
         Rounding.RoundOptions = [rrBottomLeftSquare]
@@ -313,6 +317,119 @@ object Form1: TForm1
         StaticButton = False
         TabOrder = 0
       end
+      object DecksValueLabel1: TDecksValueLabel
+        Left = 232
+        Height = 32
+        Top = 144
+        Width = 120
+        Anchors = [akTop, akLeft, akRight]
+        Background.Color = 4473924
+        Background.Gradient1.StartColor = clWhite
+        Background.Gradient1.EndColor = clBlack
+        Background.Gradient1.GradientType = gtLinear
+        Background.Gradient1.Point1XPercent = 0
+        Background.Gradient1.Point1YPercent = 0
+        Background.Gradient1.Point2XPercent = 0
+        Background.Gradient1.Point2YPercent = 100
+        Background.Gradient2.StartColor = clWhite
+        Background.Gradient2.EndColor = clBlack
+        Background.Gradient2.GradientType = gtLinear
+        Background.Gradient2.Point1XPercent = 0
+        Background.Gradient2.Point1YPercent = 0
+        Background.Gradient2.Point2XPercent = 0
+        Background.Gradient2.Point2YPercent = 100
+        Background.Gradient1EndPercent = 35
+        Background.Style = bbsColor
+        Bevel.ColorDark = 6710886
+        Bevel.InnerBevel = bcbTop
+        Bevel.OuterBevel = bcbBottom
+        Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+        Border.Color = 3355443
+        Border.Style = bboSolid
+        FontEx.Color = 13421772
+        FontEx.FontQuality = fqSystemClearType
+        FontEx.Height = 20
+        FontEx.Shadow = True
+        FontEx.ShadowColorOpacity = 100
+        FontEx.ShadowRadius = 1
+        FontEx.ShadowOffsetX = 1
+        FontEx.ShadowOffsetY = 1
+        FontEx.Style = [fsBold]
+        FontEx.PaddingLeft = 10
+        FontEx.PaddingRight = 10
+        FontEx.PaddingBottom = 5
+        Rounding.RoundX = 1
+        Rounding.RoundY = 1
+        OnChange = DecksValueLabel1Change
+        Value = 123.456
+        IntegerDigits = 3
+        FractionDigits = 2
+        DecimalSeparator = '.'
+        HoverColor = clAqua
+        HoverAlpha = 40
+        Min = 80
+        Max = 200
+        DragHeight = 400
+        InvertDragDir = False
+        InvertWheelDir = False
+        FullSideSelect = True
+      end
+      object DecksValueLabel2: TDecksValueLabel
+        Left = 232
+        Height = 32
+        Top = 208
+        Width = 120
+        Anchors = [akTop, akLeft, akRight]
+        Background.Color = 4473924
+        Background.Gradient1.StartColor = clWhite
+        Background.Gradient1.EndColor = clBlack
+        Background.Gradient1.GradientType = gtLinear
+        Background.Gradient1.Point1XPercent = 0
+        Background.Gradient1.Point1YPercent = 0
+        Background.Gradient1.Point2XPercent = 0
+        Background.Gradient1.Point2YPercent = 100
+        Background.Gradient2.StartColor = clWhite
+        Background.Gradient2.EndColor = clBlack
+        Background.Gradient2.GradientType = gtLinear
+        Background.Gradient2.Point1XPercent = 0
+        Background.Gradient2.Point1YPercent = 0
+        Background.Gradient2.Point2XPercent = 0
+        Background.Gradient2.Point2YPercent = 100
+        Background.Gradient1EndPercent = 35
+        Background.Style = bbsColor
+        Bevel.ColorDark = 6710886
+        Bevel.InnerBevel = bcbTop
+        Bevel.OuterBevel = bcbBottom
+        Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+        Border.Color = 3355443
+        Border.Style = bboSolid
+        FontEx.Color = 13421772
+        FontEx.FontQuality = fqSystemClearType
+        FontEx.Height = 20
+        FontEx.Shadow = True
+        FontEx.ShadowColorOpacity = 100
+        FontEx.ShadowRadius = 1
+        FontEx.ShadowOffsetX = 1
+        FontEx.ShadowOffsetY = 1
+        FontEx.Style = [fsBold]
+        FontEx.PaddingLeft = 10
+        FontEx.PaddingRight = 10
+        FontEx.PaddingBottom = 5
+        Rounding.RoundX = 1
+        Rounding.RoundY = 1
+        Value = 123
+        IntegerDigits = 3
+        FractionDigits = 0
+        DecimalSeparator = '.'
+        HoverColor = clAqua
+        HoverAlpha = 40
+        Min = 80
+        Max = 200
+        DragHeight = 400
+        InvertDragDir = False
+        InvertWheelDir = False
+        FullSideSelect = True
+      end
     end
     object Panel2: TDecksPanel
       Left = 20
@@ -343,6 +460,8 @@ object Form1: TForm1
       Background.Gradient2.Point2YPercent = 100
       Background.Gradient1EndPercent = 30
       Background.Style = bbsColor
+      Background.FillStyle = bsClear
+      Background.FillColor = 2105376
       Bevel.Opacity = 255
       Bevel.ColorLight = 8947848
       Bevel.ColorDark = 2236962
@@ -368,6 +487,20 @@ object Form1: TForm1
       Rounding.RoundY = 0
       Rounding.RoundOptions = [rrBottomRightSquare, rrBottomLeftSquare]
       TabOrder = 1
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    OnDrawItem = PopupMenu1DrawItem
+    Left = 158
+    Top = 212
+    object MenuItem1: TMenuItem
+      Caption = 'MenuItem1'
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'MenuItem2'
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'MenuItem3'
     end
   end
 end

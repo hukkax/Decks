@@ -5,8 +5,8 @@ unit Unit1;
 interface
 
 uses
-	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-	DecksButton, hKnob, DecksPanel, DecksLabel, DecksComboBox, Unit2;
+	Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Menus,
+	BGRATheme, DecksButton, hKnob, DecksPanel, DecksLabel, DecksComboBox, DecksValueLabel, Unit2, LCLType;
 
 type
 	TForm1 = class(TForm)
@@ -18,11 +18,20 @@ type
 		Panel2: TDecksPanel;
 		Label1: TDecksLabel;
 		ComboBox1: TDecksComboBox;
+		DecksValueLabel1: TDecksValueLabel;
+		DecksValueLabel2: TDecksValueLabel;
+		PopupMenu1: TPopupMenu;
+		MenuItem1: TMenuItem;
+		MenuItem2: TMenuItem;
+		MenuItem3: TMenuItem;
 		procedure FrameUnfocused(Sender: TObject);
 		procedure hKnob1Change(Sender: TObject);
 		procedure FormShow(Sender: TObject);
 		procedure DecksButton1Click(Sender: TObject);
 		procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+		procedure DecksValueLabel1Change(Sender: TObject);
+		procedure PopupMenu1DrawItem(Sender: TObject; ACanvas: TCanvas; ARect: TRect;
+			AState: TOwnerDrawState);
 	private
 
 	public
@@ -70,6 +79,17 @@ procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
 	if Popup <> nil then
 		Popup.Free;
+end;
+
+procedure TForm1.DecksValueLabel1Change(Sender: TObject);
+begin
+	Caption := FloatToStr(DecksValueLabel1.Value);
+end;
+
+procedure TForm1.PopupMenu1DrawItem(Sender: TObject; ACanvas: TCanvas; ARect: TRect;
+	AState: TOwnerDrawState);
+begin
+	ACanvas.Brush.Color := RGBToColor(216, 215, 255);
 end;
 
 procedure TForm1.hKnob1Change(Sender: TObject);

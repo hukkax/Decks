@@ -26,9 +26,6 @@
     </RunParams>
     <RequiredPackages>
       <Item>
-        <PackageName Value="luicontrols"/>
-      </Item>
-      <Item>
         <PackageName Value="decksgui"/>
       </Item>
       <Item>
@@ -62,6 +59,11 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
         <UnitName Value="Unit2"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\decksvaluelabel.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DecksValueLabel"/>
       </Unit>
     </Units>
   </ProjectOptions>
