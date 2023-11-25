@@ -6,13 +6,17 @@ unit Decks.MIDI;
 interface
 
 uses
-	Classes, SysUtils,
+	Classes, SysUtils, Generics.Collections,
 	{$IFDEF USEMIDI}
 	RtMidi,
 	{$ENDIF}
+	Decks.Config,
 	LMessages;
 
 const
+	MaxDecks = 4;
+	MidiMaxValue  = $3FFF;
+
 	MIDI_NOTE_ON  = $90;
 	MIDI_NOTE_OFF = $80;
 
@@ -64,51 +68,131 @@ My Axiom 25 has the following methods:
 151 RPN Increment/Decrement Message 096 followed by 000 - 127 097 followed by 000 - 127
 152 NRPN Increment/Decrement Message 096 followed by 000 - 127 097 followed by 000 - 127
 *)
+
+// type=note|absolute|absolute-14bit|relative-signedbit|relative-signedbit-rev|relative-twoscomplement|relative-binaryoffset|relative-14bit|meter
 type
 	TMidiControlKind = (
 		MIDI_CTRL_BUTTON,
 		MIDI_CTRL_ABSOLUTE,
+		MIDI_CTRL_ABSOLUTE_14BIT,
+		MIDI_CTRL_RELATIVE_SIGNEDBIT,
+		MIDI_CTRL_RELATIVE_SIGNEDBIT_REV,
 		MIDI_CTRL_RELATIVE_TWOSCOMPLEMENT,
 		MIDI_CTRL_RELATIVE_BINARYOFFSET,
-		MIDI_CTRL_RELATIVE_SIGNMAGNITUDE
+		MIDI_CTRL_RELATIVE_14BIT,
+		MIDI_CTRL_VUMETER
 	);
 
+const
+	MidiControlKindNames: array[TMidiControlKind] of String = (
+		'note',
+		'absolute',
+		'absolute-14bit',
+		'relative-signedbit',
+		'relative-signedbit-rev',
+		'relative-twoscomplement',
+		'relative-binaryoffset',
+		'relative-14bit',
+		'vumeter'
+		);
+
+type
+	TMIDIShortMessage = DWord; // KK D0 D1 D2
+
+	TMIDIShortMessageRec = packed record
+	case Boolean of
+		True: (
+			Kind:   Byte;
+			Data:   array[0..2] of Byte;
+			);
+		False: ( Raw: TMIDIShortMessage; );
+	end;
+
+	TMIDIShortMessages = TList<TMIDIShortMessage>;
+
+	TMIDIMacro = class
+	public
+		Mode:      TAppMode;
+		Condition: AnsiString;
+		Messages:  TMIDIShortMessages;
+
+		constructor Create;
+		destructor  Destroy; override;
+	end;
+
+	TMIDIMacroList = TObjectList<TMIDIMacro>;
+
 	TDecksActionKind = (
-		NO_ACTION,
+		NO_ACTION,			DECK_SHIFT,
 		DECK_PLAY,			DECK_REVERSE,
-		DECK_CUE,			DECK_SEEK,
-		DECK_SYNC,			DECK_LOAD,
-		DECK_AMP,			DECK_BEND,
+		DECK_CUE,			DECK_LOAD,
+		DECK_SEEK,			DECK_SEEK_BAR,
+		DECK_SYNC_TOGGLE,	DECK_SYNC,
+		DECK_AMP,			DECK_PFL,
+		DECK_BEND,			DECK_BEND_UP,		DECK_BEND_DOWN,
 		DECK_LOOP,			DECK_LOOP_SONG,		DECK_LOOP_ZONE,
-		DECK_FX_FILTER,		DECK_PFL,			CUE_MIX,
-		MIXER_EQ_LOW,		MIXER_EQ_MID,		MIXER_EQ_HIGH,
-		MIXER_EQ_KILL,		MIXER_CROSSFADER,
-		UI_LIST,			UI_SELECT,
+		DECK_LOOP_HALVE,	DECK_LOOP_DOUBLE,
+		DECK_HOTCUE,		DECK_HOTCUE_TEMP,	DECK_HOTCUE_SET,		DECK_HOTCUE_CLEAR,
+		DECK_PADS_PAGE,
+		DECK_FX_ENABLE,		DECK_FX_SELECT,		DECK_FX_SELECT_PARAM,	DECK_FX_PARAM,
+		MIXER_CUE_MIX,		MIXER_CUE_LEVEL,	MIXER_CUE_MASTER,		MIXER_CUE_POSTFADER,
+		MIXER_EQ_LOW,		MIXER_EQ_MID,		MIXER_EQ_HIGH,			MIXER_EQ_KILL,
+		MIXER_FILTER,		MIXER_CROSSFADER,	MIXER_VOLUME,			MIXER_MASTER,
+		MIXER_VUMETER,
+		UI_LIST,			UI_SELECT,			UI_SELECT_CONTROL,
 		UI_SELECT_TOGGLE,	UI_SELECT_OPEN,
 		UI_SELECT_ENTER,	UI_SELECT_EXIT,
-		UI_MENU
+		UI_BUTTON,			UI_MENU
+	);
+
+	TDecksButtonKind = (
+		BUTTON_TOOLBAR_VIEW_EFFECTS,
+		BUTTON_TOOLBAR_VIEW_MIXER,
+		BUTTON_TOOLBAR_VIEW_GRAPHLINES,
+		BUTTON_TOOLBAR_VIEW_LEFTPANE,
+		BUTTON_WINDOW_MINIMIZE,
+		BUTTON_WINDOW_MAXIMIZE,
+		BUTTON_WINDOW_CLOSE,
+		BUTTON_FILE_CUE,
+		BUTTON_FILE_LOAD_NEW,
+		BUTTON_FILE_LOAD_DECK1,
+		BUTTON_FILE_LOAD_DECK2,
+		BUTTON_FILE_LOAD_DECK3,
+		BUTTON_FILE_RENAME,
+		BUTTON_FILE_DELETE
 	);
 
 const
 	// list of TDecksActionKinds that expect a parameter
 	// to specify a deck number or other byte parameter
 	ParameterizedActions: set of TDecksActionKind = [
+		DECK_SHIFT,
 		DECK_PLAY,			DECK_REVERSE,
-		DECK_CUE,			DECK_SEEK,
-		DECK_SYNC,			DECK_LOAD,
-		DECK_AMP,			DECK_BEND,
+		DECK_CUE,			DECK_LOAD,
+		DECK_SEEK,			DECK_SEEK_BAR,
+		DECK_SYNC_TOGGLE,	DECK_SYNC,
+		DECK_AMP,			DECK_PFL,
+		DECK_BEND,			DECK_BEND_UP,		DECK_BEND_DOWN,
 		DECK_LOOP,			DECK_LOOP_SONG,		DECK_LOOP_ZONE,
-		DECK_FX_FILTER,		DECK_PFL,
-		MIXER_EQ_LOW,		MIXER_EQ_MID,		MIXER_EQ_HIGH,	MIXER_EQ_KILL,
+		DECK_LOOP_HALVE,	DECK_LOOP_DOUBLE,
+		DECK_HOTCUE,		DECK_HOTCUE_TEMP,	DECK_HOTCUE_SET,		DECK_HOTCUE_CLEAR,
+		DECK_PADS_PAGE,
+		DECK_FX_ENABLE,		DECK_FX_SELECT,		DECK_FX_SELECT_PARAM,	DECK_FX_PARAM,
+		MIXER_EQ_LOW,		MIXER_EQ_MID,		MIXER_EQ_HIGH,			MIXER_EQ_KILL,
+		MIXER_FILTER,		MIXER_VOLUME,		MIXER_VUMETER,
 		UI_SELECT_TOGGLE,	UI_SELECT_OPEN //temporary
 	];
 
 	MidiCtrlCode: array[TMidiControlKind] of Byte = (
 		MIDI_CTRLCODE_BUTTON_PRESS,
 		MIDI_CTRLCODE_ABSOLUTE,
+		MIDI_CTRLCODE_ABSOLUTE,
 		MIDI_CTRLCODE_RELATIVE, // twoscomplement
 		MIDI_CTRLCODE_RELATIVE,
-		MIDI_CTRLCODE_RELATIVE
+		MIDI_CTRLCODE_RELATIVE,
+		MIDI_CTRLCODE_RELATIVE,
+		MIDI_CTRLCODE_RELATIVE,
+		MIDI_CTRLCODE_BUTTON_PRESS
 	);
 
 type
@@ -118,16 +202,20 @@ type
 	end;
 
 	// a button/knob/other control on a midi device
-	TMIDIControl = record
-		Enabled:    Boolean;
-		HasLED:     Boolean;
-		Kind:       TMidiControlKind;
-		Parameter:  Integer;
-		DeadZone:   Integer;
-		Name:       String;
-		Group:      String;
-		Action:     TDecksAction;
+	TMidiControl = class
+		Data:     Word; // MSB
+		Send:     Word; // outbound message or LSB for 14-bit input
+		Value:    Word;
+		Param:    DWord;
+		Led:      Word;
+		Kind:     TMidiControlKind; // <type>
+		Deck:     Byte;
+		DeadZone: Word;
+		Action:   TDecksAction;
+		Name:     String;
 	end;
+
+	TMIDIControls = TObjectList<TMIDIControl>;
 
 	TMIDI = record
 		{$IFDEF USEMIDI}
@@ -140,72 +228,182 @@ type
 		OutDevice:        Integer;
 		InputDeviceList,
 		OutputDeviceList: TStringList;
-		Controls:         array [Byte] of TMIDIControl;
-		Leds:             array [TDecksActionKind, 1..2] of Integer;
+		Controls:         TMIDIControls;
 		ActionNames:      array [TDecksActionKind] of String;
+		Macros:           TMIDIMacroList;
 
 		procedure Init;
 		procedure Uninit;
-		procedure SetLed(Kind: TDecksActionKind; RightDeck: Boolean; LedState: Boolean = True);
+
+		procedure ClearLeds;
+		procedure SetLed(Kind: TDecksActionKind; DeckNum: Byte; LedState: Boolean = True; Param: DWord = PARAM_ANY);
+		procedure SetVUMeter(Deck: Byte; Vol: Single); inline;
+
+		procedure ReadMidiMessages(Sl: TStrings; Kind: TAppMode);
+		procedure SendMidiMessages(Kind: TAppMode; BoolParam: Boolean; Deck: Integer = 0; Param: Integer = 0);
+		procedure SendMidiMessage(Code: TMIDIShortMessage);
 	end;
 
 	TExecuteParams = record
 		Action:  TDecksAction;
 		Kind:    TMidiControlKind;
 		Value:   Integer;
+		Param:   DWord;
 		Pressed: Boolean;
+		{.$IFDEF DEBUG}
+		Raw:     String;
+		{.$ENDIF}
 	end;
 	PExecuteParams = ^TExecuteParams;
+
+	TControlRec = record
+		Valid:  Boolean;
+		IsNote: Boolean;
+		Index:  Byte;
+	end;
+
+	function Evaluate(const Expr: String; deck, param: Integer; boolparam: Boolean): Boolean;
 
 
 implementation
 
 uses
-	IniFiles, Forms, Math, Dialogs,
-	Decks.Config,
+	fpexprpars,
+	IniFiles, Forms, Math,
 	Form.Main;
+
+var
+	ModeNames: array[TAppMode] of String;
+	Parser: TFPExpressionParser;
+	VU: array[0..MaxDecks] of TMIDIShortMessageRec;
 
 {$IFDEF USEMIDI}
 procedure MIDIInCallback(Timestamp: Double; Data: PByte; Size: size_t; UserData: Pointer); cdecl;
 var
-	Ctrl: TMIDIControl;
+	Ctrl, Ct: TMIDIControl;
+	DataVal: Word;
 	Params: PExecuteParams;
-	DeadZone, CenterVal: Integer;
+	i, DeadZone, CenterVal: Integer;
+	S: String;
+	IsLSB: Boolean = False;
 begin
 	if Size < 3 then Exit;
 
-	Ctrl := MIDI.Controls[Data[1]];
-	if not Ctrl.Enabled then Exit;
+	if Data[0] = $80 then
+	begin
+		Data[0] := $90;
+		Data[2] := $00;
+	end;
+
+	DataVal := (Data[0] shl 8) + Data[1];
+
+	Ctrl := nil;
+	for Ct in MIDI.Controls do
+	begin
+		if (Ct.Data = DataVal) or (Ct.Send = DataVal) then
+		begin
+			if Ct.Data <> DataVal then // matched Send value
+			begin
+				// is this the LSB for a 14-bit value?
+				if Ct.Kind in [MIDI_CTRL_ABSOLUTE_14BIT, MIDI_CTRL_RELATIVE_14BIT] then
+					IsLSB := True
+				else
+					Continue;
+			end;
+			Ctrl := Ct;
+			Break;
+		end;
+	end;
+	if Ctrl = nil then
+	begin
+		{$IFDEF DEBUG}
+		Log('Unhandled message: ' + DataVal.ToHexString(4));
+		{$ENDIF}
+		Exit;
+	end;
 
 	New(Params);
 	Params^.Kind := Ctrl.Kind;
 	CenterVal := 0;
 
+	{.$IFDEF DEBUG}
+	if MIDI.Debug then
+	begin
+		S := '';
+		for i := 0 to Size-1 do
+			S := S + IntToHex(Data[i], 2) + ' ';
+		Params^.Raw := S;
+	end;
+	{.$ENDIF}
+
 	case Ctrl.Kind of
+
+		// Note On/Off
+		// 8x/9x
 		MIDI_CTRL_BUTTON:
 		begin
-			Params^.Action := Ctrl.Action;
-			Params^.Value  := Ctrl.Parameter;
-			Params^.Pressed := (Data[0] = MIDI_CTRLCODE_BUTTON_PRESS);
+			Params^.Value := Ctrl.Value;
+			//Params^.Value := Data[2] shl 7;
+			Params^.Action  := Ctrl.Action;
+			Params^.Pressed := (Data[0] and $F0) = MIDI_CTRLCODE_BUTTON_PRESS;
+			if Params^.Pressed then
+				Params^.Pressed := Data[2] = $7F; // !!!
+			//if Ctrl.Send > 0 then
+			//	MIDI.SendMidiMessage(MIDI.Leds[Ctrl.Action.Kind, Ctrl.Deck], IfThen(Params^.Pressed, $7F, $00));
 		end;
+
+		// Absolute
+		// 0..127
 		MIDI_CTRL_ABSOLUTE:
 		begin
-			Params^.Action := Ctrl.Action;
-			Params^.Value  := Data[2];
+			Params^.Value := Data[2] shl 7;
+			Params^.Action  := Ctrl.Action;
 			Params^.Pressed := True;
-			CenterVal := 64;
+			CenterVal := 64 shl 7;
 		end;
+
+		// Relative Two's Complement
+		// Increases from 01 to 64, decrease from 127 to 65.
 		MIDI_CTRL_RELATIVE_TWOSCOMPLEMENT:
 		begin
-			if (Data[2] and 64) <> 0 then
-				Params^.Value := (Data[2] and 63) - 64 // negative
+			if Data[2] > 64 then
+				Params^.Value := -Abs(128 - (Data[2] and 127)) * $40 // negative
 			else
-				Params^.Value := (Data[2] and 63);     // positive
+				Params^.Value := (Data[2] and 127) * $40; // positive
 			Params^.Action  := Ctrl.Action;
 			Params^.Pressed := True;
 		end;
-		MIDI_CTRL_RELATIVE_BINARYOFFSET:  ; // TODO
-		MIDI_CTRL_RELATIVE_SIGNMAGNITUDE: ; // TODO
+
+		// Relative Binary Offset
+		// Increases from 65 to 127, decreases from 63 to 00.
+		MIDI_CTRL_RELATIVE_BINARYOFFSET:
+		begin
+			if Data[2] < 64 then
+				Params^.Value := -(64 - Data[2]) * $40 // negative
+			else
+			if Data[2] > 64 then
+				Params^.Value := (Data[2] - 64) * $40; // positive
+			Params^.Action  := Ctrl.Action;
+			Params^.Pressed := True;
+		end;
+
+		// 14-Bit RPN/NRPN
+		// 7-bit MSB, 7-bit LSB => $0..$3FFF
+		MIDI_CTRL_ABSOLUTE_14BIT,
+		MIDI_CTRL_RELATIVE_14BIT:
+		begin
+			if not IsLSB then
+				Ctrl.Value := (Data[2] shl 7) + (Ctrl.Value and $7F)
+			else
+				Ctrl.Value := (Ctrl.Value and ($7F shl 7)) + (Data[2] and $7F);
+			Params^.Value  := Ctrl.Value;
+			Params^.Action := Ctrl.Action;
+			CenterVal := 64 shl 7;
+		end;
+
+	else
+		Dispose(Params);
+		Exit;
 	end;
 
 	if (CenterVal <> 0) and (Ctrl.DeadZone <> 0) then
@@ -215,52 +413,139 @@ begin
 			Params^.Value := CenterVal;
 	end;
 
-	Application.RemoveAsyncCalls(MainForm);
+	Params^.Param := Ctrl.Param;
+	Params^.Action.Param := Ctrl.Deck;
+
+//	Application.RemoveAsyncCalls(MainForm);
 	Application.QueueAsyncCall(MainForm.ASyncExecute, {%H-}PtrInt(Params));
 end;
 {$ENDIF}
 
-procedure TMIDI.Init;
+{ TMIDIMacro }
 
-	procedure ReadControllerSection(Ini: TIniFile; const Sect: String; Kind: TMidiControlKind);
-	var
-		i: Integer;
-		S: String;
-		sl: TStringList;
-		B: Boolean;
+constructor TMIDIMacro.Create;
+begin
+	inherited;
+	Messages := TMIDIShortMessages.Create;
+end;
+
+destructor TMIDIMacro.Destroy;
+begin
+	Messages.Free;
+	inherited Destroy;
+end;
+
+procedure TMIDI.ReadMidiMessages(Sl: TStrings; Kind: TAppMode);
+var
+	M: TMIDIMacro = nil;
+
+	procedure AddMacro(const sCondition: String = '');
 	begin
-		sl := TStringList.Create;
-		Ini.ReadSection(Sect, sl);
-		for S in sl do
+		M := TMIDIMacro.Create;
+		M.Mode := Kind;
+		M.Condition := sCondition;
+		Macros.Add(M);
+	end;
+
+var
+	S, L: String;
+	V: Integer;
+	R: TMIDIShortMessageRec;
+begin
+	if Sl = nil then Exit;
+
+	for L in Sl do
+	begin
+		if L.StartsWith(';') then Continue;
+
+		if L.StartsWith('if') then
+			AddMacro(Copy(L, 3, MaxInt))
+		else
 		begin
-			i := Ini.ReadInteger(Sect, S, -1);
-			B := (i < 0);
-			i := Abs(i);
-			if i in [0..255] then
+			S := '$' + Trim(L.Replace(' ', ''));
+			if (TryStrToInt(S, V)) and (V > 0) and (V <= $FFFFFF) then
 			begin
-				Controls[i].Enabled := True;
-				Controls[i].HasLED  := B;
-				Controls[i].Name := UpperCase(S);
-				Controls[i].Parameter := 0;
-				Controls[i].Kind := Kind;
+				if M = nil then
+					AddMacro;
+				R.Kind    := Ord(Kind);
+				R.Data[0] := V shr 16 and $FF;
+				R.Data[1] := V shr 8 and $FF;
+				R.Data[2] := V and $FF;
+				M.Messages.Add(R.Raw);
 			end;
 		end;
-		sl.Free;
 	end;
+end;
 
-	function GetControl(const Name: String): Integer;
-	var
-		i: Integer;
-		N: String;
+procedure TMIDI.SendMidiMessage(Code: TMIDIShortMessage);
+var
+	R: TMIDIShortMessageRec;
+begin
+	{$IFDEF USEMIDI}
+	R.Raw := Code;
+	Output.SendMessage(R.Data);
+	{$ENDIF}
+end;
+
+function Evaluate(const Expr: String; deck, param: Integer; boolparam: Boolean): Boolean;
+var
+	Res: TFPExpressionResult;
+begin
+	Parser.Identifiers.Clear;
+	Parser.Identifiers.AddIntegerVariable('deck',   deck);
+	Parser.Identifiers.AddIntegerVariable('param',  param);
+	Parser.Identifiers.AddBooleanVariable('enable', boolparam);
+	Parser.Expression := LowerCase(Expr);
+
+	Res := Parser.Evaluate;
+	Result := Res.ResBoolean;
+end;
+
+procedure TMIDI.SendMidiMessages(Kind: TAppMode; BoolParam: Boolean; Deck: Integer = 0; Param: Integer = 0);
+var
+	Macro: TMIDIMacro;
+	Code: TMIDIShortMessage;
+	R: TMIDIShortMessageRec;
+begin
+	{$IFDEF USEMIDI}
+	if Macros <> nil then
+	for Macro in Macros do
 	begin
-		N := UpperCase(Name);
-		for i := 0 to 255 do
-			if Controls[i].Name = N then
-				Exit(i);
-		Result := -1;
+		if (Macro = nil) or (Macro.Mode <> Kind) then Continue;
+		if (Macro.Condition.IsEmpty) or (Evaluate(Macro.Condition, Deck, Param, BoolParam)) then
+		begin
+			for Code in Macro.Messages do
+			begin
+				R.Raw := Code;
+				Output.SendMessage(R.Data);
+			end;
+		end;
 	end;
+	{$ENDIF}
+end;
 
-	function GetControlParamValue(var S: String): Integer;
+procedure TMIDI.SetVUMeter(Deck: Byte; Vol: Single);
+var
+	B: Byte;
+begin
+	if Deck <= MaxDecks then
+	with VU[Deck] do
+	begin
+		if Data[0] <> 0 then
+		begin
+			B := Min($7F, Trunc(Vol * Data[2]));
+			if B <> Kind then // don't send if value unchanged
+			begin
+				Kind := B;
+				Output.SendMessage([Data[0], Data[1], B]);
+			end;
+		end;
+	end;
+end;
+
+procedure TMIDI.Init;
+
+	{function GetControlParamValue(var S: String): Integer;
 	var
 		X: Integer;
 	begin
@@ -273,44 +558,83 @@ procedure TMIDI.Init;
 		end
 		else
 			Result := 0;
+	end;}
+
+	function GetActionKind(S: String): TDecksActionKind;
+	var
+		Act: TDecksActionKind;
+	begin
+		S := UpperCase(S);
+		for Act in TDecksActionKind do
+			if ActionNames[Act] = S then
+				Exit(Act);
+		Result := NO_ACTION;
 	end;
 
+	function GetHexWord(const SS: String): Word;
+	var
+		S: String;
+		V: Integer;
+	begin
+		Result := 0;
+		S := Trim(SS.Replace(' ', ''));
+		S := S.Replace('$', '');
+		if Length(S) = 4 then
+		begin
+			S := '$' + S;
+			if (TryStrToInt(S, V)) and (V > 0) and (V <= $FFFF) then
+				Result := V;
+		end;
+	end;
+
+const
+	NonMappingSections = 'info|debug|';
 var
-	S, V, PS: String;
-	i, P, PV: Integer;
-	Ini: TIniFile;
+	S, PS, Sect: String;
+	i, X: Integer;
+	Ini: TMemIniFile;
 	Act: TDecksActionKind;
-	//Ctrl: TMIDIControl;
-	sl: TStringList;
+	Ctrl, Dummy: TMIDIControl;
+	CC: TMidiControlKind;
+	sl, Sections: TStringList;
+	Mode: TAppMode;
 begin
 	InDevice   := -1;
 	OutDevice  := -1;
 	DeviceName := '';
 
+	Parser := TFPExpressionParser.Create(nil);
+	Parser.Builtins := [bcBoolean];
+
+	Macros := TMIDIMacroList.Create(True);
+
 	for Act in TDecksActionKind do
 	begin
 		WriteStr(S, Act);
 		ActionNames[Act] := UpperCase(S.Replace('_', '.', [rfReplaceAll]));
-		Leds[Act, 1] := -1;
-		Leds[Act, 2] := -1;
 	end;
-
-	for i := 0 to 255 do
-		Controls[i] := Default(TMIDIControl);
 
 	S := Config.Controller.Config;
 	if S = '' then Exit;
-	S := IncludeTrailingPathDelimiter(Config.Path + 'midi') + S;
+	S := IncludeTrailingPathDelimiter(Config.Path + 'midinew') + S;
 	if not FileExists(S) then Exit;
 
-	Ini := TIniFile.Create(S);
+	Ini := TMemIniFile.Create(S);
 	Ini.Options := [];
 
-	Debug := Ini.ReadBool('info', 'debug', False);
+	// Read device info
+	//
+	Sect := 'info';
+	Debug := Ini.ReadBool(Sect, 'debug', False);
+	DeviceName := Ini.ReadString(Sect, 'devicename', '');
 
-	DeviceName := Ini.ReadString('info', 'devicename', '');
 	if DeviceName <> '' then
 	begin
+		sl := TStringList.Create;
+		Sections := TStringList.Create;
+
+		Controls := TMIDIControls.Create(True);
+
 		{$IFDEF USEMIDI}
 		Input := TRtMidiIn.Create(RTMIDI_API_UNSPECIFIED, AppName, 100);
 		InputDeviceList := Input.GetDeviceList;
@@ -334,150 +658,263 @@ begin
 			end;
 		{$ENDIF}
 
-		ReadControllerSection(Ini, 'controller.buttons',  MIDI_CTRL_BUTTON);
-		ReadControllerSection(Ini, 'controller.absolute', MIDI_CTRL_ABSOLUTE);
-		ReadControllerSection(Ini, 'controller.relative', MIDI_CTRL_RELATIVE_TWOSCOMPLEMENT);
+		for i := 0 to MaxDecks do
+			VU[i] := Default(TMIDIShortMessageRec);
 
-		for Act in TDecksActionKind do
+		// Read the control mappings
+		//
+		Ini.ReadSections(Sections);
+
+		Dummy := TMIDIControl.Create;
+
+		for Sect in Sections do
 		begin
-			Leds[Act, 1] := Ini.ReadInteger('leds', ActionNames[Act] + '(1)', -1);
-			Leds[Act, 2] := Ini.ReadInteger('leds', ActionNames[Act] + '(2)', -1);
-		end;
+			S := UpperCase(Sect);
 
-		// TODO implement jump/scale keywords. currently defaults to jump
-		for i := 0 to 255 do
-			if Controls[i].Kind = MIDI_CTRL_ABSOLUTE then
-				Controls[i].DeadZone := Ini.ReadInteger('deadzone', Controls[i].Name, 0)
-			else
-				Controls[i].DeadZone := 0;
-
-		sl := TStringList.Create;
-
-		Ini.ReadSection('groups', sl);
-		for S in sl do
-		begin
-			i := GetControl(S);
-			if i >= 0 then
-				Controls[i].Group := UpperCase(Ini.ReadString('groups', S, ''));
-		end;
-		sl.Clear;
-
-		Ini.ReadSection('mappings', sl);
-		for S in sl do
-		begin
-			V := UpperCase(Ini.ReadString('mappings', S, ''));
-
-			if V.Contains('()') then
+			if S.StartsWith('MODE_') then
 			begin
-				// control group; create mapping for all group members
-				// e.g. PLAY=deck.play()
-				PV := GetControlParamValue(V);
-				V := V.Replace('()', '');
-				PS := UpperCase(S);
-				P := 1; // deck number
-				for i := Low(Controls) to High(Controls) do
-					if Controls[i].Group = PS then
-						for Act in TDecksActionKind do
-							if ActionNames[Act] = V then
-							with Controls[i] do
-							begin
-								Enabled := True;
-								Parameter := PV;
-								Action.Kind  := Act;
-								Action.Param := P;
-								Inc(P);
-								Break;
-							end;
+				Ini.ReadSectionRaw(Sect, Sl);
+
+				for Mode in TAppMode do
+				begin
+					if ModeNames[Mode] = S then
+					begin
+						ReadMidiMessages(Sl, Mode);
+						Break;
+					end;
+				end;
+
+				Continue;
 			end
 			else
+			if NonMappingSections.Contains(LowerCase(Sect) + '|') then Continue;
+
+			Ini.ReadSection(Sect, sl);
+
+			Dummy.Name := Sect;
+			Dummy.Action.Kind := NO_ACTION;
+			Dummy.Kind := MIDI_CTRL_BUTTON;
+			Dummy.Param := PARAM_ANY;
+			Dummy.Led := 0;
+
+			S := Trim(UpperCase(Ini.ReadString(Sect, 'action', '')));
+			if S = '' then Continue;
+
+			S := S.Replace(':', ' ');
+			X := S.IndexOf(' ');
+			if X > 0 then
 			begin
-				// single control, e.g. A_PLAY=deck.play(1)
-				i := GetControl(S);
-				if i < 0 then Continue;
+				PS := Trim(Copy(S, X+1, 4));
+				S  := Trim(Copy(S, 1, X));
 
-				PV := GetControlParamValue(V);
-				P := V.IndexOf('('); // find deck number/param value
-				if P > 0 then
-				begin
-					PS := Copy(V, P+1, MaxInt);
-					PS := PS.Replace('(', '', [rfReplaceAll]);
-					PS := PS.Replace(')', '', [rfReplaceAll]);
-					V := Copy(V, 1, P);
-					P := StrToInt(PS); // get param value
-				end
+				if PS = '+' then
+					Dummy.Param := VAL_BROWSE_NEXT
 				else
-					P := 0;
+				if PS = '-' then
+					Dummy.Param := VAL_BROWSE_PREV
+				else
+					Dummy.Param := StrToIntDef(PS, 0);
+			end;
 
-				for Act in TDecksActionKind do
-					if ActionNames[Act] = V then
-					with Controls[i] do
+			Dummy.Action.Kind := GetActionKind(S);
+
+			if Dummy.Action.Kind = MIXER_VUMETER then
+				Dummy.Kind := MIDI_CTRL_VUMETER
+			else
+			begin
+				S := LowerCase(Ini.ReadString(Sect, 'type', ''));
+				for CC in TMidiControlKind do
+					if S = MidiControlKindNames[CC] then
 					begin
-						Enabled := True;
-						Parameter := PV;
-						Action.Kind  := Act;
-						Action.Param := P;
+						Dummy.Kind := CC;
 						Break;
 					end;
 			end;
-		end;
 
-{
-		sl.Clear;
-		for Ctrl in Controls do
-		if Ctrl.Enabled then
+			Dummy.DeadZone := Ini.ReadInteger(Sect, 'deadzone', 0);
+			if Dummy.DeadZone <= $FF then
+				Dummy.DeadZone := Dummy.DeadZone * $40;
+
+			S := Ini.ReadString(Sect, 'led', '');
+			if S <> '' then
+			begin
+				if 'yes true 1'.Contains(LowerCase(S)) then
+					Dummy.Led := 1 // forward read to below
+				else
+					Dummy.Led := GetHexWord(S);
+			end;
+
+			for i := 0 to MaxDecks do
+			begin
+				S := Trim(Ini.ReadString(Sect, IntToStr(i), ''));
+				if S = '' then Continue;
+
+				Ctrl := TMIDIControl.Create;
+
+				Ctrl.Name := Dummy.Name;
+				Ctrl.Kind := Dummy.Kind;
+				Ctrl.Action := Dummy.Action;
+				Ctrl.Deck := i;
+				Ctrl.Param := Dummy.Param;
+				Ctrl.DeadZone := Dummy.DeadZone;
+				if Dummy.Led > 1 then
+					Ctrl.Led := Dummy.Led;
+
+				if not S.Contains('|') then // fixme check kind
+				begin
+					if Length(S) < 4 then
+						S := '90' + S; // default to Note On
+					Ctrl.Data := GetHexWord(S);
+					Ctrl.Send := Ctrl.Data;
+					if Dummy.Led = 1 then
+						Ctrl.Led := Ctrl.Send;
+				end
+				else
+				begin
+					S := Trim(S.Replace(' ', ''));
+					X := Pos('|', S);
+					Ctrl.Data := GetHexWord(Copy(S, 1, X-1));
+					Ctrl.Send := GetHexWord(Copy(S, X+1, 8));
+				end;
+
+				if Ctrl.Kind = MIDI_CTRL_VUMETER then
+				begin
+					if (Ctrl.Param = 0) or (Ctrl.Param > $7F) then Ctrl.Param := $7F;
+					VU[i].Data[0] := Ctrl.Send shr 8;
+					VU[i].Data[1] := Ctrl.Send and $FF;
+					VU[i].Data[2] := Ctrl.Param;
+					FreeAndNil(Ctrl);
+				end
+				else
+					Controls.Add(Ctrl);
+			end;
+		end; // Sections
+
+		if Debug then
 		begin
-			sl.Add('['+Ctrl.Name+']');
-			if Ctrl.Group <> '' then
-				sl.Add(Format('group=%s', [Ctrl.Group]));
-			sl.Add(Format('kind=%d', [Ctrl.Kind]));
-			//sl.Add(Format('', [Ctrl.Enabled, Ctrl.HasLED]));
-			if Ctrl.Action.Kind <> NO_ACTION then
-				sl.Add(Format('action=%d (%d)', [Ctrl.Action.Kind, Ctrl.Action.Param]));
-			//sl.Add(Format('', []));
-			sl.Add('');
+			sl.Clear;
+			for Ctrl in Controls do
+			begin
+				sl.Add('['+Ctrl.Name+']');
+				sl.Add(Format('Kind=%s', [MidiControlKindNames[Ctrl.Kind]]));
+				if Ctrl.Data > 0 then
+					sl.Add(Format('Data=%s', [Ctrl.Data.ToHexString(4)]));
+				if Ctrl.Send > 0 then
+					sl.Add(Format('Send=%s', [Ctrl.Send.ToHexString(4)]));
+				if Ctrl.Deck > 0 then
+					sl.Add(Format('Deck=%d', [Ctrl.Deck]));
+				if Ctrl.Param <> PARAM_ANY then
+					sl.Add(Format('Param=%d', [Ctrl.Param and $FFFF]));
+				if Ctrl.Led > 0 then
+					sl.Add(Format('Led=%s', [Ctrl.Led.ToHexString(4)]));
+				if Ctrl.Action.Kind <> NO_ACTION then
+					sl.Add(Format('action=%s (%d)', [ActionNames[Ctrl.Action.Kind], Ctrl.Action.Param]));
+				//sl.Add(Format('', []));
+				sl.Add('');
+			end;
+			for i := 0 to MaxDecks do
+				sl.Add(Format('VUmeter.%d=%s %s %s', [i, VU[i].Data[0].ToHexString, VU[i].Data[1].ToHexString, VU[i].Data[2].ToHexString]));
+			sl.SaveToFile(Config.AppPath + 'mididebug.txt');
 		end;
-		sl.SaveToFile('O:\projects\decks\mididebug.txt');
-}
 
+		Dummy.Free;
 		sl.Free;
+		Sections.Free;
+
+		ClearLeds;
+		SendMidiMessages(MODE_APP_INIT, True);
 	end;
 
 	Ini.Free;
 end;
 
 procedure TMIDI.Uninit;
-var
-	Act: TDecksActionKind;
-	i: Integer;
 begin
-	// turn off all leds on controller
-	for i := 1 to 2 do
-		for Act in TDecksActionKind do
-			SetLed(Act, i=2, False);
-
 	{$IFDEF USEMIDI}
-	Input.Free;
-	Output.Free;
+	FreeAndNil(Input);
+	FreeAndNil(Output);
 	{$ENDIF}
-	InputDeviceList.Free;
-	OutputDeviceList.Free;
+	FreeAndNil(Macros);
+	FreeAndNil(InputDeviceList);
+	FreeAndNil(OutputDeviceList);
+	FreeAndNil(Controls);
+	FreeAndNil(Parser);
 end;
 
-procedure TMIDI.SetLed(Kind: TDecksActionKind; RightDeck: Boolean; LedState: Boolean = True);
+procedure TMIDI.ClearLeds;
+var
+	Ctrl: TMidiControl;
+	L: Word;
+begin
+	{$IFDEF USEMIDI}
+	// turn off all leds on controller
+	for Ctrl in Controls do
+		if Ctrl.Led <> 0 then
+		begin
+			L := Ctrl.Led;
+			Output.SendMessage([L shr 8, L and $FF, $00]);
+			//SetLed(Ctrl.Action.Kind, Ctrl.Deck, False);
+		end;
+	{$ENDIF}
+end;
+
+procedure TMIDI.SetLed(Kind: TDecksActionKind; DeckNum: Byte; LedState: Boolean = True; Param: DWord = PARAM_ANY);
 {$IFDEF USEMIDI}
 var
-	L: Integer;
+	L: Word;
+	S: String;
+	Ctrl: TMIDIControl;
 {$ENDIF}
 begin
 	{$IFDEF USEMIDI}
 	if Outdevice >= 0 then
 	begin
-		L := Leds[Kind, IfThen(RightDeck, 2, 1)];
-		if L >= 0 then
-			Output.SendMessage([MIDI_NOTE_ON, L, LedState.ToInteger]);
+		{$IFDEF DEBUG}
+		if Debug then
+		begin
+			WriteStr(S, Kind);
+			MainForm.Memo1.Lines.Add(Format('LED %s = %s', [S, LedState.ToString]));
+		end;
+		{$ENDIF}
+
+		//L := Leds[Kind, IfThen(RightDeck, 2, 1)];
+		L := 0;
+
+		for Ctrl in Controls do
+			if (Ctrl.Action.Kind = Kind) and (Ctrl.Deck = DeckNum) then
+			begin
+				if (Param = PARAM_ANY) or (Ctrl.Param = Param) then
+				begin
+					L := Ctrl.Led;
+					Output.SendMessage([L shr 8, L and $FF, IfThen(LedState, $7F, $00)])
+				end;
+			end;
+
+(*		if L > 0 then
+			Output.SendMessage([L shr 8, L and $FF, IfThen(LedState, $7F, $00)])
+		{$IFDEF DEBUG}
+		else
+			MainForm.Memo1.Lines.Add(' LED FAIL')
+		{$ENDIF};*)
 	end;
 	{$ENDIF}
 end;
+
+procedure GetModeNames;
+var
+	M: TAppMode;
+	S: String;
+begin
+	for M in TAppMode do
+	begin
+		WriteStr(S, M);
+		ModeNames[M] := UpperCase(S);
+	end;
+end;
+
+initialization
+
+	GetModeNames;
 
 end.
 

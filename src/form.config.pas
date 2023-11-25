@@ -34,6 +34,13 @@ type
 		Label14: TLabel;
 		Label15: TLabel;
 		Label16: TLabel;
+		GroupBox1: TGroupBox;
+		RadioButton1: TRadioButton;
+		RadioButton2: TRadioButton;
+		CheckBox1: TCheckBox;
+		CheckBox2: TCheckBox;
+		Label17: TLabel;
+		ComboBox1: TComboBox;
 	private
 
 	public

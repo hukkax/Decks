@@ -10,20 +10,77 @@ object ConfigForm: TConfigForm
     Left = 16
     Height = 400
     Top = 16
-    Width = 512
-    ActivePage = TabSheet3
-    TabIndex = 2
+    Width = 528
+    ActivePage = TabSheet1
+    TabIndex = 0
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = 'Program'
-    end
-    object TabSheet2: TTabSheet
-      Caption = 'Audio'
+      ClientHeight = 367
+      ClientWidth = 520
+      object GroupBox1: TGroupBox
+        Left = 16
+        Height = 224
+        Top = 16
+        Width = 480
+        Caption = 'Mixing mode'
+        ClientHeight = 199
+        ClientWidth = 476
+        TabOrder = 0
+        object RadioButton1: TRadioButton
+          Left = 24
+          Height = 24
+          Top = 12
+          Width = 383
+          Caption = 'Using an external mixer or not using headphone cueing'
+          TabOrder = 0
+        end
+        object RadioButton2: TRadioButton
+          Left = 25
+          Height = 24
+          Top = 48
+          Width = 396
+          Caption = 'Enable headphone cueing on a quadraphonic sound card'
+          TabOrder = 1
+        end
+        object CheckBox1: TCheckBox
+          Left = 42
+          Height = 24
+          Top = 81
+          Width = 199
+          Caption = 'Split stereo on headphones'
+          TabOrder = 2
+        end
+        object CheckBox2: TCheckBox
+          Left = 41
+          Height = 24
+          Top = 109
+          Width = 226
+          Caption = 'Headphones on primary output'
+          TabOrder = 3
+        end
+        object Label17: TLabel
+          Left = 40
+          Height = 20
+          Top = 148
+          Width = 48
+          Caption = 'Device:'
+        end
+        object ComboBox1: TComboBox
+          Left = 112
+          Height = 28
+          Top = 144
+          Width = 336
+          ItemHeight = 20
+          TabOrder = 4
+          Text = 'ComboBox1'
+        end
+      end
     end
     object TabSheet3: TTabSheet
-      Caption = 'Input'
+      Caption = 'Audio'
       ClientHeight = 367
-      ClientWidth = 504
+      ClientWidth = 520
       object Label1: TLabel
         Left = 16
         Height = 20
@@ -63,7 +120,7 @@ object ConfigForm: TConfigForm
         Left = 176
         Height = 20
         Top = 208
-        Width = 192
+        Width = 208
         Anchors = [akTop, akLeft, akRight]
         Max = 24
         PageSize = 0
@@ -73,7 +130,7 @@ object ConfigForm: TConfigForm
         Left = 176
         Height = 20
         Top = 160
-        Width = 192
+        Width = 208
         Anchors = [akTop, akLeft, akRight]
         Max = 4
         Min = 1
@@ -85,7 +142,7 @@ object ConfigForm: TConfigForm
         Left = 176
         Height = 20
         Top = 112
-        Width = 192
+        Width = 208
         Anchors = [akTop, akLeft, akRight]
         LargeChange = 10
         Min = 10
@@ -98,7 +155,7 @@ object ConfigForm: TConfigForm
         Left = 176
         Height = 20
         Top = 64
-        Width = 192
+        Width = 208
         Anchors = [akTop, akLeft, akRight]
         PageSize = 0
         TabOrder = 3
@@ -107,7 +164,7 @@ object ConfigForm: TConfigForm
         Left = 176
         Height = 20
         Top = 16
-        Width = 192
+        Width = 208
         Anchors = [akTop, akLeft, akRight]
         LargeChange = 10
         Max = 1000
@@ -118,7 +175,7 @@ object ConfigForm: TConfigForm
         TabOrder = 4
       end
       object Label6: TLabel
-        Left = 424
+        Left = 440
         Height = 20
         Top = 16
         Width = 19
@@ -126,7 +183,7 @@ object ConfigForm: TConfigForm
         Caption = 'ms'
       end
       object Label7: TLabel
-        Left = 424
+        Left = 440
         Height = 20
         Top = 64
         Width = 18
@@ -134,7 +191,7 @@ object ConfigForm: TConfigForm
         Caption = 'Hz'
       end
       object Label9: TLabel
-        Left = 425
+        Left = 441
         Height = 20
         Top = 112
         Width = 19
@@ -142,7 +199,7 @@ object ConfigForm: TConfigForm
         Caption = 'ms'
       end
       object Label11: TLabel
-        Left = 425
+        Left = 441
         Height = 20
         Top = 208
         Width = 32
@@ -150,7 +207,7 @@ object ConfigForm: TConfigForm
         Caption = 'LUFS'
       end
       object Label10: TLabel
-        Left = 425
+        Left = 441
         Height = 20
         Top = 160
         Width = 49
@@ -158,7 +215,7 @@ object ConfigForm: TConfigForm
         Caption = 'threads'
       end
       object Label12: TLabel
-        Left = 381
+        Left = 397
         Height = 20
         Top = 16
         Width = 32
@@ -166,7 +223,7 @@ object ConfigForm: TConfigForm
         Caption = '0000'
       end
       object Label13: TLabel
-        Left = 381
+        Left = 397
         Height = 20
         Top = 64
         Width = 32
@@ -174,7 +231,7 @@ object ConfigForm: TConfigForm
         Caption = '0000'
       end
       object Label14: TLabel
-        Left = 381
+        Left = 397
         Height = 20
         Top = 112
         Width = 32
@@ -182,7 +239,7 @@ object ConfigForm: TConfigForm
         Caption = '0000'
       end
       object Label15: TLabel
-        Left = 381
+        Left = 397
         Height = 20
         Top = 160
         Width = 32
@@ -190,13 +247,16 @@ object ConfigForm: TConfigForm
         Caption = '0000'
       end
       object Label16: TLabel
-        Left = 381
+        Left = 397
         Height = 20
         Top = 208
         Width = 32
         Anchors = [akTop, akRight]
         Caption = '0000'
       end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'Input'
     end
   end
   object Label8: TLabel

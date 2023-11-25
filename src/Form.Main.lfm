@@ -2,13 +2,13 @@ object MainForm: TMainForm
   Left = 238
   Height = 700
   Top = 272
-  Width = 1200
+  Width = 1400
   Caption = 'MainForm'
   ClientHeight = 700
-  ClientWidth = 1200
+  ClientWidth = 1400
   Color = 2171427
   Constraints.MinHeight = 700
-  Constraints.MinWidth = 1200
+  Constraints.MinWidth = 1400
   DoubleBuffered = False
   Font.Color = clSilver
   KeyPreview = True
@@ -27,11 +27,11 @@ object MainForm: TMainForm
     Left = 0
     Height = 45
     Top = 0
-    Width = 1200
+    Width = 1400
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 45
-    ClientWidth = 1200
+    ClientWidth = 1400
     Color = 3553082
     DoubleBuffered = True
     FullRepaint = False
@@ -45,7 +45,7 @@ object MainForm: TMainForm
       Left = 0
       Height = 45
       Top = 0
-      Width = 1064
+      Width = 1264
       Align = alClient
       Background.Color = 3553082
       Background.Gradient1.StartColor = clWhite
@@ -144,7 +144,7 @@ object MainForm: TMainForm
         ClickOffset = True
       end
       object lBPM: TDecksLabel
-        Left = 981
+        Left = 1181
         Height = 29
         Top = 9
         Width = 75
@@ -190,10 +190,10 @@ object MainForm: TMainForm
         OnMouseDown = lBPMMouseDown
       end
       object sBPM: TDecksGaugeBar
-        Left = 489
+        Left = 688
         Height = 29
         Top = 9
-        Width = 493
+        Width = 494
         Anchors = [akTop, akLeft, akRight]
         Color = 2171427
         BorderStyle = bsNone
@@ -486,7 +486,7 @@ object MainForm: TMainForm
       end
       object lCPU: TDecksLabel
         AnchorSideRight.Control = sBPM
-        Left = 429
+        Left = 628
         Height = 29
         Top = 9
         Width = 60
@@ -587,7 +587,7 @@ object MainForm: TMainForm
       object sCueMix: ThKnob
         Left = 336
         Height = 30
-        Hint = 'Amplification'
+        Hint = 'Cue mix'
         Top = 8
         Width = 50
         Knob.FillColor = clNone
@@ -621,7 +621,7 @@ object MainForm: TMainForm
         Width = 37
         Alignment = taRightJustify
         AutoSize = False
-        Caption = 'Mix'
+        Caption = 'Cue'
         Layout = tlCenter
       end
       object lCueMixR: TLabel
@@ -630,12 +630,109 @@ object MainForm: TMainForm
         Top = 10
         Width = 37
         AutoSize = False
-        Caption = 'Cue'
+        Caption = 'Mst'
         Layout = tlCenter
+      end
+      object sMaster: ThKnob
+        Left = 431
+        Height = 30
+        Hint = 'Master volume'
+        Top = 8
+        Width = 50
+        Knob.FillColor = clNone
+        Knob.BorderColor = clGray
+        Knob.BorderWidth = 3
+        Indicators.ExtraIndicators = <>
+        Indicators.LineColor = clSilver
+        Indicators.LineWidth = 4
+        Indicators.RadiusInner = 4
+        Indicators.RadiusOuter = 15
+        Indicators.OffsetX = 0
+        Indicators.OffsetY = 0
+        Indicators.Default = clSilver
+        Indicators.Focused = clWhite
+        Indicators.Unfocused = clSilver
+        Indicators.Changing = clWhite
+        Indicators.Hovered = clWhite
+        Indicators.Disabled = clGray
+        Anchors = [akLeft, akBottom]
+        SmallChange = 0
+        Caption = 'sMaster'
+        Arc = 1
+        Position = 100
+        FloatPosition = 100
+        PageSize = 0
+        Snap = 0
+        OnChange = sCueMixChange
+      end
+      object lCueMixR1: TLabel
+        Left = 485
+        Height = 28
+        Top = 10
+        Width = 59
+        AutoSize = False
+        Caption = 'Master'
+        Layout = tlCenter
+      end
+      object bRecord: TDecksButton
+        Left = 558
+        Height = 29
+        Hint = 'Toggle directory listing'
+        Top = 9
+        Width = 53
+        AutoToggle = True
+        StateNormal.Background.Color = 6794157
+        StateNormal.Background.Gradient1.StartColor = 6249562
+        StateNormal.Background.Gradient1.EndColor = 4210494
+        StateNormal.Background.Gradient1.ColorCorrection = False
+        StateNormal.Background.Gradient1.GradientType = gtLinear
+        StateNormal.Background.Gradient1.Point1XPercent = 0
+        StateNormal.Background.Gradient1.Point1YPercent = 0
+        StateNormal.Background.Gradient1.Point2XPercent = 0
+        StateNormal.Background.Gradient1.Point2YPercent = 100
+        StateNormal.Background.Gradient2.StartColor = clGray
+        StateNormal.Background.Gradient2.EndColor = 2105376
+        StateNormal.Background.Gradient2.ColorCorrection = False
+        StateNormal.Background.Gradient2.GradientType = gtLinear
+        StateNormal.Background.Gradient2.Point1XPercent = 0
+        StateNormal.Background.Gradient2.Point1YPercent = 0
+        StateNormal.Background.Gradient2.Point2XPercent = 0
+        StateNormal.Background.Gradient2.Point2YPercent = 100
+        StateNormal.Background.Gradient1EndPercent = 100
+        StateNormal.Background.Style = bbsGradient
+        StateNormal.Border.Color = 2302497
+        StateNormal.Border.LightColor = clRed
+        StateNormal.Border.Style = bboSolid
+        StateNormal.FontEx.Color = 14605788
+        StateNormal.FontEx.FontQuality = fqSystemClearType
+        StateNormal.FontEx.Height = 17
+        StateNormal.FontEx.Shadow = True
+        StateNormal.FontEx.ShadowColorOpacity = 160
+        StateNormal.FontEx.ShadowRadius = 2
+        StateNormal.FontEx.ShadowOffsetX = 1
+        StateNormal.FontEx.ShadowOffsetY = 1
+        StateNormal.FontEx.Style = []
+        StateNormal.FontEx.PaddingBottom = 3
+        Caption = 'REC'
+        DropDownWidth = 16
+        DropDownArrowSize = 8
+        GlobalOpacity = 255
+        GroupIndex = 0
+        OnSetDown = bRecordSetDown
+        Rounding.RoundX = 0
+        Rounding.RoundY = 0
+        RoundingDropDown.RoundX = 1
+        RoundingDropDown.RoundY = 1
+        ShowHint = True
+        Bevel.InnerBevel = bcbTop
+        Bevel.OuterBevel = bcbNone
+        Bevel.Sides = [bcsTop, bcsBottom, bcsLeft, bcsRight]
+        TextApplyGlobalOpacity = False
+        ClickOffset = True
       end
     end
     object PanelWin: TDecksPanel
-      Left = 1064
+      Left = 1264
       Height = 45
       Top = 0
       Width = 136
@@ -854,7 +951,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 320
     Top = 45
-    Width = 1200
+    Width = 1400
     Align = alTop
     ChildSizing.EnlargeHorizontal = crsScaleChilds
     ChildSizing.EnlargeVertical = crsScaleChilds
@@ -910,7 +1007,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 6
     Top = 365
-    Width = 1200
+    Width = 1400
     Align = alTop
     Color = 2171427
     DoubleBuffered = False
@@ -924,7 +1021,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 51
     Top = 371
-    Width = 1200
+    Width = 1400
     Align = alTop
     Background.Color = 2171427
     Background.Gradient1.StartColor = clWhite
@@ -1087,7 +1184,7 @@ object MainForm: TMainForm
       OnMouseDown = sEQ1LMouseDown
     end
     object sEQ2L: ThKnob
-      Left = 1067
+      Left = 1267
       Height = 40
       Top = 6
       Width = 40
@@ -1128,7 +1225,7 @@ object MainForm: TMainForm
     end
     object sEQ2M: ThKnob
       Tag = 1
-      Left = 1108
+      Left = 1308
       Height = 40
       Top = 6
       Width = 40
@@ -1169,7 +1266,7 @@ object MainForm: TMainForm
     end
     object sEQ2H: ThKnob
       Tag = 2
-      Left = 1149
+      Left = 1349
       Height = 40
       Top = 6
       Width = 40
@@ -1209,10 +1306,10 @@ object MainForm: TMainForm
       OnMouseDown = sEQ1LMouseDown
     end
     object sFader: TDecksGaugeBar
-      Left = 239
+      Left = 272
       Height = 30
       Top = 10
-      Width = 721
+      Width = 857
       Anchors = [akTop, akLeft, akRight]
       Color = 3553082
       BorderStyle = bsNone
@@ -1223,7 +1320,7 @@ object MainForm: TMainForm
       BorderColor = 2631720
       ArrowColor = 3553082
       LightAmount = 10
-      HandleSize = 30
+      HandleSize = 32
       LargeChange = 100
       Max = 1000
       SmallChange = 10
@@ -1236,7 +1333,7 @@ object MainForm: TMainForm
       Left = 268
       Height = 5
       Top = 6
-      Width = 663
+      Width = 863
       Alignment = taLeftJustify
       Anchors = [akTop, akLeft, akRight]
       Color = clBlack
@@ -1245,9 +1342,9 @@ object MainForm: TMainForm
     end
     object bCue1: TDecksButton
       Tag = 1
-      Left = 160
+      Left = 192
       Height = 30
-      Hint = 'Rename selected file'
+      Hint = 'Toggle headphone monitoring'
       Top = 10
       Width = 66
       AutoToggle = True
@@ -1282,7 +1379,7 @@ object MainForm: TMainForm
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      Caption = 'Cue'
+      Caption = 'CUE'
       DropDownWidth = 30
       DropDownArrowSize = 8
       GlobalOpacity = 255
@@ -1301,9 +1398,9 @@ object MainForm: TMainForm
     end
     object bCue2: TDecksButton
       Tag = 2
-      Left = 976
+      Left = 1144
       Height = 30
-      Hint = 'Rename selected file'
+      Hint = 'Toggle headphone monitoring'
       Top = 10
       Width = 66
       Anchors = [akTop, akRight]
@@ -1339,7 +1436,7 @@ object MainForm: TMainForm
       StateNormal.FontEx.ShadowOffsetX = 1
       StateNormal.FontEx.ShadowOffsetY = 1
       StateNormal.FontEx.Style = [fsBold]
-      Caption = 'Cue'
+      Caption = 'CUE'
       DropDownWidth = 30
       DropDownArrowSize = 8
       GlobalOpacity = 255
@@ -1356,12 +1453,93 @@ object MainForm: TMainForm
       TextApplyGlobalOpacity = False
       ClickOffset = True
     end
+    object sFilterL: ThKnob
+      Tag = 1
+      Left = 144
+      Height = 40
+      Top = 6
+      Width = 40
+      Knob.FillColor = 3552822
+      Knob.BorderColor = 7501176
+      Knob.BorderWidth = 4
+      Indicators.ExtraIndicators = <      
+        item
+          Visible = False
+          Position = 0
+          LineColor = 8943445
+          LineWidth = 4
+          RadiusInner = 5
+          RadiusOuter = 14
+        end>
+      Indicators.LineColor = clSilver
+      Indicators.LineWidth = 4
+      Indicators.RadiusInner = 5
+      Indicators.RadiusOuter = 14
+      Indicators.OffsetX = 0
+      Indicators.OffsetY = 0
+      Indicators.Default = clSilver
+      Indicators.Focused = clWhite
+      Indicators.Unfocused = clSilver
+      Indicators.Changing = clWhite
+      Indicators.Hovered = clWhite
+      Indicators.Disabled = clGray
+      Min = -10000
+      Max = 10000
+      SmallChange = 0
+      Caption = 'Bass'
+      Arc = 60
+      Position = 0
+      PageSize = 1000
+      Snap = 11
+      OnChange = sFilterLChange
+    end
+    object sFilterR: ThKnob
+      Tag = 2
+      Left = 1217
+      Height = 40
+      Top = 6
+      Width = 40
+      Knob.FillColor = 3552822
+      Knob.BorderColor = 7501176
+      Knob.BorderWidth = 4
+      Indicators.ExtraIndicators = <      
+        item
+          Visible = False
+          Position = 0
+          LineColor = 8943445
+          LineWidth = 4
+          RadiusInner = 5
+          RadiusOuter = 14
+        end>
+      Indicators.LineColor = clSilver
+      Indicators.LineWidth = 4
+      Indicators.RadiusInner = 5
+      Indicators.RadiusOuter = 14
+      Indicators.OffsetX = 0
+      Indicators.OffsetY = 0
+      Indicators.Default = clSilver
+      Indicators.Focused = clWhite
+      Indicators.Unfocused = clSilver
+      Indicators.Changing = clWhite
+      Indicators.Hovered = clWhite
+      Indicators.Disabled = clGray
+      Anchors = [akTop, akRight]
+      Min = -10000
+      Max = 10000
+      SmallChange = 0
+      Caption = 'Bass'
+      Arc = 60
+      Position = 0
+      PageSize = 1000
+      Snap = 11
+      OnChange = sFilterLChange
+    end
   end
   object BottomPanel: TDecksPanel
     Left = 0
     Height = 278
     Top = 422
-    Width = 1200
+    Width = 1400
     Align = alClient
     Background.Color = 5592405
     Background.Gradient1.StartColor = clWhite
@@ -1486,6 +1664,16 @@ object MainForm: TMainForm
         Proportional = True
         Stretch = True
       end
+      object Memo1: TMemo
+        Left = 0
+        Height = 273
+        Top = 0
+        Width = 311
+        Align = alClient
+        Font.Color = clBlack
+        ParentFont = False
+        TabOrder = 2
+      end
     end
     object SplitterBottom: TSplitter
       Left = 333
@@ -1502,7 +1690,7 @@ object MainForm: TMainForm
       Left = 338
       Height = 274
       Top = 2
-      Width = 860
+      Width = 1060
       Align = alClient
       Background.Color = 5592405
       Background.Gradient1.StartColor = clWhite
@@ -1548,7 +1736,7 @@ object MainForm: TMainForm
         Left = 1
         Height = 241
         Top = 32
-        Width = 838
+        Width = 1038
         Align = alClient
         Color = 2171427
         ColorSelection = 8679475
@@ -1579,7 +1767,7 @@ object MainForm: TMainForm
         TabStop = True
       end
       object sFiles: TDecksRangeBar
-        Left = 839
+        Left = 1039
         Height = 241
         Top = 32
         Width = 20
@@ -1600,7 +1788,7 @@ object MainForm: TMainForm
         Left = 1
         Height = 31
         Top = 1
-        Width = 858
+        Width = 1058
         Align = alTop
         Background.Color = 2171427
         Background.Gradient1.StartColor = clWhite
@@ -1645,7 +1833,7 @@ object MainForm: TMainForm
           Left = 548
           Height = 29
           Top = 1
-          Width = 312
+          Width = 512
           Anchors = [akTop, akLeft, akRight]
           Brush.Color = 3224115
           Enabled = False
@@ -1656,18 +1844,18 @@ object MainForm: TMainForm
           Left = 624
           Height = 22
           Top = 5
-          Width = 233
+          Width = 433
           Anchors = [akTop, akLeft, akRight]
           AutoSize = False
           BorderStyle = bsNone
           Color = 3224115
           Font.Color = 10922154
           Font.Height = -15
-          OnChange = eFileFilterChange
-          OnKeyDown = eFileFilterKeyDown
           ParentFont = False
           TabOrder = 0
           TextHint = '(Filter)'
+          OnChange = eFileFilterChange
+          OnKeyDown = eFileFilterKeyDown
         end
         object bLoadDeckNew: TDecksButton
           Tag = -1
@@ -1994,9 +2182,9 @@ object MainForm: TMainForm
         object bFileCue: TDecksButton
           Left = 0
           Height = 29
-          Hint = 'Rename selected file'
+          Hint = 'Preview on headphones'
           Top = 1
-          Width = 66
+          Width = 68
           StateNormal.Background.Color = 3367199
           StateNormal.Background.Gradient1.StartColor = 6249562
           StateNormal.Background.Gradient1.EndColor = 4210494
@@ -2028,7 +2216,7 @@ object MainForm: TMainForm
           StateNormal.FontEx.ShadowOffsetX = 1
           StateNormal.FontEx.ShadowOffsetY = 1
           StateNormal.FontEx.Style = [fsBold]
-          Caption = 'Cue'
+          Caption = 'Preview'
           DropDownWidth = 30
           DropDownArrowSize = 8
           GlobalOpacity = 255

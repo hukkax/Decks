@@ -5,7 +5,7 @@ unit Decks.Audio;
 interface
 
 uses
-	Classes, SysUtils, FGL, BASS, BASSmix;
+	Classes, SysUtils, FGL, BASS, BASSmix, BASSenc;
 
 const
 	OUTPUTS: array[0..3] of Integer = (
@@ -58,9 +58,11 @@ type
 	function  StreamLengthInSeconds(Stream: HSTREAM): Double;
 	function  TranslateStreamLength(OriginalStream, MixerStream: HSTREAM): QWord;
 	procedure FreeStream(var Stream: HSTREAM);
-	procedure ApplyMixingMatrix(Stream: HSTREAM; CueOn: Boolean; Amp, CurrentVolume, CueMix: Single);
+	procedure ApplyMixingMatrix(Stream: HSTREAM; CueOn, CueMaster: Boolean; Amp, CurrentVolume, CueMix: Single);
 
 var
+	MainOutput: HSTREAM;
+	StreamRecord: HENCODE;
 	SpeakerAssignmentInfo: array [0..11] of TSpeakerAssignmentInfo;
 
 implementation
@@ -117,15 +119,24 @@ begin
 	end;
 end;
 
-procedure ApplyMixingMatrix(Stream: HSTREAM; CueOn: Boolean; Amp, CurrentVolume, CueMix: Single);
+procedure ApplyMixingMatrix(Stream: HSTREAM; CueOn, CueMaster: Boolean; Amp, CurrentVolume, CueMix: Single);
 var
 	ChMix, ChCue: Integer;
 	Mix, Cue, Per: Single;
 	matrix: array[0..7] of Single;
 begin
-	Per := CueMix;
-	Mix := CurrentVolume * Amp; // apply crossfader for master
 	Cue := 0.0;
+	Mix := CurrentVolume * Amp * (Config.Mixer.MasterVolume / 100); // apply crossfader for master
+
+	if Config.Mixer.CueUsesHardware then
+	begin
+		CueMaster := True;
+		Per := 1.0;
+	end
+	else
+	begin
+		Per := IfThen(CueMaster, CueMix, 0.0);
+	end;
 
 	if not Config.Audio.CueOnFront then
 	begin
@@ -139,6 +150,8 @@ begin
 	// master
 	matrix[ChMix+0] := Mix; matrix[ChMix+1] := 0.0; // FL = master left
 	matrix[ChMix+2] := 0.0; matrix[ChMix+3] := Mix; // FR = master right
+
+	Mix := CurrentVolume * Amp; // don't cue master volume
 
 	case Config.Mixer.CueMode of
 		CUE_MIX:
@@ -268,6 +281,9 @@ begin
 		BufLen := Info.minbuf + Config.Audio.UpdatePeriod + 20;
 
 	BASS_SetConfig(BASS_CONFIG_BUFFER, BufLen);
+
+	MainOutput := BASS_StreamCreate(44100, 2, 0, STREAMPROC_DEVICE, nil);
+	StreamRecord := 0;
 
 	Result := True;
 //showmessage('Outputs=' + deviceinfo.Outputs.ToString);

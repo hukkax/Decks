@@ -10,8 +10,8 @@ uses
 	ExtCtrls, Buttons, LCLType, LCLIntf, LMessages, Menus, ComCtrls,
 	IniFiles, BCTypes, FGL,
 	BGRAVirtualScreen, BGRABitmap, BGRABitmapTypes,
-	Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, Decks.Effects, Decks.MIDI,
-	BASS, BASSmix,
+	Decks.Config, Decks.Audio, Decks.Deck, Decks.Beatgraph, Decks.SongInfo, Decks.Effects, Decks.MIDI,
+	BASS, BASSmix, BASSloud,
 	hKnob, hSlider, DecksButton, DecksValueLabel, DecksPanel;
 
 const
@@ -72,9 +72,9 @@ type
 		miSetMasterTempo: TMenuItem;
 		miAudioSeparator: TMenuItem;
 		pnlEffects: TDecksPanel;
-		bLoopBeat: TDecksButton;
+		bLoopBeat1: TDecksButton;
 		bLoopBeat2: TDecksButton;
-		bLoopBar: TDecksButton;
+		bLoopBar1: TDecksButton;
 		bLoopBar2: TDecksButton;
 		bLoopBar4: TDecksButton;
 		bLoopSong: TDecksButton;
@@ -92,6 +92,7 @@ type
 		bEffect4: TDecksButton;
 		bEffect5: TDecksButton;
 		bEffect6: TDecksButton;
+		bEffect7: TDecksButton;
 		bMaster: TDecksPanel;
 		lTime: TLabel;
 		bDeckMenu: TDecksButton;
@@ -109,7 +110,6 @@ type
 		bReverse: TDecksButton;
 		pbVU: TBGRAVirtualScreen;
 		pbWave: TBGRAVirtualScreen;
-		pnlZone: TDecksPanel;
 		lBPM: TDecksValueLabel;
 		bStart: TDecksButton;
 		bStore: TDecksButton;
@@ -121,6 +121,21 @@ type
 		pnlWaveform: TDecksPanel;
 		lTimeTotal: TLabel;
 		lMeasure: TLabel;
+		bLoopBeat0: TDecksButton;
+		bPitchLock: TDecksButton;
+		pnlPads: TDecksPanel;
+		bPage1: TDecksButton;
+		bPage2: TDecksButton;
+		bPage3: TDecksButton;
+		bPage4: TDecksButton;
+		bPad1: TDecksButton;
+		bPad2: TDecksButton;
+		bPad3: TDecksButton;
+		bPad5: TDecksButton;
+		bPad6: TDecksButton;
+		bPad7: TDecksButton;
+		bPad4: TDecksButton;
+		bPad8: TDecksButton;
 		procedure bBendUpMouseDown(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: Integer);
 		procedure bBendUpMouseUp(Sender: TObject; Button: TMouseButton;
@@ -191,10 +206,11 @@ type
 		procedure bZoneDelButtonClick(Sender: TObject);
 		procedure pnlEffectsResize(Sender: TObject);
 		procedure miShowFileClick(Sender: TObject);
-		procedure bLoopBeatSetDown(Sender: TObject);
+		procedure bLoopBeat1SetDown(Sender: TObject);
 		procedure bStoreFxMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
 			X, Y: Integer);
 		procedure bStoreFxSetDown(Sender: TObject);
+		procedure bPitchLockSetDown(Sender: TObject);
 	private
 		DragWave: TDragInfo;
 		GraphDragging: Boolean;
@@ -218,8 +234,7 @@ type
 		procedure SetSlider(var Slider: TDecksValueLabel; Position: Double); overload;
 		procedure ZoomSample(Dir: Integer);
 		procedure ZoomGraph(Dir: Integer);
-		procedure UpdatePlayButton(Kind: Integer);
-		procedure SelectEffect(EffectNum: Integer);
+		procedure UpdatePlayButton(Kind: TAppMode);
 		procedure AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton; LblWidth: Word = 0);
 		procedure InitGUIEffectParam(Index: Byte; AKnob: ThKnob);
 		function  GetEffectKnob(Sender: TObject): ThKnob;
@@ -228,31 +243,33 @@ type
 		procedure ApplyEffects;
 		procedure ShowEffectValue(Knob: ThKnob);
 		procedure UnloopAll;
-		procedure EnableEffect(EffectIndex: Byte; Toggle: Boolean = False);
 	public
 		GraphHover,
 		GraphCue:   TPoint;
-		CuePos, // in graph sample coords
-		PlayPosition: QWord;
+		CuePos: QWord; // in graph sample coords
 		CurrentZone: Word;
 		CurrentDevice: Integer;
+		PadsPage: Word;
 		IsShiftDown,
 		CanCreateNewZone: Boolean;
 
 		Effects: TEffectsList;
 		GUIEffectParams: array[0..5] of TGUIEffectParam;
 		SelectedEffect: Byte;
-		LoopControls: array [TDecksActionKind] of TDecksButton;
+		SelectedEffectParam: Byte;
 
 		constructor Create(AOwner: TComponent); override;
 		destructor  Destroy; override;
+
+		function  GetLoopButton(Kind: TDecksActionKind; LoopLength: Integer): TDecksButton;
 
 		procedure LoadDeckInfo(const Filename: String; Ini: TIniFile);
 		procedure SaveDeckInfo(const Filename: String; Ini: TIniFile);
 
 		procedure OnZoneChanged(Zone: Integer; MixTime: Boolean);
-		procedure OnDeckEvent(Kind: Integer);
+		procedure OnDeckEvent(Kind: TAppMode; Flag: Boolean);
 		procedure OnGraphIteration;
+		procedure ConfigChanged(const Item: String);
 
 		procedure DoInit; override;
 		procedure BeginFormUpdate;
@@ -264,14 +281,16 @@ type
 
 		procedure SetZoneKind(Zone: Word; Kind: TZoneKind);
 		procedure SetSynced(B: Boolean);
+		procedure Sync;
 
 		procedure ShowPosition;
 		procedure SyncToOtherDeck(Immediate: Boolean);
 		procedure Cue(DoCue: Boolean);
 		procedure SetCue(P: TPoint); overload;
 		procedure SetCue(P: QWord); overload;
+		procedure HotCue(Mode: TDecksActionKind; Index: Integer; Pressed: Boolean);
 		procedure AfterPosJump(Data: PtrInt);
-		procedure JumpToPos(Pos: QWord; Reset: Boolean = False);
+		procedure JumpToPos(Pos: QWord; Reset: Boolean = False; ProcessAfter: Boolean = True);
 		procedure JumpToCue(FromCallback: Boolean = False);
 		procedure JumpToZone(Zone: Word);
 		procedure JumpToBar(Bar: Word);
@@ -285,6 +304,10 @@ type
 		procedure UpdateCaption;
 
 		procedure ShowPanel_Effects;
+		procedure SelectEffect(EffectNum: DWord);
+		procedure SelectEffectParam(ParamNum: DWord);
+		procedure EnableEffect(EffectIndex: Byte; Toggle: Boolean = False);
+		procedure SetEffectParam(ParamNum: Integer; Value: Single);
 
 		procedure SetKnob(const Knob: ThKnob; Value: Integer);
 	end;
@@ -300,7 +323,7 @@ uses
 	Math, FileUtil, BCButton,
 	MouseWheelAccelerator,
 	Form.Main,
-	Decks.Config, Decks.Song;
+	Decks.Song;
 
 {$WARN 5024 off : Parameter "$1" not used}
 {$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
@@ -325,6 +348,184 @@ begin
 end;
 
 { TDeckFrame }
+
+procedure TDeckFrame.ConfigChanged(const Item: String);
+begin
+	if Item = 'cuepostfader' then
+	begin
+		BASS_Loudness_SetChannel(Deck.Loudness, Deck.GetCueStream);
+	end;
+end;
+
+procedure TDeckFrame.UpdatePlayButton(Kind: TAppMode);
+var
+	B: Boolean = False;
+begin
+	case Kind of
+
+		MODE_PLAY_START:
+		begin
+			B := Deck.Cueing;
+			bPlay.StateNormal.Border.LightWidth := IfThen(B, 1, 2);
+			bPlay.StateNormal.Border.LightColor := $0035D95F;
+			if not B then
+				MainForm.MarkSongAsPlayed(Deck.Filename);
+			Log('MODE_PLAY_START');
+		end;
+
+		MODE_PLAY_STOP,
+		MODE_PLAY_PAUSE:
+		begin
+			bPlay.StateNormal.Border.LightWidth := 0;
+			bPlay.Down := False;
+		end;
+
+		MODE_PLAY_FAILURE:
+		begin
+			Log('MODE_PLAY_FAILURE');
+			bPlay.Color := clRed;
+			bPlay.Down := False;
+			ErrorMessage('Failed to start playback!');
+		end;
+
+		else
+			Exit;
+	end;
+
+	MainForm.UpdateController(Deck, Kind, B);
+end;
+
+procedure TDeckFrame.OnDeckEvent(Kind: TAppMode; Flag: Boolean);
+var
+	S: String;
+	i: Integer;
+	Fx: TGUIEffect;
+begin
+	{$IFDEF USEMIDI}
+	if Deck <> nil then
+		MIDI.SendMidiMessages(Kind, Flag, Deck.Index);
+	{$ENDIF}
+
+	case Kind of
+
+		MODE_LOAD_START:
+		begin
+			Log('MODE_LOAD_START');
+			BASS_SetDevice(CurrentDevice);
+			CurrentZone := 0;
+			UnloopAll;
+			Deck.Graph.Zones.Clear;
+			Deck.Graph.Scroll.X := 0;
+			Deck.Graph.Zoom := 1;
+			Deck.Info.LUFS := 0.0;
+			Deck.Info.Amp := 1.0;
+			Deck.Info.BPM := 0.0;
+			Timer.Enabled := False;
+			bMaster.Caption := Deck.Filename;
+			Invalidate;
+			Application.ProcessMessages;
+			Enabled := False;
+		end;
+
+		MODE_LOAD_GRAPH:
+		begin
+			Log('MODE_LOAD_GRAPH:');
+			Deck.Graph.Generate;
+			Deck.Graph.BitmapSize := Point(pb.ClientWidth, pb.ClientHeight);
+			Enabled := True;
+		end;
+
+		MODE_LOAD_SUCCESS:
+		begin
+			Log('MODE_LOAD_SUCCESS');
+			if not Deck.GetInfo then
+				Deck.Graph.Clear;
+			if Deck.Graph.Zones.Count < 1 then
+				Deck.Graph.AddZone(0, IfThen(Deck.Info.BPM >= 60, Deck.Info.BPM, MasterBPM), True);
+			UpdateCaption;
+			Deck.CalculateLUFS;
+			SetSlider(lBPM, Deck.Graph.Zones.First.BPM);
+			SliderAmp.GetExtraIndicator(0).Position := 200 - Trunc(Deck.Info.NormalizedAmp * 100);
+			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
+			Deck.Graph.Amplify;
+			Deck.Graph.ZonesLoaded;
+			Deck.GetAvgBPM;
+			for i := Low(Deck.HotCues) to High(Deck.HotCues) do
+				HotCue(DECK_HOTCUE_CLEAR, i, True);
+			SetCue(TPoint.Zero);
+			SliderTempoChange(nil);
+			JumpToCue;
+			SliderTempoChange(nil); // fixme: need to call this twice
+			ZoneChanged(0, False, False);
+			MainForm.UpdateFileInfo(Deck);
+			Deck.SaveInfoFile(Deck.Info.BPM);
+		end;
+
+		MODE_LOAD_FAILURE:
+		begin
+			Log('MODE_LOAD_FAILURE');
+			case BASS_ErrorGetCode of
+				BASS_ERROR_FILEOPEN:	S := 'Error opening file';
+				BASS_ERROR_FILEFORM:	S := 'File format not recognised/supported';
+				BASS_ERROR_NOTAUDIO:	S := 'Not an audio file';
+				BASS_ERROR_CODEC:		S := 'Codec not available/supported';
+				BASS_ERROR_FORMAT:		S := 'Sample format not supported';
+				BASS_ERROR_MEM:			S := 'Insufficient memory';
+				BASS_ERROR_UNKNOWN:		S := 'Unknown error';
+				else S := '';
+			end;
+			Log(S);
+			//ErrorMessage('Load error: ' + S);
+			bMaster.Caption := S;
+			bMaster.Background.Color := clMaroon;
+		end;
+
+		MODE_LOAD_FINISH:
+		begin
+			Log('MODE_LOAD_FINISH');
+			RedrawGraph(True);
+			SetCue(TPoint.Zero);
+			DrawWaveform;
+			SliderGraphX.Position := 0;
+			lTime.Tag := -1;
+			lTimeTotal.Caption := FormatTime(StreamLengthInSeconds(Deck.OrigStream));
+			Invalidate;
+			InitSubDevice(Config.Audio.SubDevice[Deck.Index]);
+			Timer.Enabled := True;
+			MainForm.ApplyMixer;
+			ApplyEffects;
+		end;
+
+		MODE_PLAY_START, MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:
+			UpdatePlayButton(Kind);
+
+{		MODE_BEND_START:
+			MainForm.Caption := Format('Bend %d', [Deck.PlayFreq]);
+
+		MODE_BEND_STOP:
+			MainForm.Caption := Format('Normal %d', [Deck.PlayFreq]);}
+
+		MODE_TEMPOCHANGE:
+		if Timer.Enabled then
+		begin
+//			MainForm.Caption := Format('Tempo %d', [Deck.PlayFreq]);
+			if Effects <> nil then
+				for Fx in Effects do
+					if (Fx <> nil) and (Fx.Effect <> nil) then
+					begin
+						Fx.Effect.Deck := Deck;
+						Fx.Effect.Apply;
+					end;
+		end;
+
+		MODE_EQ_KILL,
+		MODE_SYNC,
+		MODE_FX_ENABLE,
+		MODE_LOOP, MODE_LOOP_SONG, MODE_LOOP_ZONE:
+			MainForm.UpdateController(Deck, Kind, Flag);
+
+	end;
+end;
 
 procedure TDeckFrame.InitDevice(Dev: Integer);
 var
@@ -434,6 +635,24 @@ begin
 	Slider.OnChange := lBPMChange;
 end;
 
+function TDeckFrame.GetLoopButton(Kind: TDecksActionKind; LoopLength: Integer): TDecksButton;
+begin
+	Result := nil;
+	case Kind of
+		DECK_LOOP_SONG: Result := bLoopSong;
+		DECK_LOOP_ZONE: Result := bLoopZone;
+		DECK_LOOP:
+		case LoopLength of
+			0:      Result := bLoopBeat0;
+			1:      Result := bLoopBeat1;
+			2..3:   Result := bLoopBeat2;
+			4..7:   Result := bLoopBar1;
+			8..15:  Result := bLoopBar2;
+			16..31: Result := bLoopBar4;
+		end;
+	end;
+end;
+
 procedure TDeckFrame.ZoneChangedMessage(var Msg: TLMessage);
 begin
 	ZoneChanged(Msg.lParam, False, False);
@@ -469,7 +688,7 @@ begin
 	if Zone = ZONECHANGE_GETPOS then
 	begin
 		GetPlayPosition;
-		Zone := Deck.Graph.GetZoneIndexAt(Deck.Graph.SongToGraphBytes(PlayPosition));
+		Zone := Deck.Graph.GetZoneIndexAt(Deck.Graph.SongToGraphBytes(Deck.PlayPosition));
 		Deck.PlayingZone := Zone;
 	end;
 
@@ -522,7 +741,14 @@ procedure TDeckFrame.DoInit;
 var
 	Dev: TAudioDevice;
 	mi: TMenuItem;
+	i: Integer;
 begin
+	for i := Low(Deck.HotCues) to High(Deck.HotCues) do
+		Deck.HotCues[i] := Default(THotCue);
+
+	for i := Low(Deck.Cue) to High(Deck.Cue) do
+		Deck.Cue[i] := 0;
+
 	ShowRemainingTime := Config.Deck.ShowRemainingTime;
 
 	Deck.Graph.WantedZoom := 1;
@@ -570,15 +796,11 @@ begin
 		InitDevice(Config.Audio.CueDevice);
 	end;
 
-	LoopControls[DECK_LOOP]      := bLoopBar2;
-	LoopControls[DECK_LOOP_SONG] := bLoopSong;
-	LoopControls[DECK_LOOP_ZONE] := bLoopZone;
-
 	Show;
 	ShowPosition;
 
-	SelectEffect(5); // select and enable the Filter effect by default (ugly)
-	bEffect0MouseDown(bEffect5, mbRight, [], 0, 0);
+	//SelectEffect(6); // select and enable the Filter effect by default (ugly)
+	//bEffect0MouseDown(bEffect6, mbRight, [], 0, 0);
 
 	Timer.Enabled := True;
 end;
@@ -598,26 +820,46 @@ end;
 
 procedure TDeckFrame.GetPlayPosition;
 begin
-	PlayPosition := Deck.GetPlayPosition;
+	Deck.PlayPosition := Deck.GetPlayPosition;
 end;
 
+// update vu meters and various position indicators
+//
 procedure TDeckFrame.ShowPosition;
 var
 	time_e, time_r, tm, ts, Y, W, H: Integer;
 	se, sr: String;
 	Vol: DWord = 0;
+	lof, hif, VolF: Single;
 begin
 	if not Deck.Loaded then
 	begin
-		if lTime.Tag >= 0 then Exit;
-		time_e := 0;
+		{if lTime.Tag >= 0 then Exit;
+		time_e := 0;}
+		Exit;
 	end
 	else
-	begin
 		if Deck.Graph.Zones.Count < 1 then Exit;
-		GetPlayPosition;
-		time_e := Max(0, Round(BASS_ChannelBytes2Seconds(Deck.OrigStream, PlayPosition)));
+
+	GetPlayPosition;
+
+	if Deck.Paused then
+		bPlay.StateNormal.Border.Color := Grays[0]
+	else
+	begin
+		bPlay.StateNormal.Border.Color := Grays[Deck.BeatFadeCounter];
+
+		// hack to jump into loop if we missed the loop endpoint while setting it up
+		if (Deck.LoopInfo_Misc.Enabled) and (Deck.PlayPosition >= Deck.LoopInfo_Misc.EndPos) then
+		begin
+			Deck.PlayPosition := (Deck.PlayPosition - Deck.LoopInfo_Misc.EndPos) mod
+				(Deck.LoopInfo_Misc.EndPos - Deck.LoopInfo_Misc.StartPos);
+			Deck.PlayPosition := Deck.PlayPosition + Deck.LoopInfo_Misc.StartPos;
+			JumpToPos(Deck.PlayPosition, True, False);
+		end;
 	end;
+
+	time_e := Max(0, Round(BASS_ChannelBytes2Seconds(Deck.OrigStream, Deck.PlayPosition)));
 
 	Inc(FlashTimer);
 	if FlashTimer > Config.Deck.WarnSpeed then
@@ -632,7 +874,7 @@ begin
 
 	if time_e <> lTime.Tag then
 	begin
-		time_r := Round(BASS_ChannelBytes2Seconds(Deck.OrigStream, Deck.ByteLength - PlayPosition));
+		time_r := Round(BASS_ChannelBytes2Seconds(Deck.OrigStream, Deck.ByteLength - Deck.PlayPosition));
 
 		tm := time_e div 60;
 		ts := time_e - (tm * 60);
@@ -656,34 +898,59 @@ begin
 		lTime.Tag := time_e;
 	end;
 
-	if Deck.Paused then
-		bPlay.StateNormal.Border.Color := Grays[0]
-	else
-		bPlay.StateNormal.Border.Color := Grays[Deck.BeatFadeCounter];
-
 	with pbVU do
 	begin
 		W := ClientWidth; H := ClientHeight;
 		Bitmap.FillRect(Bounds(0, 0, W, H), BGRABlack, dmSet);
+
 		if not Deck.Paused then
-			Vol := BASS_ChannelGetLevel(Deck.Stream);
-		if Vol > 0 then
 		begin
-			// vertical
-			W := W div 2;
-			Y := H - Trunc((H * ((Vol and $FFFF) / 32767)));
-			Bitmap.FillRect(Bounds(0, Y, W, H), BGRAWhite, dmSet);
+			if BASS_Loudness_GetLevel(Deck.Loudness, MakeLong(BASS_LOUDNESS_CURRENT, 50), VolF{%H-}) then
+			begin
+				hif := Abs(Config.Audio.TargetLUFS) - 4;
+				lof := -35.0;
 
-			Y := H - Trunc((H * ((Vol shr 16) / 32767)));
-			Bitmap.FillRect(Bounds(W, Y, W+2, H), BGRAWhite, dmSet);
+				if (VolF.IsInfinity) or (VolF < lof) then
+					VolF := lof;
+				//VolF := log10(VolF) * 20; // translate it to dB
+				//bmaster.caption := VolF.ToString;
+				VolF := VolF + Abs(lof); // -35..-14 -> 0..21
 
-			// horizontal
-			{H := H div 2;
-			X := Trunc((W * ((Vol and $FFFF) / 32767)));
-			Bitmap.FillRect(Bounds(0, 0, X, H), BGRAWhite, dmSet);
+				VolF := VolF / (Abs(lof) - hif);
+				VolF := VolF * Deck.Info.Amp;
 
-			X := Trunc((W * ((Vol shr 16) / 32767)));
-			Bitmap.FillRect(Bounds(0, H, X, H+H), BGRAWhite, dmSet);}
+				if VolF > 0.0 then
+				begin
+					// vertical
+					Y := H - Min(Trunc(H * VolF), H);
+					Bitmap.FillRect(Bounds(0, Y, W, H), BGRAWhite, dmSet);
+				end;
+				MIDI.SetVUMeter(Deck.Index, VolF);
+			end
+			else
+			begin
+				Vol := BASS_ChannelGetLevel(Deck.Stream);
+				if Vol > 0 then
+				begin
+					// vertical
+					W := W div 2;
+					Y := H - Trunc((H * ((Vol and $FFFF) / 32767)));
+					Bitmap.FillRect(Bounds(0, Y, W, H), BGRAWhite, dmSet);
+
+					Y := H - Trunc((H * ((Vol shr 16) / 32767)));
+					Bitmap.FillRect(Bounds(W, Y, W+2, H), BGRAWhite, dmSet);
+
+					// horizontal
+					{H := H div 2;
+					X := Trunc((W * ((Vol and $FFFF) / 32767)));
+					Bitmap.FillRect(Bounds(0, 0, X, H), BGRAWhite, dmSet);
+
+					X := Trunc((W * ((Vol shr 16) / 32767)));
+					Bitmap.FillRect(Bounds(0, H, X, H+H), BGRAWhite, dmSet);}
+				end;
+				MIDI.SetVUMeter(Deck.Index, (Vol and $FFFF) / 32768);
+			end;
+
 		end;
 
 		Repaint;
@@ -873,10 +1140,12 @@ procedure TDeckFrame.SetSynced(B: Boolean);
 begin
 	Deck.Synced := B;
 	bSync.StateNormal.Border.LightWidth := IfThen(B, 1, 0);
-	if B then
-		MainForm.UpdateController(Deck, MODE_SYNC_ON)
-	else
-		MainForm.UpdateController(Deck, MODE_SYNC_OFF);
+	MainForm.UpdateController(Deck, MODE_SYNC, B);
+end;
+
+procedure TDeckFrame.Sync;
+begin
+	SyncToOtherDeck(True);
 end;
 
 procedure TDeckFrame.bSyncMouseDown(Sender: TObject; Button: TMouseButton;
@@ -886,15 +1155,27 @@ begin
 		mbLeft:
 			SetSynced(not Deck.Synced);
 		mbRight:
-			SyncToOtherDeck(True);
+			Sync;
 	end;
 end;
 
 procedure TDeckFrame.bPlayClick(Sender: TObject);
+var
+	i: Integer;
+	B: Boolean;
 begin
 	if not Enabled then Exit;
 
-	if Deck.Cueing then
+	B := Deck.Cueing;
+
+	for i := Low(Deck.HotCues) to High(Deck.HotCues) do
+		if Deck.HotCues[i].Temporary then
+		begin
+			Deck.HotCues[i].Temporary := False;
+			B := True;
+		end;
+
+	if B then
 	begin
 		Deck.Cueing := False;
 		UpdatePlayButton(MODE_PLAY_START);
@@ -905,9 +1186,10 @@ begin
 
 		// jump to cue if song has been played through
 		GetPlayPosition;
-		if PlayPosition >= Deck.ByteLength then
+		if Deck.PlayPosition >= Deck.ByteLength then
 			JumpToCue;
 
+		Deck.SetBPM(MasterBPM);
 		if (Deck.Synced) and (Deck.Paused) then
 			SyncToOtherDeck(False)
 		else
@@ -1010,7 +1292,7 @@ begin
 
 			bPlay.StateNormal.Border.LightColor := $0022AAFF;
 			bPlay.StateNormal.Border.LightWidth := 2;
-			MainForm.UpdateController(Deck, MODE_PLAY_WAITSYNC);
+			MainForm.UpdateController(Deck, MODE_PLAY_WAITSYNC, True);
 
 			Deck.QueuedSync := BASS_ChannelSetSync(OtherDeck.OrigStream,
 				BASS_SYNC_POS or BASS_SYNC_MIXTIME or BASS_SYNC_ONETIME, P,
@@ -1022,9 +1304,9 @@ begin
 			Deck.QueuedSync := 0;
 			bPlay.StateNormal.Border.LightWidth := 0;
 			if Deck.Paused then
-				MainForm.UpdateController(Deck, MODE_PLAY_PAUSE)
+				MainForm.UpdateController(Deck, MODE_PLAY_PAUSE, True)
 			else
-				MainForm.UpdateController(Deck, MODE_PLAY_START);
+				MainForm.UpdateController(Deck, MODE_PLAY_START, True);
 		end;
 	end;
 end;
@@ -1134,6 +1416,9 @@ procedure TDeckFrame.AddGUIEffect(FxObject: TBaseEffect; BtnObject: TDecksButton
 var
 	Fx: TGUIEffect;
 begin
+	if FxObject = nil then Exit;
+
+	FxObject.Deck := Deck;
 	Fx := TGUIEffect.Create;
 	Fx.Effect := FxObject;
 	Fx.Button := BtnObject;
@@ -1144,8 +1429,7 @@ begin
 	BtnObject.OnButtonClick := bEffect0Click;
 	BtnObject.OnMouseDown := bEffect0MouseDown;
 	BtnObject.DropDownStyle := bdsCommon;
-	if FxObject <> nil then
-		Fx.Button.Caption := FxObject.Name;
+	Fx.Button.Caption := FxObject.Name;
 	Effects.Add(Fx);
 end;
 
@@ -1161,6 +1445,7 @@ begin
 	inherited Create(AOwner);
 
 	CurrentZone := 0;
+	PadsPage := 1;
 
 	with ZoneTextStyle do
 	begin
@@ -1193,12 +1478,16 @@ begin
 	SelectedEffect := 255;
 
 	AddGUIEffect(TFxEcho.Create,       bEffect0);
-	AddGUIEffect(TFxReverb.Create,     bEffect1);
-	AddGUIEffect(TFxPhaser.Create,     bEffect2);
-	AddGUIEffect(TFxChorus.Create,     bEffect3);
-	AddGUIEffect(TFxCompressor.Create, bEffect4, 100);
-	AddGUIEffect(TFxFilter.Create,     bEffect5);
-	AddGUIEffect(TFXPitchShift.Create, bEffect6, 90);
+	AddGUIEffect(TFxChorus.Create,     bEffect1);
+	AddGUIEffect(TFxPanner.Create,     bEffect2);
+	AddGUIEffect(TFxAutoWah.Create,    bEffect3);
+
+	AddGUIEffect(TFxChopper.Create,    bEffect4);
+	AddGUIEffect(TFxPhaser.Create,     bEffect5);
+	AddGUIEffect(TFxReverb.Create,     bEffect6);
+	AddGUIEffect(TFxCompressor.Create, bEffect7, 100);
+//	AddGUIEffect(TFXPitchShift.Create, bEffect7, 90);
+
 	//AddGUIEffect(nil, bEffect7); // loop controls
 	//
 	// Assign gui knobs to effect parameters
@@ -1206,7 +1495,7 @@ begin
 	InitGUIEffectParam(2, SliderFxParam2); InitGUIEffectParam(3, SliderFxParam3);
 	InitGUIEffectParam(4, SliderFxParam4); InitGUIEffectParam(5, SliderFxParam5);
 
-	SelectEffect(Effects.Count-1);
+	SelectEffect(0);
 	ShowPanel_Effects;
 
 	Enabled := False;
@@ -1228,13 +1517,10 @@ begin
 	if not Enabled then Exit;
 
 	case Key of
-
 		VK_CONTROL:
 			Cue(False);
-
 		VK_SHIFT:
 			IsShiftDown := False;
-
 		VK_ADD, VK_SUBTRACT,
 		VK_UP,  VK_DOWN:
 			Deck.BendStop;
@@ -1316,6 +1602,79 @@ begin
 	DrawRuler;
 end;
 
+procedure TDeckFrame.HotCue(Mode: TDecksActionKind; Index: Integer; Pressed: Boolean);
+var
+	HotCue: ^THotCue;
+label
+	SetLeds;
+begin
+	if (Index < Low(Deck.HotCues)) or (Index > High(Deck.HotCues)) then
+		Index := Low(Deck.HotCues);
+
+	HotCue := @Deck.HotCues[Index];
+
+	case Mode of
+		DECK_HOTCUE_CLEAR:
+		begin
+			if Pressed then
+			begin
+				HotCue.Temporary := False;
+				HotCue.Enabled := False;
+				//MIDI.SetLed(DECK_HOTCUE, Deck.Index, False, Index);
+				//MIDI.SetLed(DECK_HOTCUE_TEMP, Deck.Index, False, Index);
+			end;
+			goto SetLeds;
+			//Exit;
+		end;
+		DECK_HOTCUE_SET:
+			if not Pressed then Exit;
+		else
+			if not HotCue.Enabled then Mode := DECK_HOTCUE_SET;
+	end;
+
+	if Mode = DECK_HOTCUE_SET then
+	begin
+		HotCue.Pos := Deck.Graph.GraphToSongBytes(CuePos);
+		HotCue.Temporary := False;
+		HotCue.Enabled := True;
+		//MIDI.SetLed(DECK_HOTCUE, Deck.Index, True, Index);
+		//MIDI.SetLed(DECK_HOTCUE_TEMP, Deck.Index, True, Index);
+	end
+	else
+	if HotCue.Enabled then
+	begin
+		if (not HotCue.Temporary) and (not Pressed) then Exit;
+
+		if not HotCue.Temporary then // start playing hotcue
+		begin
+			if Deck.Paused then
+			begin
+				HotCue.TriggerPos := $FEEDBEEF;
+				SetCue(Deck.Graph.SongToGraphBytes(HotCue.Pos));
+				bPlay.SetMouseDown(mbRight, True);
+			end
+			else
+			begin
+				HotCue.TriggerPos := Deck.GetPlayPosition(False, False);
+				JumpToPos(HotCue.Pos, True);
+			end;
+			HotCue.Temporary := Mode = DECK_HOTCUE_TEMP;
+		end
+		else // stop playing hotcue and jump back to trigger pos if temporary flag set
+		begin
+			if HotCue.TriggerPos = $FEEDBEEF then
+				bPlay.SetMouseDown(mbRight, False);
+			JumpToPos(HotCue.TriggerPos + Abs(Deck.GetPlayPosition(False, False) - HotCue.Pos), True);
+			HotCue.Temporary := False;
+			HotCue.TriggerPos := 0;
+		end;
+	end;
+
+SetLeds:
+	//for Index := Low(Deck.HotCues) to High(Deck.HotCues) do
+		MIDI.SendMidiMessages(MODE_HOTCUE, Deck.HotCues[Index].Enabled, Deck.Index, Index);
+end;
+
 procedure TDeckFrame.AfterPosJump(Data: PtrInt);
 var
 	Zone: Integer;
@@ -1333,7 +1692,7 @@ begin
 	ShowPosition;
 end;
 
-procedure TDeckFrame.JumpToPos(Pos: QWord; Reset: Boolean = False);
+procedure TDeckFrame.JumpToPos(Pos: QWord; Reset: Boolean = False; ProcessAfter: Boolean = True);
 var
 	Flags: DWord = BASS_POS_BYTE;
 begin
@@ -1341,7 +1700,9 @@ begin
 	if Reset then
 		Flags := Flags or BASS_POS_MIXER_RESET;
 	BASS_Mixer_ChannelSetPosition(Deck.OrigStream, Pos, Flags);
-	AfterPosJump(0);
+	Deck.PlayPosition := Pos;
+	if ProcessAfter then
+		AfterPosJump(0);
 end;
 
 procedure TDeckFrame.JumpToCue(FromCallback: Boolean = False);
@@ -1583,27 +1944,24 @@ begin
 	MainForm.SelectFileInFileList(Deck.Filename, True);
 end;
 
-procedure TDeckFrame.bLoopBeatSetDown(Sender: TObject);
+procedure TDeckFrame.bLoopBeat1SetDown(Sender: TObject);
 var
 	Btn: TDecksButton;
-	K, L: Integer;
+	K: TAppMode;
 begin
-	if (Sender <> nil) and (Sender is TDecksButton) then
-	begin
-		Btn := TDecksButton(Sender);
-		Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
-		case Btn.Tag of
-			  1..3: begin K := LOOP_BEATS; L := Btn.Tag; LoopControls[DECK_LOOP] := (Sender as TDecksButton); end;
-			4..999: begin K := LOOP_BARS;  L := Btn.Tag div 4; LoopControls[DECK_LOOP] := (Sender as TDecksButton); end;
-			     0: begin K := LOOP_ZONE;  L := 1; end;
-			    -1: begin K := LOOP_SONG;  L := 1; end;
-			else    Exit;
-		end;
-		if Btn.Down then
-			Deck.SetLoop(K, L)
-		else
-			Deck.SetLoop(K, LOOP_OFF);
+	if (Sender = nil) or not (Sender is TDecksButton) then Exit;
+
+	Btn := TDecksButton(Sender);
+	Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
+
+	case Btn.Tag of
+	    -2: K := MODE_LOOP_ZONE;
+		-1: K := MODE_LOOP_SONG;
+		else K := MODE_LOOP;
 	end;
+	//LoopControls[DECK_LOOP] := (Sender as TDecksButton);
+
+	Deck.SetLoop(K, Btn.Tag, Btn.Down);
 end;
 
 procedure TDeckFrame.bStoreFxMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -1618,6 +1976,13 @@ end;
 procedure TDeckFrame.bStoreFxSetDown(Sender: TObject);
 begin
 	bStoreFx.StateNormal.Border.LightWidth := IfThen(bStoreFx.Down, 1, 0);
+end;
+
+procedure TDeckFrame.bPitchLockSetDown(Sender: TObject);
+begin
+	bPitchLock.StateNormal.Border.LightWidth := IfThen(bPitchLock.Down, 1, 0);
+	Deck.PitchLock := bPitchLock.Down;
+	Deck.SetBPM(MasterBPM);
 end;
 
 procedure TDeckFrame.pbRulerRedraw(Sender: TObject; Bitmap: TBGRABitmap);
@@ -2027,7 +2392,7 @@ begin
 
 	// playback position indicator
 	//
-	P := Deck.Graph.PosToGraph(PlayPosition, False);
+	P := Deck.Graph.PosToGraph(Deck.PlayPosition, False);
 
 	Y := Trunc(P.Y / H * 4); // quadrant
 	if Y <> Deck.BeatPreviousQuadrant then
@@ -2045,7 +2410,6 @@ begin
 	R.BottomRight := Point(X+Z, H);
 	pb.Bitmap.FillRect(R, BGRA(255, 100, 30, 130), dmLinearBlend);
 	pb.Bitmap.HorizLine(X, Y, X+Z-1, ColorToBGRA(clYellow));
-
 
 	if Config.Deck.BeatGraph.ShowHorizontalLines then
 	begin
@@ -2124,37 +2488,6 @@ begin
 	end;
 end;
 
-procedure TDeckFrame.UpdatePlayButton(Kind: Integer);
-begin
-	case Kind of
-
-		MODE_PLAY_START:
-		begin
-			bPlay.StateNormal.Border.LightWidth := IfThen(Deck.Cueing, 1, 2);
-			bPlay.StateNormal.Border.LightColor := $0035D95F;
-			if not Deck.Cueing then MainForm.MarkSongAsPlayed(Deck.Filename);
-			Log('MODE_PLAY_START');
-		end;
-
-		MODE_PLAY_STOP,
-		MODE_PLAY_PAUSE:
-		begin
-			bPlay.StateNormal.Border.LightWidth := 0;
-			bPlay.Down := False;
-		end;
-
-		MODE_PLAY_FAILURE:
-		begin
-			Log('MODE_PLAY_FAILURE');
-			bPlay.Color := clRed;
-			bPlay.Down := False;
-			ErrorMessage('Failed to start playback!');
-		end;
-
-	end;
-	MainForm.UpdateController(Deck, Kind);
-end;
-
 procedure TDeckFrame.OnLoadProgress(Percentage: Integer);
 var
 	X, W, H: Integer;
@@ -2194,121 +2527,11 @@ begin
 		Deck.UnloopAll;
 	bLoopSong.Down := False;
 	bLoopZone.Down := False;
-	bLoopBeat.Down := False;
+	bLoopBeat1.Down := False;
 	bLoopBeat2.Down := False;
-	bLoopBar.Down  := False;
+	bLoopBar1.Down  := False;
 	bLoopBar2.Down := False;
 	bLoopBar4.Down := False;
-end;
-
-procedure TDeckFrame.OnDeckEvent(Kind: Integer);
-var
-	S: String;
-	Fx: TGUIEffect;
-begin
-	case Kind of
-
-		MODE_LOAD_START:
-		begin
-			Log('MODE_LOAD_START');
-			BASS_SetDevice(CurrentDevice);
-			CurrentZone := 0;
-			UnloopAll;
-			Deck.Graph.Zones.Clear;
-			Deck.Graph.Scroll.X := 0;
-			Deck.Graph.Zoom := 1;
-			Deck.Info.LUFS := 0.0;
-			Deck.Info.Amp := 1.0;
-			Deck.Info.BPM := 0.0;
-			Timer.Enabled := False;
-			bMaster.Caption := Deck.Filename;
-			Invalidate;
-			Application.ProcessMessages;
-			Enabled := False;
-		end;
-
-		MODE_LOAD_GRAPH:
-		begin
-			Log('MODE_LOAD_GRAPH:');
-			Deck.Graph.Generate;
-			Deck.Graph.BitmapSize := Point(pb.ClientWidth, pb.ClientHeight);
-			Enabled := True;
-		end;
-
-		MODE_LOAD_SUCCESS:
-		begin
-			Log('MODE_LOAD_SUCCESS');
-			if not Deck.GetInfo then
-				Deck.Graph.Clear;
-			if Deck.Graph.Zones.Count < 1 then
-				Deck.Graph.AddZone(0, IfThen(Deck.Info.BPM >= 60, Deck.Info.BPM, MasterBPM), True);
-			UpdateCaption;
-			Deck.CalculateLUFS;
-			SetSlider(lBPM, Deck.Graph.Zones.First.BPM);
-			SliderAmp.GetExtraIndicator(0).Position := 200 - Trunc(Deck.Info.NormalizedAmp * 100);
-			SetSlider(SliderAmp, Trunc(Deck.Info.Amp * 100));
-			Deck.Graph.Amplify;
-			Deck.Graph.ZonesLoaded;
-			Deck.GetAvgBPM;
-			SetCue(TPoint.Zero);
-			SliderTempoChange(nil);
-			JumpToCue;
-			SliderTempoChange(nil); // fixme: need to call this twice
-			ZoneChanged(0, False, False);
-			MainForm.UpdateFileInfo(Deck);
-			Deck.SaveInfoFile(Deck.Info.BPM);
-		end;
-
-		MODE_LOAD_FAILURE:
-		begin
-			Log('MODE_LOAD_FAILURE');
-			case BASS_ErrorGetCode of
-				BASS_ERROR_FILEOPEN:	S := 'Error opening file';
-				BASS_ERROR_FILEFORM:	S := 'File format not recognised/supported';
-				BASS_ERROR_NOTAUDIO:	S := 'Not an audio file';
-				BASS_ERROR_CODEC:		S := 'Codec not available/supported';
-				BASS_ERROR_FORMAT:		S := 'Sample format not supported';
-				BASS_ERROR_MEM:			S := 'Insufficient memory';
-				BASS_ERROR_UNKNOWN:		S := 'Unknown error';
-				else S := '';
-			end;
-			Log(S);
-			//ErrorMessage('Load error: ' + S);
-			bMaster.Caption := S;
-			bMaster.Background.Color := clMaroon;
-		end;
-
-		MODE_LOAD_FINISH:
-		begin
-			Log('MODE_LOAD_FINISH');
-			RedrawGraph(True);
-			SetCue(TPoint.Zero);
-			DrawWaveform;
-			SliderGraphX.Position := 0;
-			lTime.Tag := -1;
-			lTimeTotal.Caption := FormatTime(StreamLengthInSeconds(Deck.OrigStream));
-			Invalidate;
-			InitSubDevice(Config.Audio.SubDevice[Deck.Index]);
-			Timer.Enabled := True;
-			MainForm.ApplyMixer;
-			ApplyEffects;
-		end;
-
-		MODE_PLAY_START, MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:
-			UpdatePlayButton(Kind);
-
-		MODE_TEMPOCHANGE:
-			if Effects <> nil then
-				for Fx in Effects do
-					if (Fx <> nil) and (Fx.Effect <> nil) then
-						Fx.Effect.Apply;
-
-		MODE_EQ_KILL_ON, MODE_EQ_KILL_OFF,
-		MODE_SYNC_ON, MODE_SYNC_OFF,
-		MODE_LOOP_ON, MODE_LOOP_OFF:
-			MainForm.UpdateController(Deck, Kind);
-
-	end;
 end;
 
 procedure TDeckFrame.pbZonesMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
@@ -2413,16 +2636,75 @@ procedure TDeckFrame.ApplyEffects;
 var
 	Fx: TGUIEffect;
 begin
+	Deck.ApplyFilter;
 	if (Effects <> nil) and (Deck.OrigStream <> 0) then
 		for Fx in Effects do
 			if Fx.Effect <> nil then
 			begin
 				Fx.Effect.Stream := Deck.OrigStream;
 				Fx.Effect.BPM := @Deck.AvgBPM;
+				Fx.Effect.Deck := Self.Deck;
 			end;
 end;
 
-procedure TDeckFrame.SelectEffect(EffectNum: Integer);
+procedure TDeckFrame.SetEffectParam(ParamNum: Integer; Value: Single);
+var
+	Fx: TBaseEffect;
+	Knob: ThKnob;
+	H, i: Integer;
+begin
+	if (Value < 0.0) or (Value > 1.0) then Exit;
+
+	Fx := Effects[SelectedEffect].Effect;
+	if Fx = nil then Exit;
+
+	i := ParamNum;
+	if (i < 0) or (i >= Fx.Params.Count) then
+		i := SelectedEffectParam;
+
+	Knob := GUIEffectParams[i].Knob;
+	if Knob <> nil then
+		Knob.Position := Trunc(((Knob.Max - Knob.Min) * Value) + Knob.Min);
+end;
+
+procedure TDeckFrame.SelectEffectParam(ParamNum: DWord);
+var
+	Fx: TBaseEffect;
+	Knob: ThKnob;
+	H, i: Integer;
+	ParNum: Integer;
+begin
+	Fx := Effects[SelectedEffect].Effect;
+	if Fx = nil then Exit;
+
+	H := Fx.Params.Count-1;
+
+	if ParamNum = VAL_BROWSE_NEXT then
+		ParNum := SelectedEffectParam + 1
+	else
+	if ParamNum = VAL_BROWSE_PREV then
+		ParNum := SelectedEffectParam - 1
+	else
+		ParNum := ParamNum and $FF;
+
+	if ParNum < 0 then ParNum := H else
+	if ParNum > H then ParNum := 0;
+	SelectedEffectParam := ParNum;
+
+	for i := 0 to High(GUIEffectParams) do
+	begin
+		Knob := GUIEffectParams[i].Knob;
+		if Knob = nil then Continue;
+
+		if i = SelectedEffectParam then
+			Knob.Knob.BorderColor := clWhite
+		else
+			Knob.Knob.BorderColor := clGray;
+		Knob.Repaint;
+	end;
+end;
+
+procedure TDeckFrame.SelectEffect(EffectNum: DWord);
 var
 	Fx: TBaseEffect;
 	Param: TEffectParam;
@@ -2430,18 +2712,31 @@ var
 	Knob: ThKnob;
 	Button: TDecksButton;
 	MI: TMenuItem;
-	i, M: Integer;
+	Num, i, M: Integer;
 	B: Boolean;
 begin
 	if SelectedEffect = EffectNum then Exit;
+
+	if EffectNum = VAL_BROWSE_NEXT then
+		Num := SelectedEffect + 1
+	else
+	if EffectNum = VAL_BROWSE_PREV then
+		Num := SelectedEffect - 1
+	else
+		Num := EffectNum;
+
+	if Num >= Effects.Count then Num := 0
+	else
+	if Num < 0 then Num := Effects.Count-1;
+
 	BeginFormUpdate;
 	DisableAutoSizing;
 
-	SelectedEffect := EffectNum;
+	SelectedEffect := Num;
 
 	for i := 0 to Effects.Count-1 do
 	begin
-		B := (i = EffectNum);
+		B := (i = Num);
 		Button := Effects[i].Button;
 		if B then
 		begin
@@ -2484,6 +2779,7 @@ begin
 			B := (i < Fx.Params.Count);
 			Knob.OnChange := nil;
 			Knob.Visible := B;
+
 			if B then
 			begin
 				Param := Fx.Params[i];
@@ -2494,13 +2790,11 @@ begin
 				Knob.FloatPosition := Param.Value;
 				Knob.Hint := Param.Name;
 				Knob.OnChange := SliderFxParam0Change;
-				Knob.Left := Trunc(i * Knob.Width * 1.3) + 5;
 				if GUIParam.NameLabel <> nil then
 				begin
 					GUIParam.NameLabel.Caption := Param.Name;
 					GUIParam.NameLabel.Hint := Param.Caption;
 					GUIParam.NameLabel.ShowHint := True;
-					GUIParam.NameLabel.SetBounds(Knob.Left-20, Knob.Top + Knob.Height + 1, Knob.Width+40, 18+10);
 				end;
 			end;
 			if GUIParam.NameLabel <> nil then
@@ -2517,9 +2811,11 @@ begin
 		end;
 	end;
 
+	SelectEffectParam(0);
 	ResizeEffectButtons;
 	EnableAutoSizing;
 	EndFormUpdate;
+	OnDeckEvent(MODE_FX_ENABLE, Effects[SelectedEffect].Effect.Enabled);
 end;
 
 procedure TDeckFrame.ResizeEffectButtons;
@@ -2527,19 +2823,21 @@ var
 	i, X, W: Integer;
 	Effect: TGUIEffect;
 	Button: TDecksButton;
+	Knob: ThKnob;
+	GUIParam: TGUIEffectParam;
 begin
 	BeginFormUpdate;
 	DisableAutoSizing;
 
-	X := 5;
-	W := ({bLoopSong.Left}ClientWidth - 4) div Effects.Count;
+	W := ({bLoopSong.Left}pnlEffects.Width div 2 - 4) div {Effects.Count}4;
 
 	for i := 0 to Effects.Count-1 do
 	begin
+		if (i = 0) or (i = 4) then X := 5;
 		Effect := Effects[i];
 		Button := Effect.Button;
 		if Button = nil then Continue;
-		Button.SetBounds(X, 0, W, Button.Height);
+		Button.SetBounds(X, Button.Top, W, Button.Height);
 		if Effect.Effect <> nil then // adjust captions to fit
 		begin
 			if W <= Effect.LabelWidth then
@@ -2548,6 +2846,17 @@ begin
 				Button.Caption := Effect.Effect.Name;
 		end;
 		Inc(X, W);
+	end;
+
+	for i := 0 to High(GUIEffectParams) do
+	begin
+		GUIParam := GUIEffectParams[i];
+		Knob := GUIParam.Knob;
+		if not Knob.Visible then Continue;
+
+		Knob.Left := Trunc(i * Knob.Width * 1.3) + (pnlEffects.Width div 2) + 5;
+		if GUIParam.NameLabel <> nil then
+			GUIParam.NameLabel.SetBounds(Knob.Left-20, {Knob.Top + Knob.Height + 1} 0, Knob.Width+40, 18+10);
 	end;
 
 	EnableAutoSizing;
@@ -2643,8 +2952,9 @@ begin
 		StateNormal.Border.LightWidth := IfThen(B, 2, 0);
 		Down := B;
 	end;
-	Fx.Stream := Deck.Stream;
+	Fx.Stream := Deck.OrigStream;
 	Fx.Enabled := B;
+	OnDeckEvent(MODE_FX_ENABLE, B);
 end;
 
 procedure TDeckFrame.bEffect0MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

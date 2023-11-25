@@ -143,6 +143,12 @@ type
 		sCueMix: ThKnob;
 		lCueMixL: TLabel;
 		lCueMixR: TLabel;
+		Memo1: TMemo;
+		sMaster: ThKnob;
+		lCueMixR1: TLabel;
+		sFilterL: ThKnob;
+		sFilterR: ThKnob;
+		bRecord: TDecksButton;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -213,6 +219,8 @@ type
 			X, Y: Integer);
 		procedure bFileCueMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
 			X, Y: Integer);
+		procedure sFilterLChange(Sender: TObject);
+		procedure bRecordSetDown(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -236,12 +244,13 @@ type
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
+		FilterControls: array[1..2] of ThKnob;
 
 		procedure ScaleTo(Percent: Word);
 		procedure ToggleFullScreen;
 		procedure UpdateMixerVisibility;
 		procedure ApplyMixer(ApplyEQ: Boolean = True);
-		procedure SetMasterTempo(BPM: Single);
+		procedure SetMasterTempo(BPM: Double);
 
 		procedure SelectFileInFileList(const Filename: String; AllowChangeDir: Boolean);
 		procedure SetActiveList(RightList: Boolean);
@@ -254,8 +263,10 @@ type
 
 //		procedure MIDIEvent(var Msg: TLMessage); message WM_MIDI;
 		procedure ASyncExecute(Data: PtrInt);
-		procedure Execute(Action: TDecksAction; Pressed: Boolean = True; Value: Integer = 0);
-		procedure UpdateController(Deck: TDeck; Event: Integer);
+		procedure Execute(ActionKind: TDecksActionKind; Pressed: Boolean = True; Value: Integer = 0; Param: DWord = PARAM_ANY); overload;
+		procedure Execute(Action: TDecksAction; Pressed: Boolean = True; Value: Integer = 0; Param: DWord = PARAM_ANY; Raw: String = ''); overload;
+		procedure UpdateController(Deck: TDeck; Event: TAppMode; Flag: Boolean); overload;
+		procedure UpdateController(Deck: TDeck; Event: TAppMode; Param: Integer); overload;
 
 		procedure StartUpdate; inline;
 		procedure EndUpdate; inline;
@@ -273,7 +284,8 @@ type
 	TMixerDeck = record
 		Deck: TDeck;
 		BeatFadeCounter: Byte;
-		Volume: Single;
+		Volume,
+		FaderVolume: Single;
 		EQ: array[TEQBand] of Single;
 		TempEQKnob: array[TEQBand] of Integer;
 		procedure Apply(ApplyEQ: Boolean = True);
@@ -292,14 +304,14 @@ var
 	DeckList: TFPGObjectList<TDeck>;
 	MixerDeck: array[1..2] of TMixerDeck;
 	MIDI: TMIDI;
-	MasterBPM: Single;
+	MasterBPM: Double;
 	MasterDeck: TDeckFrame;
 	MasterDeckIndex: Integer;
 	CurrentDir: String;
 	CurrentScale: Word = 100;
 
 	procedure SetMaster(Index: Byte);
-	procedure SetMasterBPM(BPM: Single);
+	procedure SetMasterBPM(BPM: Double);
 
 	procedure Log(const S: String);
 	procedure ErrorMessage(const MsgText: String);
@@ -316,7 +328,7 @@ uses
 	MouseWheelAccelerator, TextInputDialog,
 	BCTypes, BCButton, TeeGenericTree, FocusRectangleUnit,
 	Form.Tracklist,
-	BASS, AudioTag, basetag, file_Wave, file_mp3, file_ogg,
+	BASS, BASSenc, AudioTag, basetag, file_Wave, file_mp3, file_ogg,
 	Decks.Song, Decks.Beatgraph, Decks.TapTempo;
 
 var
@@ -338,11 +350,12 @@ var
 procedure Log(const S: String);
 begin
 	{$IFDEF DEBUG}
-	{$IFDEF WINDOWS}
-	//MainForm.LogMemo.Lines.Add(S);
-	{$ELSE}
-	WriteLn(S);
-	{$ENDIF}
+		{$IFDEF WINDOWS}
+		//MainForm.LogMemo.Lines.Add(S);
+		{$ELSE}
+		WriteLn(S);
+		{$ENDIF}
+		MainForm.Memo1.Lines.Add(S);
 	{$ENDIF}
 end;
 
@@ -407,7 +420,7 @@ begin
 	end;
 end;
 
-procedure SetMasterBPM(BPM: Single);
+procedure SetMasterBPM(BPM: Double);
 var
 	Deck: TDeck;
 begin
@@ -429,7 +442,7 @@ var
 begin
 	if Assigned(Deck) then
 	begin
-		Deck.SetVolume(Volume);
+		Deck.SetVolume(Volume * FaderVolume);
 		if ApplyEQ then
 			for Band in TEQBand do
 				Deck.Equalizer.SetEQ(Band, EQ[Band]);
@@ -441,18 +454,28 @@ end;
 
 procedure TMainForm.ASyncExecute(Data: PtrInt);
 var
-	Params: TExecuteParams;
+	Params: PExecuteParams;
 begin
-	Params := PExecuteParams(Data)^;
+	Assert(Data <> 0);
+	Params := PExecuteParams(Data);
 	try
-		if (not Application.Terminated) then
-			Execute(Params.Action, Params.Pressed, Params.Value);
+		if (Params^.Action.Kind <> NO_ACTION) and (not Application.Terminated) then
+			Execute(Params^.Action, Params^.Pressed, Params^.Value, Params^.Param, Params^.Raw);
 	finally
-		Dispose(PExecuteParams(Data));
+		Dispose(Params);
 	end;
 end;
 
-procedure TMainForm.Execute(Action: TDecksAction; Pressed: Boolean = True; Value: Integer = 0);
+procedure TMainForm.Execute(ActionKind: TDecksActionKind; Pressed: Boolean = True; Value: Integer = 0; Param: DWord = PARAM_ANY);
+var
+	Act: TDecksAction;
+begin
+	Act.Kind := ActionKind;
+	Act.Param := Param;
+	Execute(Act, Pressed, Value);
+end;
+
+procedure TMainForm.Execute(Action: TDecksAction; Pressed: Boolean = True; Value: Integer = 0; Param: DWord = PARAM_ANY; Raw: String = '');
 const
 	EQBandFrom: array[MIXER_EQ_LOW..MIXER_EQ_HIGH] of TEQBand =
 		(EQ_BAND_LOW, EQ_BAND_MID, EQ_BAND_HIGH);
@@ -464,22 +487,24 @@ var
 begin
 	if Action.Kind = NO_ACTION then Exit;
 
-	{$IFDEF USEMIDI}
-	if MIDI.Debug then
-	begin
-		WriteStr(S, Action.Kind);
-		Caption := S + Format('(%d)=%d', [Action.Param,Value]);
-	end;
-    {$ENDIF}
-
 	Deck := nil;
 	Form := nil;
 	DeckNum := 0;
 
+	{$IFDEF USEMIDI}
+	if MIDI.Debug then
+	begin
+		WriteStr(S, Action.Kind);
+		Caption := S + Format('(%d)=%d P=%d', [Action.Param, Value, Pressed.ToInteger]);
+		Memo1.Lines.Add(Raw + '= ' + Caption);
+	end;
+    {$ENDIF}
+
 	// get a destination deck if action needs one
 	if Action.Kind in ParameterizedActions then
 	begin
-		DeckNum := Action.Param;
+		if DeckNum = 0 then
+			DeckNum := Action.Param;
 		case DeckNum of
 			1, 2: Deck := MixerDeck[DeckNum].Deck;
 			else  if Assigned(MasterDeck) then Deck := MasterDeck.Deck;
@@ -494,28 +519,71 @@ begin
 
 	case Action.Kind of
 
-	DECK_PLAY:	if Pressed then Form.bPlayClick(Self);
-	DECK_CUE:	if (Deck.Paused) or (Deck.Cueing) then //Form.Cue(Pressed)
+	DECK_PLAY:	if (Pressed) and (Form <> nil) then Form.bPlayClick(Self);
+	DECK_CUE:	if Form <> nil then
+		if (Deck.Paused) or (Deck.Cueing) then //Form.Cue(Pressed)
 			Form.bPlay.SetMouseDown(mbRight, Pressed)
-		else if Pressed then Form.JumpToCue;
-	DECK_SYNC:	Form.bSync.SetMouseDown(mbLeft, Pressed); //if Pressed then Form.SetSynced(not Deck.Synced);
-	DECK_REVERSE:	Deck.SetReverse(Pressed, Deck.Synced);
-	DECK_LOAD:	if Pressed then LoadDeck(DeckNum);
-	DECK_AMP:	Form.SetKnob(Form.SliderAmp, Trunc(((Value) / 128) * 200));
-	DECK_BEND:	{if Pressed then Deck.BendStart(Value > 0, False) else Deck.BendStop;}
-		if Value > 0 then Form.bBendUp.SetMouseDown(mbLeft, Pressed)
-			else Form.bBendDown.SetMouseDown(mbLeft, Pressed);
-	DECK_SEEK:	Form.SetCue(Types.Point(Max(0, Form.GraphCue.X + Value), 0));
+		else if Pressed then
+		begin
+			if (Deck.Synced) and (not Deck.Paused) then
+				Form.SyncToOtherDeck(False)
+			else
+				Form.JumpToCue;
+		end;
+	DECK_SYNC_TOGGLE: if (not Pressed) and (Form <> nil) then Form.SetSynced(not Deck.Synced);
+	DECK_SYNC:        if (not Pressed) and (Form <> nil) then Form.Sync;
+	DECK_REVERSE:	if (Deck <> nil) then Deck.SetReverse(Pressed, Deck.Synced);
+	DECK_LOAD:	if Pressed then begin
+		if FocusableControls.ActiveControl = ListDirs then
+		begin
+			if DeckNum = 2 then
+				ListDirs.Selected.Expanded := not ListDirs.Selected.Expanded
+			else
+				ListDirsChange(ListDirs, ListDirs.Selected);
+		end
+		else
+			LoadDeck(DeckNum);
+	end;
+	DECK_AMP:	if (Form <> nil) then Form.SetKnob(Form.SliderAmp, Trunc((Value / MidiMaxValue) * 200));
+	DECK_SHIFT: begin Deck.IsShifted := Pressed; SetMaster(Deck.Index); end;
+	DECK_BEND:  Deck.BendJog(Value, Deck.IsShifted);
+	DECK_BEND_UP:	{if Pressed then Deck.BendStart(Value > 0, False) else Deck.BendStop;}
+		if (Form <> nil) then begin
+			if not Deck.IsShifted then
+				Form.bBendUp.SetMouseDown(mbLeft, Pressed)
+			else
+				Form.bBendUp.SetMouseDown(mbRight, Pressed);
+		end;
+	DECK_BEND_DOWN:	{if Pressed then Deck.BendStart(Value > 0, False) else Deck.BendStop;}
+		if (Form <> nil) then begin
+			if not Deck.IsShifted then
+				Form.bBendDown.SetMouseDown(mbLeft, Pressed)
+			else
+				Form.bBendDown.SetMouseDown(mbRight, Pressed);
+		end;
+	DECK_SEEK_BAR: if (Form <> nil) then Form.SetCue(Types.Point(Max(0, Form.GraphCue.X + (Value div $40)), 0));
+	DECK_SEEK: if (Form <> nil) then Form.SetCue(Form.CuePos + (IfThen(Param=0, 5, Param) * (Value div $40)));
 
-	MIXER_CROSSFADER:	sFader.Position := Round((Value / 127) * 1000);
+	MIXER_VOLUME: if DeckNum > 0 then begin MixerDeck[DeckNum].Volume := Value / MidiMaxValue; ApplyMixer(False); end;
+	MIXER_CROSSFADER: sFader.Position := Round((Value / MidiMaxValue) * 1000);
 	MIXER_EQ_KILL:	if Pressed then Deck.ToggleEQKill(EQ_BAND_LOW);
 	MIXER_EQ_LOW..
-	MIXER_EQ_HIGH:	if DeckNum > 0 then
-		Form.SetKnob(EQControls[DeckNum, EQBandFrom[Action.Kind]], Trunc(((Value - 64) / 128) * 3000));
-	DECK_FX_FILTER:	if DeckNum > 0 then Form.SliderFxParam0.FloatPosition := ((Value - 64) / 127) * 2;
+	MIXER_EQ_HIGH:	if (Form <> nil) and (DeckNum > 0) then
+		Form.SetKnob(EQControls[DeckNum, EQBandFrom[Action.Kind]], Trunc((Value - (MidiMaxValue div 2)) / MidiMaxValue * 3000));
+	MIXER_FILTER:	if (Form <> nil) and (DeckNum > 0) then
+		Form.SetKnob(FilterControls[DeckNum], Trunc((Value - (MidiMaxValue div 2)) / MidiMaxValue * 20000));
+	DECK_FX_SELECT:       if (Pressed) and (Form <> nil) then Form.SelectEffect(Param);
+	DECK_FX_SELECT_PARAM: if (Pressed) and (Form <> nil) then Form.SelectEffectParam(Param);
+	DECK_FX_PARAM:  if (Form <> nil) then Form.SetEffectParam(-1, Value / MidiMaxValue);
+	DECK_FX_ENABLE: if (Pressed) and (Form <> nil) then Form.EnableEffect(Form.SelectedEffect, True);
 
 	UI_LIST:	if Pressed then SetActiveList(not FileListIsActive); //(Value > 0);
-	UI_SELECT:	if Pressed then ListBrowse(Value);
+	UI_SELECT:	if Pressed then begin
+		if (FocusableControls.ActiveControl <> FileList) and (FocusableControls.ActiveControl <> ListDirs) then
+			SetActiveList(True);
+		ListBrowse(Trunc(Value / $40));
+	end;
+	UI_SELECT_CONTROL:	if Pressed then ListBrowse(Trunc(Value / $40));
 	UI_SELECT_TOGGLE:	if Pressed then ListDirs.Selected.Expanded := not ListDirs.Selected.Expanded;
 	UI_SELECT_OPEN:	if Pressed then ListDirsChange(ListDirs, ListDirs.Selected);
 
@@ -524,8 +592,17 @@ begin
 	UI_SELECT_EXIT:	if Pressed then FocusableControls.Ascend;
 	UI_MENU:			; // TODO
 
-	CUE_MIX:
-		sCueMix.Position  := Round((Value / 127) * 100);
+	MIXER_CUE_MASTER: if Pressed then begin Config.Mixer.CueMaster := not Config.Mixer.CueMaster; sCueMixChange(Self); end;
+	MIXER_CUE_MIX: sCueMix.Position := Round((Value / MidiMaxValue) * 100);
+	MIXER_MASTER:  sMaster.Position := Round((Value / MidiMaxValue) * 100);
+	MIXER_CUE_POSTFADER: if Pressed then begin
+		if Param > 1 then
+			Config.Mixer.CuePostFader := not Config.Mixer.CuePostFader
+		else
+			Config.Mixer.CuePostFader := Param = 1;
+		for Deck in DeckList do
+			TDeckFrame(Deck.Form).ConfigChanged('cuepostfader');
+	end;
 
 	DECK_PFL:
 		if Pressed then
@@ -536,17 +613,40 @@ begin
 				bCue2.Down := not bCue2.Down;
 		end;
 
+	DECK_HOTCUE, DECK_HOTCUE_TEMP, DECK_HOTCUE_SET, DECK_HOTCUE_CLEAR:
+		if Form <> nil then
+			Form.HotCue(Action.Kind, Param, Pressed);
+
+	DECK_PADS_PAGE:
+		if (Pressed) and (Form <> nil) then begin
+			Form.PadsPage := Param; UpdateController(Deck, MODE_PADS_PAGE, Param);
+		end;
+
 	DECK_LOOP,
-	DECK_LOOP_SONG,
-	DECK_LOOP_ZONE:	if Pressed then ClickButton(Form.LoopControls[Action.Kind], Pressed);
+	DECK_LOOP_ZONE,
+	DECK_LOOP_SONG:
+		if (Pressed) and (Form <> nil) then
+			ClickButton(Form.GetLoopButton(Action.Kind, Param and $FF), True);
+
+	UI_BUTTON:
+		case TDecksButtonKind(Value) of
+			BUTTON_FILE_CUE:
+				if Pressed then FileCue.Start(SelectedListItem.Filename) else FileCue.Stop;
+		end;
 
 	end;
 end;
 
-procedure TMainForm.UpdateController(Deck: TDeck; Event: Integer);
+procedure TMainForm.UpdateController(Deck: TDeck; Event: TAppMode; Flag: Boolean);
+begin
+	UpdateController(Deck, Event, IfThen(Flag, 1, 0));
+end;
+
+procedure TMainForm.UpdateController(Deck: TDeck; Event: TAppMode; Param: Integer);
 var
 	Num: Byte;
-	B: Boolean;
+	i: Integer;
+	B, Flag: Boolean;
 begin
 	{$IFNDEF USEMIDI}Exit;{$ENDIF}
 
@@ -557,43 +657,63 @@ begin
 	else Exit;
 
 	B := (Num = 2);
+	Flag := (Param <> 0);
 
 	case Event of
 
 		MODE_PLAY_START:
 			if Deck.Cueing then
-				MIDI.SetLed(DECK_CUE, B)         // Cue on
+				MIDI.SetLed(DECK_CUE, Num)          // Cue on
 			else
 			begin
-				MIDI.SetLed(DECK_PLAY, B);       // Play on
-				MIDI.SetLed(DECK_CUE, B, False); // Cue off
+				MIDI.SetLed(DECK_PLAY, Num);        // Play on
+				MIDI.SetLed(DECK_CUE,  Num, False); // Cue off
 			end;
 
 		MODE_PLAY_WAITSYNC:
-			MIDI.SetLed(DECK_CUE, B);
+			MIDI.SetLed(DECK_CUE, Num);
 
 		MODE_PLAY_STOP, MODE_PLAY_PAUSE, MODE_PLAY_FAILURE:
 			if Deck.Cueing then
-				MIDI.SetLed(DECK_CUE,  B, False)  // Cue
+				MIDI.SetLed(DECK_CUE,  Num, False)  // Cue
 			else
-				MIDI.SetLed(DECK_PLAY, B, False); // Play
+				MIDI.SetLed(DECK_PLAY, Num, False); // Play
 
-		MODE_EQ_KILL_ON, MODE_EQ_KILL_OFF:
+		MODE_EQ_KILL:
 		begin
 			EQControls[Num, EQ_BAND_LOW].Knob.BorderColor :=
-				IfThen(Event = MODE_EQ_KILL_ON, MixerPanel.Color, $00727578);
-			MIDI.SetLed(MIXER_EQ_KILL, B, Event = MODE_EQ_KILL_ON);
+				IfThen(Flag, MixerPanel.Color, $00727578);
+			MIDI.SetLed(MIXER_EQ_KILL, Num, Flag);
 		end;
 
-		MODE_SYNC_ON, MODE_SYNC_OFF:
-			MIDI.SetLed(DECK_SYNC, B, Deck.Synced);
+		MODE_SYNC:
+			MIDI.SetLed(DECK_SYNC_TOGGLE, Num, Deck.Synced);
 
-		MODE_LOOP_ON, MODE_LOOP_OFF:
-			MIDI.SetLed(DECK_LOOP, B, Event = MODE_LOOP_ON);
+		MODE_CUE:
+			MIDI.SetLed(DECK_CUE, Num, Flag);
 
-		MODE_CUE_ON, MODE_CUE_OFF:
-			MIDI.SetLed(DECK_CUE, B, Event = MODE_CUE_ON);
+		MODE_PADS_PAGE:
+			for i := 1 to 4 do
+				MIDI.SetLed(DECK_PADS_PAGE, Num, Param=i, i);
 
+		MODE_FX_ENABLE:
+			MIDI.SetLed(DECK_FX_ENABLE, Num, Flag);
+
+		MODE_LOOP_SONG:
+			MIDI.SetLed(DECK_LOOP_SONG, Num, Deck.LoopInfo_Song.Enabled);
+		MODE_LOOP_ZONE:
+			MIDI.SetLed(DECK_LOOP_ZONE, Num, Deck.LoopInfo_Zone.Enabled);
+		MODE_LOOP:
+		begin
+			i := Deck.LoopInfo_Misc.LoopLength;
+			MIDI.SetLed(DECK_LOOP, Num, (Flag = True) and (i = 0), 0);
+			MIDI.SetLed(DECK_LOOP, Num, (Flag = True) and (i = 1), 1);
+			MIDI.SetLed(DECK_LOOP, Num, (Flag = True) and (i = 2), 2);
+			MIDI.SetLed(DECK_LOOP, Num, (Flag = True) and (i = 4), 4);
+			MIDI.SetLed(DECK_LOOP, Num, (Flag = True) and (i = 8), 8);
+			MIDI.SetLed(DECK_LOOP, Num, (Flag = True) and (i = 16),16);
+			//MIDI.SetLed(DECK_LOOP, Num, 0, Deck.LoopInfo_Misc.Enabled);
+		end;
 	end;
 end;
 
@@ -812,7 +932,7 @@ begin
 	D := Btn.Tag;
 	if (D in [1..2]) and (MixerDeck[D].Deck <> nil) then
 	begin
-		MIDI.SetLed(DECK_PFL, D=2, Btn.Down);
+		MIDI.SetLed(DECK_PFL, D, Btn.Down);
 		MixerDeck[D].Deck.CueOn := Btn.Down;
 		MixerDeck[D].Deck.UpdateCueOutput;
 		Btn.StateNormal.Border.LightWidth := IfThen(Btn.Down, 1, 0);
@@ -825,19 +945,20 @@ procedure TMainForm.sCueMixChange(Sender: TObject);
 var
 	Deck: TDeck;
 begin
-	Config.Mixer.CueMix := sCueMix.Position;
+	Config.Mixer.CueMix       := 100 - sCueMix.Position;
+	Config.Mixer.MasterVolume := sMaster.Position;
 	for Deck in DeckList do
 		Deck.UpdateCueOutput;
 end;
 
 procedure TMainForm.bFileCueMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-	FileCue.Start(SelectedListItem.Filename);
+	Execute(UI_BUTTON, True, Ord(BUTTON_FILE_CUE));
 end;
 
 procedure TMainForm.bFileCueMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-	FileCue.Stop;
+	Execute(UI_BUTTON, False, Ord(BUTTON_FILE_CUE));
 end;
 
 procedure TMainForm.miDirCopyFileClick(Sender: TObject);
@@ -943,6 +1064,11 @@ begin
 	PanelWin.Visible := False;
     {$ENDIF}
 
+	for i := 1 to 2 do
+	begin
+		MixerDeck[i].Volume := 1.0;
+	end;
+
 	Caption := AppVersionString.Replace('/', '-', [rfReplaceAll]);
 	SelectedListItem.Filename := '';
 	SelectedListItem.Kind := 0;
@@ -954,8 +1080,11 @@ begin
 	DeckList := TFPGObjectList<TDeck>.Create(True);
 	sBPMChange(Self);
 
-	Width  := Trunc(Screen.DesktopWidth  * 0.75);
-	Height := Trunc(Screen.DesktopHeight * 0.75);
+//	Width  := Trunc(Screen.DesktopWidth  * 0.75);
+//	Height := Trunc(Screen.DesktopHeight * 0.75);
+Width := 1600 - 8;
+Height := 900 - 32;
+
 	ScaleTo(Config.Window.Zoom);
 	i := Config.Window.DeckPanelHeight;
 	if i = 0 then i := Trunc(ClientHeight * 0.3);
@@ -1024,6 +1153,8 @@ begin
 	{$ENDIF}
 	miMIDIInput.Visible := miMIDIInput.Count > 0;
 
+	Memo1.Visible := MIDI.Debug;
+
 	// ==========================================
 	// List audio devices
 	//
@@ -1049,6 +1180,8 @@ begin
 	EQControls[2, EQ_BAND_LOW]  := sEQ2L;
 	EQControls[2, EQ_BAND_MID]  := sEQ2M;
 	EQControls[2, EQ_BAND_HIGH] := sEQ2H;
+	FilterControls[1] := sFilterL;
+	FilterControls[2] := sFilterR;
 
 	for i := 0 to High(Config.Window.FileList.ColumnVisible) do
 		if i < FileList.Columns.Count then
@@ -1193,6 +1326,8 @@ procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 var
 	i: Integer;
 begin
+	bRecord.Down := False;
+
 	for i := 0 to High(Config.Window.FileList.ColumnVisible) do
 		if i < FileList.Columns.Count then
 			Config.Window.FileList.ColumnVisible[i] := FileList.Columns[i].Visible;
@@ -1200,7 +1335,8 @@ begin
 
 	Config.Save;
 	{$IFDEF USEMIDI}
-	MIDI.Uninit;
+	MIDI.SendMidiMessages(MODE_APP_INIT, False);
+	Sleep(250);
 	{$ENDIF}
 	FocusableControls.Free;
 	PlayedFilenames.Free;
@@ -1208,6 +1344,9 @@ begin
 	//FileList.Free;
 	DeckList.Free;
 	AudioManager.Free;
+	{$IFDEF USEMIDI}
+	MIDI.Uninit;
+	{$ENDIF}
 
 	CloseAction := caFree;
 end;
@@ -1247,8 +1386,6 @@ end;
 
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
 	Shift: TShiftState);
-var
-	Act: TDecksAction;
 begin
 	if Key = VK_SHIFT then IsShiftDown := True;
 
@@ -1261,18 +1398,14 @@ begin
 
 		VK_RETURN:
 		begin
-			Act.Kind := UI_SELECT_ENTER;
-			Act.Param := 0;
-			Execute(Act);
+			Execute(UI_SELECT_ENTER);
 			Key := 0;
 		end;
 
 		VK_BACK:
 		if not eFileFilter.Focused then
 		begin
-			Act.Kind := UI_SELECT_EXIT;
-			Act.Param := 0;
-			Execute(Act);
+			Execute(UI_SELECT_EXIT);
 			Key := 0;
 		end;
 
@@ -1917,7 +2050,7 @@ begin
 	end;
 end;
 
-procedure TMainForm.SetMasterTempo(BPM: Single);
+procedure TMainForm.SetMasterTempo(BPM: Double);
 var
 	NewBPM: Cardinal;
 begin
@@ -2208,8 +2341,8 @@ begin
 				Add(DF.bBendDown);
 				//
 				Add(DF.bLoopSong); Add(DF.bLoopZone);
-				Add(DF.bLoopBeat); Add(DF.bLoopBeat2);
-				Add(DF.bLoopBar); Add(DF.bLoopBar2); Add(DF.bLoopBar4);
+				Add(DF.bLoopBeat0); Add(DF.bLoopBeat1); Add(DF.bLoopBeat2);
+				Add(DF.bLoopBar1);  Add(DF.bLoopBar2);  Add(DF.bLoopBar4);
 				//
 				Add(DF.SliderAmp);
 			end;
@@ -2334,6 +2467,44 @@ begin
 	sDirs.Repaint;
 end;
 
+procedure TMainForm.sFilterLChange(Sender: TObject);
+var
+	S: ThKnob;
+	D: Integer;
+begin
+	if not (Sender is ThKnob) then Exit;
+
+	S := Sender as ThKnob;
+	D := S.Tag;
+	if not (D in [1..2]) then Exit;
+
+	MixerDeck[D].Deck.Filter.Params.First.Value := S.Position / 10000;
+
+	if S.Position = 0 then
+		S.Knob.BorderColor := $727578
+	else
+	if S.Position < 0 then
+		S.Knob.BorderColor := clMaroon
+	else
+	if S.Position > 0 then
+		S.Knob.BorderColor := clGreen;
+end;
+
+procedure TMainForm.bRecordSetDown(Sender: TObject);
+begin
+	if (not bRecord.Down) and (StreamRecord <> 0) then
+	begin
+		BASS_Encode_Stop(StreamRecord);
+		StreamRecord := 0;
+	end
+	else
+	if bRecord.Down then
+	begin
+		StreamRecord := BASS_Encode_Start(MainOutput, 'canimix.wav', BASS_ENCODE_PCM, nil, nil);
+	end;
+	bRecord.StateNormal.Border.LightWidth := IfThen(StreamRecord <> 0, 4, 0);
+end;
+
 procedure TMainForm.sEQ1LChange(Sender: TObject);
 var
 	S: ThKnob;
@@ -2343,6 +2514,10 @@ begin
 
 	S := Sender as ThKnob;
 	D := IfThen(S.Left > MixerPanel.ClientWidth div 2, 2, 1);
+
+	MixerDeck[D].EQ[TEQBand(S.Tag)] := S.Position / 100;
+	MixerDeck[D].Apply;
+
 	if S.Position = 0 then
 		S.Knob.BorderColor := $727578
 	else
@@ -2351,8 +2526,6 @@ begin
 	else
 	if S.Position > 0 then
 		S.Knob.BorderColor := clGreen;
-	MixerDeck[D].EQ[TEQBand(S.Tag)] := S.Position / 100;
-	MixerDeck[D].Apply;
 end;
 
 procedure TMainForm.sEQ1LMouseDown(Sender: TObject; Button: TMouseButton;
@@ -2382,8 +2555,8 @@ procedure TMainForm.sFaderChange(Sender: TObject);
 begin
 	if not Config.Mixer.Enabled then Exit;
 
-	MixerDeck[1].Volume := Min((1000 - sFader.Position) * 2, 1000) / 1000;
-	MixerDeck[2].Volume := Min(sFader.Position * 2, 1000) / 1000;
+	MixerDeck[1].FaderVolume := Min((1000 - sFader.Position) * 2, 1000) / 1000;
+	MixerDeck[2].FaderVolume := Min(sFader.Position * 2, 1000) / 1000;
 	ApplyMixer(False);
 end;
 
@@ -2457,7 +2630,7 @@ begin
 			B := Deck.Cueing;
 		if BeatLedState[i] <> B then
 		begin
-			MIDI.SetLed(DECK_CUE, i=2, B);
+			MIDI.SetLed(DECK_CUE, i, B);
 			BeatLedState[i] := B;
 		end;
 	end;

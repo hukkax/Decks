@@ -6,6 +6,7 @@ program Decks3;
 uses
 	{$IFDEF UNIX}cthreads, Classes,{$ENDIF}
 	Interfaces, // this includes the LCL widgetset
+	{$IFDEF WINDOWS}uDarkStyleParams, uMetaDarkStyle, uDarkStyleSchemes,{$ENDIF}
 	Forms, lazcontrols, Form.Main, Frame.Deck,
 	Decks.Audio, Decks.Song, Decks.Beatgraph,
 	Decks.SongInfo, Decks.TagScanner, Decks.Effects, TextInputDialog,
@@ -35,8 +36,16 @@ begin
 	GlobalSkipIfNoLeaks := True;
 	SetHeapTraceOutput('trace.log');
 	{$ENDIF}
+
 	Application.Title := 'CaniMix';
 	RequireDerivedFormResource := True;
+
+	{$IFDEF WINDOWS}
+	PreferredAppMode := pamAllowDark;
+	DefaultDark.DrawControl.CustomDrawPushButtons := True;
+	uMetaDarkStyle.ApplyMetaDarkStyle(DefaultDark);
+	{$ENDIF}
+
 	Application.Initialize;
 	Application.CreateForm(TMainForm, MainForm);
 	Application.CreateForm(TFormTracklist, FormTracklist);

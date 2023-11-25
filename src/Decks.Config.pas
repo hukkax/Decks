@@ -18,6 +18,10 @@ const
 	WHEEL_PB = 10;
 	WHEEL_PBZONES = 11;
 
+	PARAM_ANY       = $FFFF0000;
+	VAL_BROWSE_PREV = $FFFF0001;
+	VAL_BROWSE_NEXT = $FFFF0002;
+
 	COLUMN_FILENAME  = 0;
 	COLUMN_BPM       = 1;
 	COLUMN_DURATION  = 2;
@@ -32,16 +36,42 @@ const
 	COLUMN_LAST = COLUMN_FILEDATE;
 
 type
+	TAppMode = (
+		MODE_APP_INIT,
+
+		MODE_LOAD_START,
+		MODE_LOAD_SUCCESS,
+		MODE_LOAD_FAILURE,
+		MODE_LOAD_GRAPH,
+		MODE_LOAD_FINISH,
+
+		MODE_PLAY_STOP,
+		MODE_PLAY_START,
+		MODE_PLAY_PAUSE,
+		MODE_PLAY_FAILURE,
+		MODE_PLAY_WAITSYNC,
+		MODE_CUE,
+		MODE_TEMPOCHANGE,
+		MODE_SYNC,
+		MODE_BEND,
+		MODE_EQ_KILL,
+		MODE_FX_ENABLE,
+		MODE_HOTCUE,
+		MODE_LOOP, MODE_LOOP_SONG, MODE_LOOP_ZONE,
+		MODE_PADS_PAGE
+	);
+
 	TConfigItemType   = ( cfgBoolean, cfgByte, cfgWord, cfgInteger, cfgFloat, cfgString );
 	TConfigItemAccess = ( cfgRead, cfgWrite, cfgReadWrite );
 
 	TConfigItem = class
 	public
-		Kind:   TConfigItemType;
-		Access: TConfigItemAccess;
-		Data:   Pointer;
+		Kind:       TConfigItemType;
+		Access:     TConfigItemAccess;
+		Data:       Pointer;
+		DefaultVal: Variant;
 		Section,
-		Name:   String;
+		Name:       String;
 	end;
 
 	TConfigManager = class
@@ -50,7 +80,7 @@ type
 
 		procedure Clear;
 		procedure Add(aKind: TConfigItemType; const aSection, aName: String; aData: Pointer;
-		          Access: TConfigItemAccess = cfgReadWrite);
+		          aDefaultVal: Variant; Access: TConfigItemAccess = cfgReadWrite);
 
 		procedure Load(const Filename: String);
 		procedure Save(const Filename: String);
@@ -160,8 +190,12 @@ type
 			Enabled,
 			Enable_Crossfader,
 			Enable_Equalizer: Boolean;
-			CueMode: Byte;
-			CueMix:  Byte;
+			CueMode:   Byte;
+			CueMix:    Byte;
+			CueMaster: Boolean;
+			CuePostFader: Boolean;
+			CueUsesHardware: Boolean;
+			MasterVolume: Byte;
 			EQ: record
 				Low, Mid, High: Integer;
 			end;
@@ -184,6 +218,7 @@ type
 			ShowRemainingTime: Boolean;
 			WarnTime:  Word;
 			WarnSpeed: Word;
+			SpinDownSpeed: Word;
 		end;
 
 		Theme: TDecksVisualTheme;
@@ -209,7 +244,6 @@ var
 implementation
 
 uses
-dialogs,
 	IniFiles;
 
 { TConfigManager }
@@ -232,7 +266,7 @@ begin
 end;
 
 procedure TConfigManager.Add(aKind: TConfigItemType; const aSection, aName: String; aData: Pointer;
-	Access: TConfigItemAccess = cfgReadWrite);
+	aDefaultVal: Variant; Access: TConfigItemAccess = cfgReadWrite);
 var
 	Item: TConfigItem;
 begin
@@ -242,7 +276,16 @@ begin
 	Item.Data    := aData;
 	Item.Section := aSection;
 	Item.Name    := aName;
+	Item.DefaultVal := aDefaultVal;
 	Items.Add(Item);
+end;
+
+function SetupIni(const Filename: String): TIniFile;
+begin
+	Result := TIniFile.Create(Filename);
+	Result.Options := Result.Options + [ifoWriteStringBoolean];
+	Result.BoolTrueStrings  := ['true',  'yes', '1'];
+	Result.BoolFalseStrings := ['false', 'no',  '0'];
 end;
 
 procedure TConfigManager.Load(const Filename: String);
@@ -252,17 +295,17 @@ var
 	S: String;
 	PS: PString;
 begin
-	Ini := TIniFile.Create(Filename);
+	Ini := SetupIni(Filename);
 	try
 		for Item in Items do
 		begin
 			if Item.Access in [cfgRead, cfgReadWrite] then
 			case Item.Kind of
-				cfgBoolean:		PBoolean(Item.Data)^ := Ini.ReadBool   (Item.Section, Item.Name, Boolean(Item.Data^));
-				cfgByte:		PByte(Item.Data)^    := Byte(Ini.ReadInteger(Item.Section, Item.Name, Byte(Item.Data^)));
-				cfgWord:		PWord(Item.Data)^    := Word(Ini.ReadInteger(Item.Section, Item.Name, Word(Item.Data^)));
-				cfgInteger:		PInteger(Item.Data)^ := Ini.ReadInteger(Item.Section, Item.Name, Integer(Item.Data^));
-				cfgFloat:		PDouble(Item.Data)^  := Ini.ReadFloat  (Item.Section, Item.Name, Double(Item.Data^));
+				cfgBoolean:		PBoolean(Item.Data)^ := Ini.ReadBool   (Item.Section, Item.Name, Item.DefaultVal);
+				cfgByte:		PByte(Item.Data)^    := Byte(Ini.ReadInteger(Item.Section, Item.Name, Item.DefaultVal));
+				cfgWord:		PWord(Item.Data)^    := Word(Ini.ReadInteger(Item.Section, Item.Name, Item.DefaultVal));
+				cfgInteger:		PInteger(Item.Data)^ := Ini.ReadInteger(Item.Section, Item.Name, Item.DefaultVal);
+				cfgFloat:		PDouble(Item.Data)^  := Ini.ReadFloat  (Item.Section, Item.Name, Item.DefaultVal);
 				cfgString:
 				begin
 					PS := Item.Data;
@@ -281,7 +324,7 @@ var
 	Ini: TIniFile;
 	Item: TConfigItem;
 begin
-	Ini := TIniFile.Create(Filename);
+	Ini := SetupIni(Filename);
 	try
 		for Item in Items do
 		begin
@@ -432,64 +475,70 @@ begin
 	Cfg.Clear;
 
 	Sect := 'directory';
-	Cfg.Add(cfgString, Sect, 'bpm',   @Directory.BPM,   cfgRead);
-	Cfg.Add(cfgString, Sect, 'audio', @Directory.Audio, cfgRead);
-	Cfg.Add(cfgBoolean, Sect, 'autoupdate', @Directory.AutoUpdate);
+	Cfg.Add(cfgString, Sect, 'bpm',   @Directory.BPM,   '', cfgRead);
+	Cfg.Add(cfgString, Sect, 'audio', @Directory.Audio, '', cfgRead);
+	Cfg.Add(cfgBoolean, Sect, 'autoupdate', @Directory.AutoUpdate, False);
 
 	Sect := 'window';
-	Cfg.Add(cfgWord,    Sect, 'zoom',             @Window.Zoom);
-	Cfg.Add(cfgWord,    Sect, 'deckheight',       @Window.DeckPanelHeight);
-	Cfg.Add(cfgBoolean, Sect, 'titlebar.enabled', @Window.ShowTitlebar);
-	Cfg.Add(cfgBoolean, Sect, 'dirlist.enabled',  @Window.DirList.Enabled);
+	Cfg.Add(cfgWord,    Sect, 'zoom',             @Window.Zoom,            100);
+	Cfg.Add(cfgWord,    Sect, 'deckheight',       @Window.DeckPanelHeight, 400);
+	Cfg.Add(cfgBoolean, Sect, 'titlebar.enabled', @Window.ShowTitlebar,    True);
+	Cfg.Add(cfgBoolean, Sect, 'dirlist.enabled',  @Window.DirList.Enabled, True);
 	for i := 0 to High(Window.FileList.ColumnVisible) do
 		Cfg.Add(cfgBoolean, Sect, Format('filelist.columns.%d.visible', [i]),
-			@Window.FileList.ColumnVisible[i]);
-	Cfg.Add(cfgBoolean, Sect, 'tracklist.visible', @Window.Tracklist.Visible);
+			@Window.FileList.ColumnVisible[i], True);
+	Cfg.Add(cfgBoolean, Sect, 'tracklist.visible', @Window.Tracklist.Visible, False);
 
 	Sect := 'audio';
-	Cfg.Add(cfgWord,    Sect, 'hz',             @Audio.Hz);
-	Cfg.Add(cfgInteger, Sect, 'buffer',         @Audio.Buffer);
-	Cfg.Add(cfgWord,    Sect, 'updateperiod',   @Audio.UpdatePeriod);
-	Cfg.Add(cfgByte,    Sect, 'threads',        @Audio.Threads);
-	Cfg.Add(cfgInteger, Sect, 'normalize',      @Audio.TargetLUFS);
-	Cfg.Add(cfgInteger, Sect, 'normalizegraph', @Audio.GraphLUFS);
+	Cfg.Add(cfgWord,    Sect, 'hz',             @Audio.Hz,           44100);
+	Cfg.Add(cfgInteger, Sect, 'buffer',         @Audio.Buffer,       0);
+	Cfg.Add(cfgWord,    Sect, 'updateperiod',   @Audio.UpdatePeriod, 0);
+	Cfg.Add(cfgByte,    Sect, 'threads',        @Audio.Threads,      1);
+	Cfg.Add(cfgInteger, Sect, 'normalize',      @Audio.TargetLUFS,   -10);
+	Cfg.Add(cfgInteger, Sect, 'normalizegraph', @Audio.GraphLUFS,    -6);
 	for i := 1 to High(Audio.Device) do
-		Cfg.Add(cfgByte, Sect, 'device.' + IntToStr(i), @Audio.Device[i]);
+		Cfg.Add(cfgByte, Sect, 'device.' + IntToStr(i), @Audio.Device[i], 0);
 	for i := 1 to High(Audio.SubDevice) do
-		Cfg.Add(cfgByte, Sect, 'subdevice.' + IntToStr(i), @Audio.SubDevice[i]);
+		Cfg.Add(cfgByte, Sect, 'subdevice.' + IntToStr(i), @Audio.SubDevice[i], 0);
 
-	Cfg.Add(cfgByte,    Sect, 'device.cue',     @Audio.CueDevice);
-	Cfg.Add(cfgBoolean, Sect, 'cueonfront',     @Audio.CueOnFront);
+	Cfg.Add(cfgByte,    Sect, 'device.cue',     @Audio.CueDevice,  0);
+	Cfg.Add(cfgBoolean, Sect, 'cueonfront',     @Audio.CueOnFront, False);
 
 	Sect := 'mixer';
-	Cfg.Add(cfgBoolean, Sect, 'enabled', @Mixer.Enabled);
-	Cfg.Add(cfgByte,    Sect, 'cuemode', @Mixer.CueMode);
-	Cfg.Add(cfgByte,    Sect, 'cuemix',  @Mixer.CueMix);
+	Cfg.Add(cfgBoolean, Sect, 'enabled',   @Mixer.Enabled,   True);
+	Cfg.Add(cfgByte,    Sect, 'mastervol', @Mixer.MasterVolume, 100);
+	Cfg.Add(cfgByte,    Sect, 'cuemode',   @Mixer.CueMode,   0);
+	Cfg.Add(cfgByte,    Sect, 'cuemix',    @Mixer.CueMix,    50);
+	Cfg.Add(cfgBoolean, Sect, 'cuemaster', @Mixer.CueMaster, True);
+	Cfg.Add(cfgBoolean, Sect, 'cuepostfader', @Mixer.CuePostFader, False);
+	Cfg.Add(cfgBoolean, Sect, 'cuehardware',  @Mixer.CueUsesHardware, False);
 
 	Sect := 'effects';
-	Cfg.Add(cfgBoolean, Sect, 'enabled', @Effects.Enabled);
+	Cfg.Add(cfgBoolean, Sect, 'enabled', @Effects.Enabled, False);
 
 	Sect := 'deck';
-	Cfg.Add(cfgBoolean, Sect, 'setmasterbpm',  @Deck.FirstSetsMasterBPM);
-	Cfg.Add(cfgBoolean, Sect, 'showremainingtime', @Deck.ShowRemainingTime);
+	Cfg.Add(cfgBoolean, Sect, 'setmasterbpm',      @Deck.FirstSetsMasterBPM, True);
+	Cfg.Add(cfgBoolean, Sect, 'showremainingtime', @Deck.ShowRemainingTime,  False);
 
-	Cfg.Add(cfgBoolean, Sect, 'graph.horizontallines', @Deck.BeatGraph.ShowHorizontalLines);
+	Cfg.Add(cfgBoolean, Sect, 'graph.horizontallines', @Deck.BeatGraph.ShowHorizontalLines, False);
 
-	Cfg.Add(cfgBoolean, Sect, 'wave.showdual', @Deck.Waveform.ShowDual);
-	Cfg.Add(cfgByte,    Sect, 'wave.height',   @Deck.Waveform.Height);
+	Cfg.Add(cfgBoolean, Sect, 'wave.showdual', @Deck.Waveform.ShowDual, False);
+	Cfg.Add(cfgByte,    Sect, 'wave.height',   @Deck.Waveform.Height,   58);
 
-	Cfg.Add(cfgWord,    Sect, 'warn.time',     @Deck.WarnTime);
-	Cfg.Add(cfgWord,    Sect, 'warn.speed',    @Deck.WarnSpeed);
+	Cfg.Add(cfgWord,    Sect, 'warn.time',     @Deck.WarnTime,  60);
+	Cfg.Add(cfgWord,    Sect, 'warn.speed',    @Deck.WarnSpeed, 20);
+
+	Cfg.Add(cfgWord,    Sect, 'speed.spindown', @Deck.SpinDownSpeed, 250);
 
 	Sect := 'controller';
-	Cfg.Add(cfgString, Sect, 'config', @Controller.Config);
+	Cfg.Add(cfgString, Sect, 'config', @Controller.Config, '');
 
 	Sect := 'theme.strings';
 	with Theme.Strings.FileList do
 	begin
-		Cfg.Add(cfgString, Sect, 'filelist.directory', @Directory);
-		Cfg.Add(cfgString, Sect, 'filelist.parent',    @ParentDirectory);
-		Cfg.Add(cfgString, Sect, 'filelist.drives',    @Drives);
+		Cfg.Add(cfgString, Sect, 'filelist.directory', @Directory, '');
+		Cfg.Add(cfgString, Sect, 'filelist.parent',    @ParentDirectory, '');
+		Cfg.Add(cfgString, Sect, 'filelist.drives',    @Drives, '');
 	end;
 end;
 

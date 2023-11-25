@@ -7,17 +7,9 @@ unit Decks.Deck;
 interface
 
 uses
-	Classes, SysUtils, Forms, Menus, IniFiles,
+	Classes, SysUtils, Forms, Menus, IniFiles, syncobjs,
 	BASS, BASSmix, BASSloud, BASS_FX,
-	Decks.Audio, Decks.Song, Decks.SongInfo, Decks.BeatGraph,
-	Decks.Effects;
-
-const
-	LOOP_OFF   = 0;
-	LOOP_SONG  = 0;
-	LOOP_ZONE  = 1;
-	LOOP_BARS  = 2;
-	LOOP_BEATS = 3;
+	Decks.Config, Decks.Audio, Decks.Song, Decks.SongInfo, Decks.BeatGraph, Decks.Effects;
 
 type
 	TDeck = class;
@@ -36,6 +28,7 @@ type
 		Stream:  HSTREAM;
 		Sync:    HSYNC;
 		Zone:    Integer;
+		LoopLength: Integer;
 	end;
 	PLoopInfo = ^TLoopInfo;
 
@@ -43,21 +36,41 @@ type
 		Active:	Boolean;
 		Up:		Boolean;
 		Diff:	Single;
+		Timer:  Integer;
+	end;
+
+	THotCue = record
+		Enabled,
+		Temporary:  Boolean;
+		Pos,
+		TriggerPos: QWord;
 	end;
 
 	TDeck = class(TSong)
 	private
+		CriticalSection: TCriticalSection;
+
 		CurrVolume: Single;
+		HadPitchLock: Boolean;
+
+		FPlayingZone:	Word;
+		FPlayPosition: 	QWord;
+
 		procedure	InfoHandler(Keyword: TInfoKeyword; Params: TInfoParams);
+		function 	DoGetPlayingZone: Word;
+		procedure 	DoSetPlayingZone(Value: Word);
+		function 	DoGetPlayPosition: QWord;
+		procedure 	DoSetPlayPosition(Value: QWord);
 	public
 		Index:			Byte;
-		PlayingZone:	Word;
+		IsShifted:		Boolean;
 		Synced:			Boolean;
 		Cueing:			Boolean;
 		CueOn:			Boolean;
 		OtherDeck:		TDeck;
 
 		Cue:		array[0..9] of Integer;
+		HotCues:	array[0..8] of THotCue;
 
 		Form:		TBaseDeckFrame;
 		Graph: 		TBeatGraph;
@@ -71,7 +84,8 @@ type
 		LoopInfo_Zone,
 		LoopInfo_Misc: TLoopInfo;
 
-		Equalizer:    TEqualizer;
+		Filter: 	TFxFilter;
+		Equalizer:  TEqualizer;
 
 		OnLoadInfo,
 		OnSaveInfo: TInfoFileAccessEvent;
@@ -85,35 +99,40 @@ type
 		function 	Load(const AFilename: String): Boolean; override;
 		function	GetInfo: Boolean;
 
-		function 	GetPlayPosition(FromMixer: Boolean = True): Int64; inline;
-		function 	GetCurrentBar: Word; inline;
+		function 	GetPlayPosition(FromMixer: Boolean = True; OffsetByStart: Boolean = True): QWord; inline;
+		function 	GetCurrentBar(FromMixer: Boolean = False): Word; inline;
 
 		function	CalculateLUFS: Single;
 
+		procedure	BendJog(Amount: Integer; Fast: Boolean);
 		procedure	BendStart(Up, Fast: Boolean);
 		procedure	BendUpdate;
 		procedure	BendStop;
 
 		procedure	SetVolume(NewVolume: Single);
 		procedure	ToggleEQKill(BandNum: TEQBand);
+		procedure 	ApplyFilter;
 		procedure	UpdateCueOutput;
 
 		procedure	LoopZone(ZoneIndex: Word);
 		procedure	UnloopZone;
 		procedure	UnloopAll;
-		procedure	SetLoop(LoopType, LoopLength: Integer);
+		procedure	SetLoop(LoopType: TAppMode; Beats: Integer; Enable: Boolean);
 		procedure	ApplyLoop(LoopInfo: PLoopInfo);
 		procedure	ReapplyLoops;
 		procedure	EnableLoop(LoopInfo: PLoopInfo; StartPos, EndPos: QWord);
 		procedure	DisableLoop(LoopInfo: PLoopInfo);
 
-		procedure	SetBPM(NewBPM: Single);
+		procedure	SetBPM(NewBPM: Double);
 		function	GetAvgBPM: Single;
 
 		procedure	SaveInfoFile(aBPM: Double = 0.0);
 		procedure	SaveOldInfoFile;
 
 		procedure	UpdateMenuItem;
+
+		property	PlayingZone:  Word  read DoGetPlayingZone  write DoSetPlayingZone;
+		property	PlayPosition: QWord read DoGetPlayPosition write DoSetPlayPosition;
 
 		constructor	Create;  override;
 		destructor	Destroy; override;
@@ -122,38 +141,11 @@ type
 implementation
 
 uses
-	Math, Dialogs,
+	Math,
 	Form.Main,
-	Decks.Config, Decks.TagScanner;
+	Decks.TagScanner;
 
 {$WARN 5024 off : Parameter "$1" not used}
-
-procedure TDeck.ToggleEQKill(BandNum: TEQBand);
-begin
-	with Equalizer do
-	begin
-		Band[BandNum].Killed := not Band[BandNum].Killed;
-		if Band[BandNum].Killed then
-		begin
-			Band[BandNum].KilledGain := Band[BandNum].Gain;
-			SetEQ(BandNum, -1500/100);
-			ModeChange(MODE_EQ_KILL_ON);
-		end
-		else
-		begin
-			SetEQ(BandNum, Band[BandNum].KilledGain);
-			ModeChange(MODE_EQ_KILL_OFF);
-		end;
-	end;
-end;
-
-procedure TDeck.UpdateCueOutput;
-begin
-	ApplyMixingMatrix(OrigStream, CueOn,
-		Info.NormalizedAmp * Info.Amp, // amplified volume
-		CurrVolume, // apply crossfader for master
-		Config.Mixer.CueMix / 100); // normalized cue mix knob value
-end;
 
 { TBaseDeckFrame }
 
@@ -166,6 +158,40 @@ begin
 end;
 
 { TDeck }
+
+constructor TDeck.Create;
+begin
+	inherited Create;
+
+	CriticalSection := TCriticalSection.Create;
+
+	OnLoadInfo := nil;
+	OnSaveInfo := nil;
+
+	Graph := TBeatGraph.Create(TSong(Self), Config.ThemePath);
+	Paused := False;
+	OtherDeck := nil;
+	CurrVolume := 1.0;
+	BeatPreviousQuadrant := 255;
+
+	Filter := TFxFilter.Create;
+
+//	Form := TDeckFrame.Create(nil);
+//	Form.Init(Self);
+end;
+
+destructor TDeck.Destroy;
+begin
+	MenuItem.Free;
+	Graph.Free;
+	Form.Free;
+	Filter.Free;
+	FreeStream(Stream);
+	FreeStream(OrigStream);
+	CriticalSection.Free;
+
+	inherited Destroy;
+end;
 
 function TDeck.BPMToHz(aBPM: Single; Zone: Word = 0): Cardinal;
 begin
@@ -202,31 +228,41 @@ begin
 	Result := (OtherDeck <> nil) and (not OtherDeck.Paused);
 end;
 
-constructor TDeck.Create;
+procedure TDeck.ApplyFilter;
 begin
-	inherited Create;
-
-	OnLoadInfo := nil;
-	OnSaveInfo := nil;
-
-	Graph := TBeatGraph.Create(TSong(Self), Config.ThemePath);
-	Paused := False;
-	OtherDeck := nil;
-	CurrVolume := 1.0;
-	BeatPreviousQuadrant := 255;
-//	Form := TDeckFrame.Create(nil);
-//	Form.Init(Self);
+	Filter.Stream  := OrigStream;
+	Filter.Enabled := True;
+	Filter.Apply;
 end;
 
-destructor TDeck.Destroy;
+procedure TDeck.ToggleEQKill(BandNum: TEQBand);
+var
+	B: Boolean;
 begin
-	MenuItem.Free;
-	Graph.Free;
-	Form.Free;
-	FreeStream(Stream);
-	FreeStream(OrigStream);
+	with Equalizer do
+	begin
+		B := not Band[BandNum].Killed;
+		Band[BandNum].Killed := B;
+		if B then
+		begin
+			Band[BandNum].KilledGain := Band[BandNum].Gain;
+			SetEQ(BandNum, -1500/100);
+		end
+		else
+		begin
+			SetEQ(BandNum, Band[BandNum].KilledGain);
+		end;
+		ModeChange(MODE_EQ_KILL, B);
+	end;
+end;
 
-	inherited Destroy;
+procedure TDeck.UpdateCueOutput;
+begin
+	ApplyMixingMatrix(OrigStream,
+		CueOn, Config.Mixer.CueMaster,
+		Info.NormalizedAmp * Info.Amp, // amplified volume
+		CurrVolume, // apply crossfader for master
+		Config.Mixer.CueMix / 100); // normalized cue mix knob value
 end;
 
 //
@@ -235,7 +271,7 @@ end;
 
 function TDeck.Load(const AFilename: String): Boolean;
 begin
-	ModeChange(MODE_LOAD_START);
+	ModeChange(MODE_LOAD_START, True);
 
 	Filename := AFilename;
 	PlayingZone := 0;
@@ -246,18 +282,19 @@ begin
 
 	if Result then
 	begin
-		ModeChange(MODE_LOAD_SUCCESS);
+		ModeChange(MODE_LOAD_SUCCESS, True);
 //		BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, Graph.CalcBrightness / 2);
 		Equalizer.Init(Stream);
+		ApplyFilter;
 	end
 	else
 	begin
-		ModeChange(MODE_LOAD_FAILURE);
+		ModeChange(MODE_LOAD_FAILURE, True);
 		Filename := '';
 		Loaded := False;
 	end;
 
-	ModeChange(MODE_LOAD_FINISH);
+	ModeChange(MODE_LOAD_FINISH, True);
 end;
 
 function TDeck.CalculateLUFS: Single;
@@ -366,6 +403,34 @@ begin
 	end;
 end;
 
+function TDeck.DoGetPlayingZone: Word;
+begin
+	CriticalSection.Enter;
+	Result := FPlayingZone;
+	CriticalSection.Leave;
+end;
+
+function TDeck.DoGetPlayPosition: QWord;
+begin
+	CriticalSection.Enter;
+	Result := FPlayPosition;
+	CriticalSection.Leave;
+end;
+
+procedure TDeck.DoSetPlayingZone(Value: Word);
+begin
+	CriticalSection.Enter;
+	FPlayingZone := Value;
+	CriticalSection.Leave;
+end;
+
+procedure TDeck.DoSetPlayPosition(Value: QWord);
+begin
+	CriticalSection.Enter;
+	FPlayPosition := Value;
+	CriticalSection.Leave;
+end;
+
 function TDeck.GetInfo: Boolean;
 begin
 	Graph.Zones.Clear;
@@ -386,20 +451,42 @@ end;
 //
 // Pitch bend
 //
+procedure TDeck.BendJog(Amount: Integer; Fast: Boolean);
+begin
+	if Amount = 0 then Exit;
+
+	if not PitchBend.Active then
+	begin
+		PitchBend.Up := Amount > 0;
+		PitchBend.Diff := 1.5;
+		if Fast then
+			PitchBend.Diff *= 3.0;
+		if not PitchBend.Up then
+			PitchBend.Diff *= -1;
+		PitchBend.Active := True;
+	end
+	else
+		PitchBend.Diff := PitchBend.Diff * 1.006;
+	if not PitchBend.Active then
+		ModeChange(MODE_BEND, True);
+	PitchBend.Timer := 4;
+	SetBPM(MasterBPM + PitchBend.Diff);
+end;
 
 procedure TDeck.BendStart(Up, Fast: Boolean);
 begin
 	if not PitchBend.Active then
 	begin
-		PitchBend.Active := True;
 		PitchBend.Up := Up;
 		PitchBend.Diff := 1.5;
 		if Fast then
 			PitchBend.Diff *= 3.0;
 		if not Up then
 			PitchBend.Diff *= -1;
+		PitchBend.Timer := 0;
+		PitchBend.Active := True;
+		ModeChange(MODE_BEND, True);
 		SetBPM(MasterBPM + PitchBend.Diff);
-		ModeChange(MODE_BEND_START);
 	end;
 end;
 
@@ -407,9 +494,24 @@ procedure TDeck.BendUpdate;
 begin
 	if PitchBend.Active then
 	begin
-		if Abs(PitchBend.Diff) < 20 then
-			PitchBend.Diff *= 1.02;
-		SetBPM(MasterBPM + PitchBend.Diff);
+		if PitchBend.Timer > 0 then // used jogwheel to bend
+		begin
+			PitchBend.Timer := PitchBend.Timer - 1;
+			if PitchBend.Timer > 0 then
+			begin
+				if Abs(PitchBend.Diff) > 20 then
+					PitchBend.Diff *= 0.99;
+				SetBPM(MasterBPM + PitchBend.Diff);
+			end
+			else
+				BendStop;
+		end
+		else
+		begin
+			if Abs(PitchBend.Diff) < 20 then
+				PitchBend.Diff *= 1.02;
+			SetBPM(MasterBPM + PitchBend.Diff);
+		end;
 	end;
 end;
 
@@ -418,8 +520,9 @@ begin
 	if PitchBend.Active then
 	begin
 		PitchBend.Active := False;
+		PitchBend.Timer := 0;
 		SetBPM(MasterBPM);
-		ModeChange(MODE_BEND_STOP);
+		ModeChange(MODE_BEND, False);
 	end;
 end;
 
@@ -438,13 +541,30 @@ begin
 	Result := AvgBPM;
 end;
 
-procedure TDeck.SetBPM(NewBPM: Single);
+procedure TDeck.SetBPM(NewBPM: Double);
 begin
 	if (not Loaded) then Exit;
-	BPM := NewBPM;
+
 	PlayFreq := BPMToHz(NewBPM, PlayingZone);
-	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_FREQ, PlayFreq);
-	ModeChange(MODE_TEMPOCHANGE);
+
+	if PitchLock then
+	begin
+		if not HadPitchLock then
+			BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_FREQ, OrigFreq);
+		BASS_ChannelSetAttribute(Reverse.Stream, BASS_ATTRIB_TEMPO, (PlayFreq / OrigFreq - 1.0) * 100.0);
+	end;
+
+	BPM := NewBPM;
+
+	if not PitchLock then
+	begin
+		if HadPitchLock then
+			BASS_ChannelSetAttribute(Reverse.Stream, BASS_ATTRIB_TEMPO, 1.0);
+		BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_FREQ, PlayFreq);
+	end;
+
+	HadPitchLock := PitchLock;
+	ModeChange(MODE_TEMPOCHANGE, True);
 end;
 
 procedure TDeck.SetVolume(NewVolume: Single);
@@ -455,7 +575,7 @@ begin
 		CurrVolume := NewVolume;
 
 	if Config.Mixer.CueMode = CUE_NONE then
-		BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, NewVolume * (*Graph.{Calc}Brightness *) Info.NormalizedAmp * Info.Amp)
+		BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, NewVolume * (*Graph.{Calc}Brightness *) Info.NormalizedAmp * Info.Amp * (Config.Mixer.MasterVolume / 100))
 	else
 		UpdateCueOutput;
 end;
@@ -569,21 +689,28 @@ begin
 	end;
 end;
 
-function TDeck.GetPlayPosition(FromMixer: Boolean = True): Int64;
+function TDeck.GetPlayPosition(FromMixer: Boolean = True; OffsetByStart: Boolean = True): QWord;
+var
+	P: QWord;
 begin
+	if OffsetByStart then
+		P := Graph.StartPos
+	else
+		P := 0;
+
 	if FromMixer then
 		Result := Max(0, BASS_Mixer_ChannelGetPosition(
-			OrigStream, BASS_POS_BYTE) - Graph.StartPos)
+			OrigStream, BASS_POS_BYTE) - P)
 	else
 		Result := Max(0, BASS_ChannelGetPosition(
-			OrigStream, BASS_POS_BYTE) - Graph.StartPos);
+			OrigStream, BASS_POS_BYTE) - P);
 end;
 
-function TDeck.GetCurrentBar: Word;
+function TDeck.GetCurrentBar(FromMixer: Boolean = False): Word;
 var
 	P: Int64;
 begin
-	P := GetPlayPosition(False); //Max(0, BASS_ChannelGetPosition(OrigStream, BASS_POS_BYTE));// - Graph.StartPos);
+	P := GetPlayPosition(FromMixer); //Max(0, BASS_ChannelGetPosition(OrigStream, BASS_POS_BYTE));// - Graph.StartPos);
 	Result := Max(0, Graph.PosToBar(P));
 end;
 
@@ -665,45 +792,45 @@ begin
 	UnloopZone;
 end;
 
-procedure TDeck.SetLoop(LoopType, LoopLength: Integer);
+procedure TDeck.SetLoop(LoopType: TAppMode; Beats: Integer; Enable: Boolean);
 var
 	Bar: Word;
 	StartPos, EndPos: QWord;
 	LoopInfo: PLoopInfo;
 	Pt: TPoint;
+	Q: Integer;
+	BeatCount: Double;
 begin
 	case LoopType of
 
-		LOOP_BEATS, LOOP_BARS:
+		MODE_LOOP:
 		begin
 			LoopInfo := @LoopInfo_Misc;
-			Bar := GetCurrentBar;
+			BeatCount := Max(Beats, 0.5);
+			Bar := GetCurrentBar(True);
 			StartPos := Graph.GraphToSongBytes(Graph.Bars[Bar].Pos);
 			EndPos := Graph.GetBarLength(False, Bar);
-			if LoopType = LOOP_BEATS then
-			begin
-				Pt := Graph.PosToGraph(GetPlayPosition);
-				Pt.Y := Trunc(Pt.Y / Graph.Height * 4); // quadrant
-				if Pt.Y > 0 then
-					StartPos += Trunc(EndPos * Pt.Y / 4);
-				EndPos := Trunc(EndPos / 4 * LoopLength);
-			end
-			else
-				EndPos := EndPos * LoopLength;
-			EndPos += StartPos;
-			ModeChange(MODE_LOOP_ON);
+			LoopInfo.LoopLength := Beats;
+			Pt := Graph.PosToGraph(GetPlayPosition);
+			if Beats = 0 then
+				Q := 8 else Q := 4; // higher res for 1/2 beat loop
+			Pt.Y := Trunc(Pt.Y / Graph.Height * Q); // quadrant
+			if Pt.Y > 0 then
+				StartPos += Trunc(EndPos * Pt.Y / Q);
+			EndPos := Trunc(EndPos / 4 * BeatCount) + StartPos;
 		end;
 
-		LOOP_ZONE:
+		MODE_LOOP_ZONE:
 		begin
-			if LoopLength = LOOP_OFF then
-				UnloopZone
+			if Enable then
+				LoopZone(Graph.GetZoneIndexAt(Graph.SongToGraphBytes(GetPlayPosition)))
 			else
-				LoopZone(Graph.GetZoneIndexAt(Graph.SongToGraphBytes(GetPlayPosition)));
+				UnloopZone;
+			ModeChange(LoopType, Enable);
 			Exit;
 		end;
 
-		LOOP_SONG:
+		MODE_LOOP_SONG:
 		begin
 			LoopInfo := @LoopInfo_Song;
 			StartPos := Graph.StartPos;
@@ -713,14 +840,15 @@ begin
 		else Exit;
 	end;
 
-	if LoopLength = LOOP_OFF then
+	if not Enable then
 	begin
 		LoopInfo^.Enabled := False;
 		BASS_ChannelRemoveSync(OrigStream, LoopInfo^.Sync);
-		ModeChange(MODE_LOOP_OFF);
 	end
 	else
 		EnableLoop(LoopInfo, StartPos, EndPos);
+
+	ModeChange(LoopType, Enable);
 end;
 
 

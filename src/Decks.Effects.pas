@@ -8,7 +8,7 @@ interface
 
 uses
 	Classes, SysUtils, //Forms, Menus,
-	FGL, BASS, BASS_FX;
+	FGL, BASS, BASS_FX, BASSmix;
 
 type
 	TEQBand = ( EQ_BAND_LOW, EQ_BAND_MID, EQ_BAND_HIGH );
@@ -93,13 +93,14 @@ type
 
 		procedure   SetEnabled(Enable: Boolean);
 		procedure   SetStream(Value: HSTREAM);
-		procedure   DoSetEnabled(Enable: Boolean);
+		procedure   DoSetEnabled(Enable: Boolean); virtual;
 	public
 		FxHandle:   HFX;
+		Deck:       Pointer;
 
 		Name,
 		ShortName:  String;
-		BPM:        PSingle;
+		BPM:        PDouble;
 		Params:     TEffectParams;
 		Presets:    TEffectPresets;
 
@@ -139,6 +140,16 @@ type
 		constructor Create;
 	end;
 
+	TFxAutoWah = class(TBaseEffect)
+		BFX: BASS_BFX_AUTOWAH;
+		constructor Create;
+	end;
+
+	TFxPanner = class(TBaseEffect)
+		BFX: BASS_BFX_ROTATE;
+		constructor Create;
+	end;
+
 	TFxDistortion = class(TBaseEffect)
 		BFX: BASS_BFX_DISTORTION;
 		constructor Create;
@@ -164,6 +175,19 @@ type
 		procedure   ParamChanged(Param: TEffectParam); override;
 	end;
 
+	TFxChopper = class(TBaseEffect)
+		DSP: HDSP;
+		fDivider,
+		fFadeSpeed,
+		fLength,
+		fOffset: Single;
+		fBeatLength: Cardinal;
+		VolLut: array of Single;
+		constructor Create;
+		procedure DoSetEnabled(Enable: Boolean); override;
+		procedure ParamChanged(Param: TEffectParam); override;
+		procedure Update;
+	end;
 
 
 implementation
@@ -171,7 +195,7 @@ implementation
 uses
 	Math,
 	Form.Main,
-	Decks.Config, Decks.BeatGraph;
+	Decks.Config, Decks.Deck, Decks.BeatGraph;
 
 // ================================================================================================
 // TEffectParam
@@ -229,6 +253,7 @@ constructor TBaseEffect.Create(AFxType: DWord; BFXObject: Pointer; const AName, 
 begin
 	inherited Create;
 
+	Deck := nil;
 	Name := AName;
 	if AShortName.IsEmpty then
 		ShortName := AName
@@ -294,7 +319,8 @@ end;
 
 procedure TBaseEffect.DoSetEnabled(Enable: Boolean);
 begin
-	if FStream = 0 then Exit;
+	if (FStream = 0) or (FxType = 0) or (BFXPointer = nil) then Exit;
+
 	if Enable then
 	begin
 		if FxHandle = 0 then
@@ -383,6 +409,7 @@ begin
 		6: V := V * 4.00; // 4/1
 	end;
 	BFX.fDelay := V;
+	BASS_FXReset(FxHandle);
 	inherited ParamChanged(Param);
 end;
 
@@ -416,14 +443,14 @@ begin
 	AddParam(BFX.fRange,	'Range',	+0.0,	+10.0,		MUL_DEFAULT,	'Sweep range in octaves');
 	AddParam(BFX.fFreq,		'Freq',		+0.0,	+1000.0,	MUL_DEFAULT,	'Base frequency of sweep range');
 
-	AddPreset([1.0,	 1.0,	 0.0,	1.0,	4.0,	100.0],	'Phase shift');
+	AddPreset([0.5,	 0.9,	 0.0,	1.0,	4.0,	100.0],	'Phase shift');
 	//AddPreset([1.0,	-1.0,	-0.6, 	0.2, 	6.0, 	100.0],	'Slow invert phase shift with feedback');
-	AddPreset([1.0,	 1.0,	 0.0, 	1.0, 	4.3, 	 50.0],	'Basic phase');
-	AddPreset([1.0,	 1.0,	 0.6, 	1.0, 	4.0, 	 40.0],	'Phase with feedback');
-	AddPreset([1.0,	 1.0,	 0.0, 	1.0, 	7.0, 	100.0],	'Medium phase');
-	AddPreset([1.0,	 1.0,	 0.0, 	1.0, 	7.0, 	400.0],	'Fast phase');
+	AddPreset([0.5,	 0.9,	 0.0, 	1.0, 	4.3, 	 50.0],	'Basic phase');
+	AddPreset([0.4,	 0.7,	 0.6, 	1.0, 	4.0, 	 40.0],	'Phase with feedback');
+	AddPreset([0.5,	 0.8,	 0.0, 	1.0, 	7.0, 	100.0],	'Medium phase');
+	AddPreset([0.5,	 0.8,	 0.0, 	1.0, 	7.0, 	400.0],	'Fast phase');
 	//AddPreset([1.0,	-1.0,	-0.2, 	1.0, 	7.0, 	200.0],	'Invert with invert feedback');
-	AddPreset([1.0,	 1.0,	 0.6, 	1.0, 	4.0, 	 60.0],	'Tremolo Wah');
+	AddPreset([0.5,	 0.7,	 0.6, 	1.0, 	4.0, 	 60.0],	'Tremolo Wah');
 
 	ApplyPreset(Presets.First);
 end;
@@ -441,7 +468,7 @@ begin
 	AddParam(BFX.fMaxSweep,	'Max',		+0.0,	+600.0,		1,				'Maximum delay in ms');
 	AddParam(BFX.fRate,		'Rate',		+0.0,	+100.0,		1,				'Rate in ms/s');
 
-	AddPreset([1.0,	 0.35,	0.5,	1.0,	  5.0,	  1.0],	'Flanger');
+	AddPreset([0.9,	 0.40,	0.5,	1.0,	  5.0,	  1.0],	'Flanger');
 	AddPreset([0.7,	 0.25,	0.5,	1.0,	200.0,	 50.0],	'Exaggerated');
 	AddPreset([0.9,	 0.45,	0.5,	1.0,	100.0,	 25.0],	'Motorcycle');
 	AddPreset([0.9,	 0.35,	0.5,	1.0,	 50.0,	200.0],	'Devilish');
@@ -449,6 +476,38 @@ begin
 	AddPreset([0.9,	-0.20,	0.5,	1.0,	400.0,	400.0],	'Back chipmunk');
 	AddPreset([0.9,	-0.40,	0.5,	1.0,	  2.0,	  1.0],	'Water');
 	AddPreset([0.3,	 0.40,	0.5,	1.0,	 10.0,	  5.0],	'Airplane');
+
+	ApplyPreset(Presets.First);
+end;
+
+constructor TFxAutoWah.Create;
+begin
+	inherited Create(BASS_FX_BFX_AUTOWAH, @BFX, 'AutoWah', 'Wah');
+	BFX.lChannel := BASS_BFX_CHANALL;
+
+	AddParam(BFX.fDryMix,	STR_MIX_DRY,	-2.0,	+2.0,	MUL_DEFAULT,	STR_MIX_DRY_DESC);
+	AddParam(BFX.fWetMix,	STR_MIX_WET,	-2.0,	+2.0,	MUL_DEFAULT,	STR_MIX_WET_DESC);
+
+	AddParam(BFX.fFeedback,	'Feedback', -1.0,	+1.0,		MUL_DEFAULT,	STR_MIX_FEEDBACK);
+	AddParam(BFX.fRate,		'Rate',		+0.0,	+9.9,		1,				'Rate in ms/s');
+	AddParam(BFX.fRange,	'Range',	+0.0,	+9.9,		1,				'Sweep range in octaves');
+	AddParam(BFX.fFreq,		'Freq',		+0.0,	+999.9,		1,				'Base frequency');
+
+	AddPreset([0.1,	 0.6,	0.5,	2.0,	4.3,	50.0],	'Slow');
+	AddPreset([0.1,	 0.6,	0.5,	5.0,	5.3,	50.0],	'Fast');
+	AddPreset([0.1,	 0.6,	0.5,	5.0,	4.3,	500.0],	'Hi Fast');
+
+	ApplyPreset(Presets.First);
+end;
+
+constructor TFxPanner.Create;
+begin
+	inherited Create(BASS_FX_BFX_ROTATE, @BFX, 'Panner', 'Pan');
+	BFX.lChannel := BASS_BFX_CHANALL;
+
+	AddParam(BFX.fRate,	'Speed',	+0.2,	+100.0,	MUL_DEFAULT,	'Rotation speed in Hz');
+
+	AddPreset([2.0],	'Default');
 
 	ApplyPreset(Presets.First);
 end;
@@ -466,9 +525,9 @@ begin
 	AddParam(BFX.fVolume,	'Volume',	+0.0,	+2.0,	MUL_DEFAULT,	'Distortion volume');
 
 	AddPreset([-2.95,	-0.05,	0.0,	-0.18,	0.25],	'Soft');
-	AddPreset([ 1.00,	 0.2,	1.0,	 0.10, 	1.00],	'Medium');
+	AddPreset([ 1.00,	 1.0,	0.2,	 0.10, 	1.00],	'Medium');
 	AddPreset([ 0.00, 	 1.0,	1.0, 	 0.00,	1.00],	'Hard');
-	AddPreset([ 0.00,	 5.0,	1.0,	 0.10,	1.00],	'Extreme');
+	AddPreset([ 0.00,	 1.0,	5.0,	 0.10,	1.00],	'Extreme');
 
 	ApplyPreset(Presets.First);
 end;
@@ -514,6 +573,114 @@ begin
 	inherited ParamChanged(Param);
 end;}
 
+procedure DSP_CHOPPER(handle: HDSP; channel: DWord; buffer: Pointer; length: DWord; user: Pointer);
+	{$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
+var
+	bp, len, beatlen: DWord;
+	P: QWord;
+	FX: TFxChopper;
+	Deck: TDeck;
+	vol, vv, pp, dd: Single;
+	buf: PSingle;
+begin
+	if (buffer = nil) or (length = 0) or (user = nil) then Exit;
+
+	len := length div 8;
+	buf := PSingle(buffer);
+	FX := TFxChopper(user);
+
+	if FX.Deck = nil then Exit;
+	Deck := TDeck(FX.Deck);
+
+	P := Max(0, BASS_ChannelGetPosition(channel, BASS_POS_BYTE) - Deck.Graph.StartPos);
+	bp := Trunc(8 / FX.fDivider);
+	beatlen := FX.fBeatLength * bp;
+	vv := 1.0; //FX.fFadeSpeed;
+	P := Trunc(P + (FX.fOffset * beatlen));
+	pp := (P mod beatlen) / bp * vv;
+
+	if FX.fOffset < 0.0 then dd := -1 else dd := 1;
+
+	for bp := 0 to len-1 do
+	begin
+		vol := dd * FX.VolLut[Trunc(pp)];
+		pp := pp + vv;
+		buf^ *= vol; Inc(buf);
+		buf^ *= vol; Inc(buf);
+	end;
+end;
+
+constructor TFxChopper.Create;
+begin
+	inherited Create(0, nil, 'Chopper', 'Chop');
+
+	AddParam(fFadeSpeed, 'Amount',	0.0,  2.0, 1000, 'Fade speed');      // fade multiplier
+	AddParam(fDivider,   'Rate',	0.5,    4,    1, 'Rate in beats');   // interval
+	AddParam(fLength,    'Length',	0.0,  0.9, 1000, 'Start position');  // start pos
+	AddParam(fOffset,    'Offset',	0.0,  2.0, 1000, 'Fade offset');     // offset to lut
+
+	AddPreset([1.6, 2.0, 0.1, 1.0], 'Choppy');
+	AddPreset([1.4, 1.0, 0.2, 1.0], 'Only kicks');
+	AddPreset([1.4, 1.0, 0.1, 1.5], 'Kill kicks');
+
+	ApplyPreset(Presets.First);
+end;
+
+procedure TFxChopper.Update;
+var
+	l, i, sp: Integer;
+	st, v: Single;
+begin
+	if (Deck = nil) or (TDeck(Deck).Graph = nil) then Exit;
+
+	l := TDeck(Deck).Graph.GetBeatLength;
+	SetLength(VolLut, l*4);
+	fBeatLength := l;
+
+	sp := Trunc(l * fLength); // sample to fade at
+	st := (1 / (l-sp)) * fFadeSpeed;
+
+	v := 1.0;
+	for i := 0 to sp do
+	begin
+		VolLut[i] := v;
+		VolLut[i+l] := v;
+		VolLut[i+l+l] := v;
+		VolLut[i+l+l+l] := v;
+	end;
+
+	for i := sp to l-1 do
+	begin
+		v := Max(0.0, 1.0 - (st * (i-sp)));
+		v := Min(1.0, v);
+		//v := Power(st, (i+1)/l);
+		VolLut[i] := v;
+		VolLut[i+l] := v;
+		VolLut[i+l+l] := v;
+		VolLut[i+l+l+l] := v;
+	end;
+end;
+
+procedure TFxChopper.DoSetEnabled(Enable: Boolean);
+begin
+	if Enable then
+	begin
+		Update;
+		DSP := BASS_ChannelSetDSP(Stream, DSP_CHOPPER, Self, 5);
+	end
+	else
+	begin
+		BASS_ChannelRemoveDSP(Stream, DSP);
+		DSP := 0;
+	end;
+end;
+
+procedure TFxChopper.ParamChanged(Param: TEffectParam);
+begin
+	inherited ParamChanged(Param);
+	Update;
+end;
+
 constructor TFxFilter.Create;
 begin
 	inherited Create(BASS_FX_BFX_BQF, @BFX, 'Filter', 'Flt');
@@ -526,7 +693,7 @@ begin
 	AddParam(fCutoff, 'Cutoff',	-1.0, +1.0, 200, 'LP <-> HP');
 	AddParam(BFX.fQ,  'Q',		+0.1, +1.0, MUL_DEFAULT, 'Q');
 
-	AddPreset([0, 0.55], 'Default');
+	AddPreset([0, 0.75], 'Default');
 	ApplyPreset(Presets.First);
 end;
 

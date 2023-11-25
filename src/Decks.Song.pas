@@ -7,42 +7,23 @@ interface
 
 uses
 	Classes, SysUtils,
-	BASS, BASSMIX, BASS_FX; //, basszxtune;
-
-const
-	MODE_PLAY_STOP    = 0;
-	MODE_PLAY_START   = 1;
-	MODE_PLAY_PAUSE   = 2;
-	MODE_PLAY_FAILURE = 3;
-	MODE_PLAY_WAITSYNC= 4;
-	MODE_BEND_STOP    = 10;
-	MODE_BEND_START   = 11;
-	MODE_TEMPOCHANGE  = 13;
-	MODE_SYNC_ON      = 16;
-	MODE_SYNC_OFF     = 17;
-	MODE_EQ_KILL_ON   = 18;
-	MODE_EQ_KILL_OFF  = 19;
-	MODE_LOOP_ON      = 20;
-	MODE_LOOP_OFF     = 21;
-	MODE_CUE_ON       = 22;
-	MODE_CUE_OFF      = 23;
-
-	MODE_LOAD_START   = 30;
-	MODE_LOAD_SUCCESS = 31;
-	MODE_LOAD_FAILURE = 32;
-	MODE_LOAD_GRAPH   = 33;
-	MODE_LOAD_FINISH  = 39;
+	Decks.Config,
+	BASS, BASSMIX, BASS_FX, BASSloud; //, basszxtune;
 
 type
-	TSongModeEvent = procedure(Kind: Integer) of object;
+	TSongModeEvent = procedure(Kind: TAppMode; Flag: Boolean) of object;
 
 	TSong = class
+	private
+		procedure	DoPause;
 	protected
+		SyncStartPos: QWord;
 		EndSync:	HSYNC;
-		procedure	ModeChange(Kind: Integer); inline;
+		procedure	ModeChange(Kind: TAppMode; Flag: Boolean); inline;
 	public
 		Loaded:		Boolean;
 		Paused:		Boolean;
+		PitchLock: 	Boolean;
 		Reverse: record
 			Enabled,
 			Temporary: Boolean;
@@ -53,7 +34,7 @@ type
 		OrigFreq,
 		PlayFreq:	Cardinal;
 		BPM,
-		AvgBPM:		Single;
+		AvgBPM:		Double;
 		ByteLength: QWord;
 		Duration:	Single;
 		Bitrate:	Word;
@@ -64,12 +45,15 @@ type
 		FileStream,
 		OrigStream,
 		Stream: 	HSTREAM;
+		Loudness:	HLOUDNESS;
 
 		OnModeChange: TSongModeEvent;
 
 		ChannelInfo: BASS_CHANNELINFO;
 
 		Filename:	String;
+
+		function 	GetCueStream: HSTREAM;
 
 		function	Load(const AFilename: String): Boolean; virtual;
 		procedure	SetReverse(Reversed, KeepSync: Boolean);
@@ -101,7 +85,8 @@ var
 implementation
 
 uses
-	Decks.Audio, Decks.Config;
+	LCLIntf,
+	Decks.Audio;
 
 //
 // Callbacks
@@ -111,7 +96,19 @@ procedure Audio_Callback_EndSync(handle: HSYNC; channel, data, user: Pointer);
 	{$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
 begin
 	if user <> nil then
-		TSong(user^).Stop;
+		TSong(user).Stop;
+end;
+
+procedure Audio_Callback_SpinDownSync(handle: HSYNC; channel, data: DWord; user: Pointer);
+	{$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
+var
+	Song: TSong;
+begin
+	if user = nil then Exit;
+
+	Song := TSong(user);
+	BASS_ChannelSetPosition(Song.OrigStream, Song.SyncStartPos, BASS_POS_BYTE);
+	Song.DoPause;
 end;
 
 { TSong }
@@ -120,10 +117,18 @@ end;
 // Utility
 //
 
-procedure TSong.ModeChange(Kind: Integer); inline;
+procedure TSong.ModeChange(Kind: TAppMode; Flag: Boolean); inline;
 begin
 	if Assigned(OnModeChange) then
-		OnModeChange(Kind);
+		OnModeChange(Kind, Flag);
+end;
+
+function TSong.GetCueStream: HSTREAM;
+begin
+	if Config.Mixer.CuePostFader then
+		Result := Stream
+	else
+		Result := FileStream;
 end;
 
 //
@@ -176,13 +181,14 @@ begin
 
 	// generate the graph externally here before plugging the
 	// stream into the final output mixer
-	ModeChange(MODE_LOAD_GRAPH);
+	ModeChange(MODE_LOAD_GRAPH, False);
 
 //	EndSync := BASS_Mixer_ChannelSetSync(OrigStream, BASS_SYNC_END, 0,
-//		@Audio_Callback_EndSync, @Self);
+//		@Audio_Callback_EndSync, Self);
 
 	F := BASS_STREAM_DECODE or BASS_SAMPLE_LOOP or BASS_FX_FREESOURCE;
 	Reverse.Stream := BASS_FX_ReverseCreate(OrigStream, 1.0, F);
+	//Reverse.Stream := BASS_FX_TempoCreate(OrigStream, F);
 
 	FileStream := OrigStream;
 	OrigStream := Reverse.Stream;
@@ -191,6 +197,9 @@ begin
 		BASS_MIXER_CHAN_MATRIX {or BASS_MIXER_DOWNMIX} or BASS_MIXER_NORAMPIN);
 
 	BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_MIXER_THREADS, Config.Audio.Threads);
+
+	Loudness := BASS_Loudness_Start(GetCueStream,
+		MakeLong(BASS_LOUDNESS_CURRENT, 250) or BASS_LOUDNESS_AUTOFREE, 99);
 
 	AvgBPM   := 0;
 	OrigFreq := Config.Audio.Hz; //ChannelInfo.freq;
@@ -212,7 +221,7 @@ begin
 	if Reversed then
 	begin
 		if KeepSync then
-			Reverse.StartPos := BASS_Mixer_ChannelGetPosition(Reverse.Stream, BASS_POS_BYTE);
+			Reverse.StartPos := BASS_ChannelGetPosition(Reverse.Stream, BASS_POS_BYTE);
 		BASS_ChannelSetAttribute(Reverse.Stream, BASS_ATTRIB_REVERSE_DIR, BASS_FX_RVS_REVERSE);
 	end
 	else
@@ -220,7 +229,7 @@ begin
 		BASS_ChannelSetAttribute(Reverse.Stream, BASS_ATTRIB_REVERSE_DIR, BASS_FX_RVS_FORWARD);
 		if KeepSync then
 		begin
-			P := BASS_Mixer_ChannelGetPosition(Reverse.Stream, BASS_POS_BYTE);
+			P := BASS_ChannelGetPosition(Reverse.Stream, BASS_POS_BYTE);
 			BASS_Mixer_ChannelSetPosition(Reverse.Stream, Reverse.StartPos + Abs(Reverse.StartPos - P), BASS_POS_BYTE);
 		end;
 	end;
@@ -234,9 +243,9 @@ begin
 	BeatPreviousQuadrant := 255;
 
 	if BASS_ChannelPlay(Stream, True) then
-		ModeChange(MODE_PLAY_START)
+		ModeChange(MODE_PLAY_START, True)
 	else
-		ModeChange(MODE_PLAY_FAILURE);
+		ModeChange(MODE_PLAY_FAILURE, True);
 end;
 
 procedure TSong.Stop;
@@ -245,7 +254,16 @@ begin
 
 	Paused := True;
 	BASS_ChannelStop(Stream);
-	ModeChange(MODE_PLAY_STOP);
+	ModeChange(MODE_PLAY_STOP, True);
+end;
+
+procedure TSong.DoPause;
+begin
+	if (not Loaded) or (not Paused) then Exit;
+
+	Paused := True;
+	BASS_ChannelPause(Stream);
+	ModeChange(MODE_PLAY_PAUSE, True);
 end;
 
 procedure TSong.Pause;
@@ -253,13 +271,24 @@ begin
 	if not Loaded then Exit;
 
 	Paused := not Paused;
+
 	if Paused then
 	begin
-		BASS_ChannelPause(Stream);
-		ModeChange(MODE_PLAY_PAUSE);
+		if Config.Deck.SpinDownSpeed = 0 then
+		begin
+			DoPause;
+		end
+		else
+		begin
+			SyncStartPos := BASS_ChannelGetPosition(OrigStream, BASS_POS_BYTE);
+			BASS_ChannelSlideAttribute(Stream, BASS_ATTRIB_FREQ, 0, Config.Deck.SpinDownSpeed);
+			BASS_ChannelSetSync(Stream, BASS_SYNC_SLIDE, 0, @Audio_Callback_SpinDownSync, Self);
+		end;
 	end
 	else
+	begin
 		Play;
+	end;
 end;
 
 { TFileCue }
@@ -289,7 +318,7 @@ begin
 
 	if OutStream <> 0 then
 	begin
-		ApplyMixingMatrix(FileStream, True, 1, 0, 0);
+		ApplyMixingMatrix(FileStream, True, Config.Mixer.CueMaster, 0, 0, 1);
 		Playing := BASS_ChannelPlay(OutStream, True);
 	end;
 	Result := Playing;
