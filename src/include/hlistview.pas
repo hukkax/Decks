@@ -367,7 +367,7 @@ begin
 		ExpandTabs := False;
 		ShowPrefix := False;
 		Wordbreak := False;
-		EndEllipsis := True;
+		EndEllipsis := False;
 	end;
 	Canvas.TextStyle := FTextStyle;
 
@@ -1096,12 +1096,13 @@ begin
 	begin
 		Canvas.Clear;
 
-		if Y > 0 then
+		if Y > 0 then // paint headers
 		begin
 			IR := Bounds(0, 0, ClientWidth-1, Y);
 			FillRect(IR, FHeaderColor);
 			Canvas.Font.Color := FHeaderTextColor;
 			X := 0;
+
 			if Columns.Count > 0 then
 			for Col := 0 to Columns.Count-1 do
 			begin
@@ -1111,6 +1112,7 @@ begin
 				Column.DrawnRect := IR;
 				FTextStyle.Alignment := Column.Alignment;
 				Canvas.TextStyle := FTextStyle;
+
 				if Col = FSortColumn then
 				begin
 					FillRect(IR, $333333); //Gray32(40)
@@ -1122,19 +1124,22 @@ begin
 					Canvas.TextRect(IR,
 						IR.Left + FTextOffset.X, FTextOffset.Y,
 						Column.Caption);
+
 				Inc(X, Column.Width);
 			end;
+
 			Canvas.Pen.Color := clBlack;
 			Canvas.Line(0, Y-1, ClientWidth-1, Y-1);
 		end;
 	end;
 
+	// paint list items
+	//
 	for I := Max(FFirstVisibleIndex, 0) to Items.Count-1 do
 	begin
 		if Y >= ClientHeight then Break;
 
 		Item := Items[I];
-
 		Hovered := (I = FHoveredItem);
 
 		if not FullRedraw then
@@ -1176,6 +1181,8 @@ begin
 		Canvas.TextStyle := FTextStyle;
 		Canvas.TextRect(IR, IR.Left + FTextOffset.X, Y + FTextOffset.Y, Item.Caption);
 
+		// tooltip positioning
+		//
 		if (Hovered) and (FHoveredColumn = 0) then
 		begin
 			FHintTextWidth := Canvas.TextWidth(Item.Caption);
@@ -1211,6 +1218,8 @@ begin
 			end;
 		end;
 
+		// paint horizontal gridlines
+		//
 		if FColorGrid <> clNone then
 		begin
 			Canvas.Pen.Color := FColorGrid;
@@ -1221,6 +1230,8 @@ begin
 		Inc(Y, FItemHeight);
 	end;
 
+	// paint vertical gridlines
+	//
 	C := FColorGrid;
 	if C = clNone then C := clBlack;
 	begin

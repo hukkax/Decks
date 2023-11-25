@@ -347,8 +347,7 @@ end;
 
 procedure ThKnob.SetPosition(const NewPosition: Integer);
 begin
-	if FPosition <> NewPosition then
-		SetParams(NewPosition, FMin, FMax);
+	SetParams(NewPosition, FMin, FMax);
 end;
 
 function ThKnob.GetFloatPosition: Single;
