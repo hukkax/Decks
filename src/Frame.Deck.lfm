@@ -6,10 +6,10 @@ object DeckFrame: TDeckFrame
   ClientHeight = 573
   ClientWidth = 752
   Color = 3553082
-  OnResize = FormResize
   ParentBackground = False
   ParentColor = False
   TabOrder = 0
+  OnResize = FormResize
   object pnlEffects: TDecksPanel
     Left = 0
     Height = 52

@@ -150,6 +150,9 @@ type
 		sFilterR: ThKnob;
 		bRecord: TDecksButton;
 		miSettings: TMenuItem;
+		bDeckAssignmentL: TDecksButton;
+		bDeckAssignmentR: TDecksButton;
+		DecksPanel1: TDecksPanel;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -223,6 +226,7 @@ type
 		procedure sFilterLChange(Sender: TObject);
 		procedure bRecordSetDown(Sender: TObject);
 		procedure miSettingsClick(Sender: TObject);
+		procedure bDeckAssignmentLClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -243,6 +247,7 @@ type
 		procedure ListDrives;
 		procedure UpdateFilelistToolbar(IsDir: Boolean);
 		procedure ApplyTheme;
+		procedure SelectNextDeckForMixerAssignment(Side: Integer);
 	public
 		FileListIsActive: Boolean;
 		EQControls: array[1..2, TEQBand] of ThKnob;
@@ -274,6 +279,7 @@ type
 		procedure EndUpdate; inline;
 
 		procedure DeckLayoutChanged;
+		procedure MixerLayoutChanged(Reapply: Boolean = False);
 		function  CreateDeck: TDeck;
 		procedure CloseDeck(DeckFrame: TDeckFrame);
 		function  FindDeck(Index: Integer): TDeck;
@@ -290,11 +296,14 @@ type
 		FaderVolume: Single;
 		EQ: array[TEQBand] of Single;
 		TempEQKnob: array[TEQBand] of Integer;
+
 		procedure Apply(ApplyEQ: Boolean = True);
 	end;
 
 var
 	MainForm: TMainForm;
+
+	DeckAssignmentButtons: array[1..2] of TDecksButton;
 
 	SelectedListItem: record
 		Kind:     Integer;
@@ -1024,6 +1033,9 @@ begin
 	Config.Deck.WarnSpeed := 25;
 	Config.Deck.Waveform.Height := 60;
 
+	DeckAssignmentButtons[1] := bDeckAssignmentL;
+	DeckAssignmentButtons[2] := bDeckAssignmentR;
+
 	with Config.Theme.Colors.Base do
 	begin
 		Background := $212223;
@@ -1619,6 +1631,7 @@ begin
 	S := FileList.GetSubItemFor(Item, Col);
 
 	case Col of
+
 		COLUMN_FILENAME:
 			miFileRename.Click;
 
@@ -1684,6 +1697,7 @@ begin
 				TagReader.Free;
 			end;
 		end;
+
 	end;
 end;
 
@@ -2381,6 +2395,15 @@ begin
 		end;
 	end;
 
+	MixerLayoutChanged;
+end;
+
+procedure TMainForm.MixerLayoutChanged(Reapply: Boolean = False);
+var
+	i: Integer;
+	Deck: TDeck;
+	S: String;
+begin
 	for Deck in DeckList do // sync additional decks to the first deck by default
 		if Deck <> nil then
 			Deck.OtherDeck := DeckList.First;
@@ -2388,7 +2411,23 @@ begin
 		MixerDeck[1].Deck.OtherDeck := MixerDeck[2].Deck;
 	if MixerDeck[2].Deck <> nil then
 		MixerDeck[2].Deck.OtherDeck := MixerDeck[1].Deck;
+
+	for i := 1 to 2 do
+	begin
+		if MixerDeck[i].Deck <> nil then
+			S := MixerDeck[i].Deck.Index.ToString
+		else
+			S := '-';
+		DeckAssignmentButtons[i].Caption := S;
+	end;
+
 	sCueMixChange(Self);
+
+	if Reapply then
+	begin
+		sFilterLChange(sFilterL);
+		sFilterLChange(sFilterR);
+	end;
 end;
 
 function TMainForm.CreateDeck: TDeck;
@@ -2912,7 +2951,7 @@ begin
 			for i := 0 to 2 do
 				if Ctrl = DeckInFocusableControls[DeckIndex, i].Data then
 				begin
-					FocusedDeck := DeckIndex+1;
+					FocusedDeck := DeckIndex + 1;
 					Break;
 				end;
 		end;
@@ -3020,6 +3059,41 @@ end;*)
 procedure TMainForm.miSettingsClick(Sender: TObject);
 begin
 	ConfigForm.ShowModal;
+end;
+
+procedure TMainForm.SelectNextDeckForMixerAssignment(Side: Integer);
+var
+	Deck: TDeck;
+	OtherSide: Integer;
+	i: Integer;
+begin
+	if DeckList.Count < 3 then Exit;
+	if not Side in [1..2] then Exit;
+
+	OtherSide := IfThen(Side=1, 2, 1);
+
+	i := DeckList.IndexOf(MixerDeck[Side].Deck) + 1;
+	if i >= DeckList.Count then
+		i := 0;
+	while DeckList[i] = MixerDeck[OtherSide].Deck do
+	begin
+		Inc(i);
+		if i >= DeckList.Count then
+			i := 0;
+	end;
+
+	Deck := DeckList[i];
+	if (Deck <> nil) and (Deck <> MixerDeck[OtherSide].Deck) then
+	begin
+		MixerDeck[Side].Deck := Deck;
+		MixerLayoutChanged(True);
+		ApplyMixer;
+	end;
+end;
+
+procedure TMainForm.bDeckAssignmentLClick(Sender: TObject);
+begin
+	SelectNextDeckForMixerAssignment((Sender as TDecksButton).Tag);
 end;
 
 end.
