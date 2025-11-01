@@ -52,9 +52,13 @@ uses
 
 type
 	TRBIncrement = 1..32768;
+
 	TRBDirection = (drLeft, drUp, drRight, drDown);
+
 	TRBDirections = set of TRBDirection;
+
 	TRBZone = (zNone, zBtnPrev, zTrackPrev, zHandle, zTrackNext, zBtnNext);
+
 	TRBGetSizeEvent = procedure(Sender: TObject; var Size: Integer) of object;
 
 	TDecksSlider = class(TCustomControl)
@@ -74,6 +78,7 @@ type
 		FWrapAround: Boolean;
 		FOnChange: TNotifyEvent;
 		FOnUserChange: TNotifyEvent;
+
 		procedure SetButtonSize(Value: Integer);
 		procedure SetHandleColor(Value: TColor);
 		procedure SetHighLightColor(Value: TColor);
@@ -85,6 +90,7 @@ type
 		procedure SetKind(Value: TScrollBarKind);
 		procedure SetShowArrows(Value: Boolean);
 		procedure SetFlat(Value: Boolean);
+
 		{$IFDEF FPC}
 		procedure CMEnabledChanged(var Message: TLMessage); message CM_ENABLEDCHANGED;
 		procedure CMMouseLeave(var Message: TLMessage); message CM_MOUSELEAVE;
@@ -108,10 +114,12 @@ type
 		FTimerMode: Integer;
 		FStored: TPoint;
 		FPosBeforeDrag: Single;
+
 		procedure DoChange; virtual;
 		procedure DoDrawButton(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean); virtual;
 		procedure DoDrawHandle(R: TRect; Horz: Boolean; Pushed, Hot: Boolean); virtual;
 		procedure DoDrawTrack(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean); virtual;
+
 		function  DrawEnabled: Boolean; virtual;
 		function  GetBorderSize: Integer;
 		function  GetHandleRect: TRect; virtual;
@@ -119,6 +127,7 @@ type
 		function  GetTrackBoundary: TRect;
 		function  GetZone(X, Y: Integer): TRBZone;
 		function  GetZoneRect(Zone: TRBZone): TRect;
+
 		procedure MouseLeft; virtual;
 		procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 		procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
@@ -132,6 +141,7 @@ type
 		procedure SetBorderStyle(Value: TBorderStyle); {$IFDEF FPC} override; {$ENDIF}
 	public
 		constructor Create(AOwner: TComponent); override;
+
 		property ArrowColor: TColor read FArrowColor write SetArrowColor default clBtnText;
 		property Color default clScrollBar;
 		property BorderStyle: TBorderStyle read FBorderStyle write SetBorderStyle default bsSingle;
@@ -158,25 +168,30 @@ type
 		FPosition: Single;
 		FRange: Integer;
 		FWindow: Integer;
-		function IsPositionStored: Boolean;
+
+		function  IsPositionStored: Boolean;
+
 		procedure SetPosition(Value: Single);
 		procedure SetRange(Value: Integer);
 		procedure SetWindow(Value: Integer);
 	protected
-		procedure AdjustPosition;
-		function  DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
-			MousePos: TPoint): Boolean; override;
+		function  DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
 		function  DrawEnabled: Boolean; override;
 		function  GetHandleRect: TRect; override;
+
 		procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 		procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
 		procedure TimerHandler(Sender: TObject); override;
 		procedure UpdateEffectiveWindow;
+		procedure AdjustPosition;
+
 		property EffectiveWindow: Integer read FEffectiveWindow;
 	public
 		constructor Create(AOwner: TComponent); override;
+
 		procedure Resize; override;
 		procedure SetParams(NewRange, NewWindow: Integer);
+
 		property Centered: Boolean read FCentered write FCentered;
 		property Increment: TRBIncrement read FIncrement write FIncrement default 8;
 		property Position: Single read FPosition write SetPosition stored IsPositionStored;
@@ -232,6 +247,7 @@ type
 		FMin: Integer;
 		FPosition: Integer;
 		FSmallChange: Integer;
+
 		procedure SetHandleSize(Value: Integer);
 		procedure SetMax(Value: Integer);
 		procedure SetMin(Value: Integer);
@@ -239,16 +255,17 @@ type
 		procedure SetLargeChange(Value: Integer);
 		procedure SetSmallChange(Value: Integer);
 	protected
-		procedure AdjustPosition;
-		function  DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
-			MousePos: TPoint): Boolean; override;
+		function  DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
 		function  GetHandleRect: TRect; override;
 		function  GetHandleSize: Integer;
+
 		procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 		procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
 		procedure TimerHandler(Sender: TObject); override;
+		procedure AdjustPosition;
 	public
 		constructor Create(AOwner: TComponent); override;
+
 		property HandleSize: Integer read FHandleSize write SetHandleSize default 0;
 		property LargeChange: Integer read FLargeChange write SetLargeChange default 1;
 		property Max: Integer read FMax write SetMax default 100;
@@ -302,6 +319,7 @@ type
 	end;
 
 	procedure Register;
+
 
 implementation
 
@@ -359,90 +377,93 @@ end;
 
 procedure DitherRect(Canvas: TCanvas; const R: TRect; C: TColor);
 var
-{$IFDEF FPC}
-  Brush: TBrush;
-  OldBrush: TBrush;
-{$ELSE}
-  B: TBitmap;
-  Brush: HBRUSH;
-{$ENDIF}
+	{$IFDEF FPC}
+	Brush: TBrush;
+	OldBrush: TBrush;
+	{$ELSE}
+	B: TBitmap;
+	Brush: HBRUSH;
+	{$ENDIF}
 begin
-  if R.IsEmpty then Exit;
-{$IFDEF FPC}
-  Brush := TBrush.Create;
-  try
-    Brush.Color := ColorToRGB(C);
-    OldBrush := TBrush.Create;
-    try
-      OldBrush.Assign(Canvas.Brush);
-      Canvas.Brush.Assign(Brush);
-      Canvas.FillRect(R);
-      Canvas.Brush.Assign(OldBrush);
-    finally
-      OldBrush.Free;
-    end;
-  finally
-    if Assigned(Brush.Bitmap) then
-      Brush.Bitmap.Free;
-    Brush.Free;
-  end;
-{$ELSE}
-  Brush := CreateSolidBrush(ColorToRGB(C));
-  FillRect(Canvas.Handle, R, Brush);
-  DeleteObject(Brush);
-{$ENDIF}
+	if R.IsEmpty then Exit;
+	{$IFDEF FPC}
+	Brush := TBrush.Create;
+	try
+		Brush.Color := ColorToRGB(C);
+		OldBrush := TBrush.Create;
+		try
+			OldBrush.Assign(Canvas.Brush);
+			Canvas.Brush.Assign(Brush);
+			Canvas.FillRect(R);
+			Canvas.Brush.Assign(OldBrush);
+		finally
+			OldBrush.Free;
+		end;
+	finally
+		if Assigned(Brush.Bitmap) then
+			Brush.Bitmap.Free;
+		Brush.Free;
+	end;
+	{$ELSE}
+	Brush := CreateSolidBrush(ColorToRGB(C));
+	FillRect(Canvas.Handle, R, Brush);
+	DeleteObject(Brush);
+	{$ENDIF}
 end;
 
 procedure DrawRectEx(Canvas: TCanvas; var R: TRect; Sides: TRBDirections; C: TColor);
 begin
-  if Sides <> [] then with Canvas, R do
-  begin
-    Pen.Color := C;
-    if drUp in Sides then
-    begin
-      MoveTo(Left, Top); LineTo(Right, Top); Inc(Top);
-    end;
-    if drDown in Sides then
-    begin
-      Dec(Bottom); MoveTo(Left, Bottom); LineTo(Right, Bottom);
-    end;
-    if drLeft in Sides then
-    begin
-      MoveTo(Left, Top); LineTo(Left, Bottom); Inc(Left);
-    end;
-    if drRight in Sides then
-    begin
-      Dec(Right); MoveTo(Right, Top); LineTo(Right, Bottom);
-    end;
-  end;
+	if Sides = [] then Exit;
+
+	with Canvas, R do
+	begin
+		Pen.Color := C;
+
+		if drUp in Sides then
+		begin
+			MoveTo(Left, Top); LineTo(Right, Top); Inc(Top);
+		end;
+		if drDown in Sides then
+		begin
+			Dec(Bottom); MoveTo(Left, Bottom); LineTo(Right, Bottom);
+		end;
+		if drLeft in Sides then
+		begin
+			MoveTo(Left, Top); LineTo(Left, Bottom); Inc(Left);
+		end;
+		if drRight in Sides then
+		begin
+			Dec(Right); MoveTo(Right, Top); LineTo(Right, Bottom);
+		end;
+	end;
 end;
 
 procedure Frame3D(Canvas: TCanvas; var ARect: TRect; TopColor, BottomColor: TColor; AdjustRect: Boolean = True);
 var
-  TopRight, BottomLeft: TPoint;
+	TopRight, BottomLeft: TPoint;
 begin
-  with Canvas, ARect do
-  begin
-    Pen.Width := 1;
-    Dec(Bottom); Dec(Right);
-    TopRight.X := Right;
-    TopRight.Y := Top;
-    BottomLeft.X := Left;
-    BottomLeft.Y := Bottom;
-    Pen.Color := TopColor;
-    PolyLine([BottomLeft, TopLeft, TopRight]);
-    Pen.Color := BottomColor;
-    Dec(Left);
-    PolyLine([TopRight, BottomRight, BottomLeft]);
-    if AdjustRect then
-    begin
-      Inc(Top); Inc(Left, 2);
-    end
-    else
-    begin
-      Inc(Left); Inc(Bottom); Inc(Right);
-    end;
-  end;
+	with Canvas, ARect do
+	begin
+		Pen.Width := 1;
+		Dec(Bottom); Dec(Right);
+		TopRight.X := Right;
+		TopRight.Y := Top;
+		BottomLeft.X := Left;
+		BottomLeft.Y := Bottom;
+		Pen.Color := TopColor;
+		PolyLine([BottomLeft, TopLeft, TopRight]);
+		Pen.Color := BottomColor;
+		Dec(Left);
+		PolyLine([TopRight, BottomRight, BottomLeft]);
+		if AdjustRect then
+		begin
+			Inc(Top); Inc(Left, 2);
+		end
+		else
+		begin
+			Inc(Left); Inc(Bottom); Inc(Right);
+		end;
+	end;
 end;
 
 procedure DrawArrow(Canvas: TCanvas; R: TRect;
@@ -486,10 +507,10 @@ begin
 end;
 
 const
-  FIRST_DELAY = 600;
-  SCROLL_INTERVAL = 100;
-  HOTTRACK_INTERVAL = 150;
-  MIN_SIZE = 17;
+	FIRST_DELAY = 600;
+	SCROLL_INTERVAL = 100;
+	HOTTRACK_INTERVAL = 150;
+	MIN_SIZE = 17;
 
 { TDecksSlider }
 
@@ -499,8 +520,8 @@ procedure TDecksSlider.CMEnabledChanged(var Message: TLMessage);
 procedure TDecksSlider.CMEnabledChanged(var Message: TMessage);
 {$ENDIF}
 begin
-  inherited;
-  Invalidate;
+	inherited;
+	Invalidate;
 end;
 
 {$IFDEF FPC}
@@ -509,13 +530,14 @@ procedure TDecksSlider.CMMouseLeave(var Message: TLMessage);
 procedure TDecksSlider.CMMouseLeave(var Message: TMessage);
 {$ENDIF}
 begin
-  MouseLeft;
-  inherited;
+	MouseLeft;
+	inherited;
 end;
 
 constructor TDecksSlider.Create(AOwner: TComponent);
 begin
 	inherited;
+
 	ControlStyle := ControlStyle - [csAcceptsControls, csDoubleClicks] + [csOpaque];
 	Width := 100;
 	Height := 16;
@@ -670,163 +692,183 @@ end;
 
 function TDecksSlider.DrawEnabled: Boolean;
 begin
-  Result := Enabled;
+	Result := Enabled;
 end;
 
 function TDecksSlider.GetBorderSize: Integer;
 const
-  CSize: array [Boolean] of Integer = (0, 1);
+	CSize: array [Boolean] of Integer = (0, 1);
 begin
-  Result := CSize[BorderStyle = bsSingle];
+	Result := CSize[BorderStyle = bsSingle];
 end;
 
 function TDecksSlider.GetButtonSize: Integer;
 var
-  W, H: Integer;
+	W, H: Integer;
 begin
-  if not ShowArrows then Result := 0
-  else
-  begin
-    Result := ButtonSize;
-    if Kind = sbHorizontal then
-    begin
-      W := ClientWidth;
-      H := ClientHeight;
-    end
-    else
-    begin
-      W := ClientHeight;
-      H := ClientWidth;
-    end;
-    if Result = 0 then Result := Min(H, 32);
-    if Result * 2 >= W then Result := W div 2;
-    Dec(Result); // !!! Mac
-    if Result < 2 then Result := 0;
-  end;
+	if not ShowArrows then
+		Result := 0
+	else
+	begin
+		Result := ButtonSize;
+		if Kind = sbHorizontal then
+		begin
+			W := ClientWidth;
+			H := ClientHeight;
+		end
+		else
+		begin
+			W := ClientHeight;
+			H := ClientWidth;
+		end;
+		if Result = 0 then Result := Min(H, 32);
+		if Result * 2 >= W then Result := W div 2;
+		Dec(Result); // !!! Mac
+		if Result < 2 then Result := 0;
+	end;
 end;
 
 function TDecksSlider.GetHandleRect: TRect;
 begin
-  Result := Rect(0, 0, 0, 0);
+	Result := Rect(0, 0, 0, 0);
 end;
 
 function TDecksSlider.GetTrackBoundary: TRect;
 begin
-  Result := ClientRect;
-  if Kind = sbHorizontal then Result.Inflate(-GetButtonSize, 0)
-  else Result.Inflate(0, -GetButtonSize);
+	Result := ClientRect;
+	if Kind = sbHorizontal then
+		Result.Inflate(-GetButtonSize, 0)
+	else
+		Result.Inflate(0, -GetButtonSize);
 end;
 
 function TDecksSlider.GetZone(X, Y: Integer): TRBZone;
 var
-  P: TPoint;
-  R, R1: TRect;
-  Sz: Integer;
+	P: TPoint;
+	R, R1: TRect;
+	Sz: Integer;
 begin
-  Result := zNone;
+	Result := zNone;
 
-  P := Point(X, Y);
-  R := ClientRect;
-  if not R.Contains(P) then Exit;
+	P := Point(X, Y);
+	R := ClientRect;
+	if not R.Contains(P) then Exit;
 
-  Sz := GetButtonSize;
-  R1 := R;
-  if Kind = sbHorizontal then
-  begin
-    R1.Right := R1.Left + Sz;
-    if R1.Contains(P) then Result := zBtnPrev
-    else
-    begin
-      R1.Right := R.Right;
-      R1.Left := R.Right - Sz;
-      if R1.Contains(P) then Result := zBtnNext;
-    end;
-  end
-  else
-  begin
-    R1.Bottom := R1.Top + Sz;
-    if R1.Contains(P) then Result := zBtnPrev
-    else
-    begin
-      R1.Bottom := R.Bottom;
-      R1.Top := R.Bottom - Sz;
-      if R1.Contains(P) then Result := zBtnNext;
-    end;
-  end;
+	Sz := GetButtonSize;
+	R1 := R;
+	if Kind = sbHorizontal then
+	begin
+		R1.Right := R1.Left + Sz;
+		if R1.Contains(P) then
+			Result := zBtnPrev
+		else
+		begin
+			R1.Right := R.Right;
+			R1.Left := R.Right - Sz;
+			if R1.Contains(P) then Result := zBtnNext;
+		end;
+	end
+	else
+	begin
+		R1.Bottom := R1.Top + Sz;
+		if R1.Contains(P) then
+			Result := zBtnPrev
+		else
+		begin
+			R1.Bottom := R.Bottom;
+			R1.Top := R.Bottom - Sz;
+			if R1.Contains(P) then Result := zBtnNext;
+		end;
+	end;
 
-  if Result = zNone then
-  begin
-    R := GetHandleRect;
-    P := Point(X, Y);
-    if R.Contains(P) then Result := zHandle
-    else
-    begin
-      if Kind = sbHorizontal then
-      begin
-        if (X > 0) and (X < R.Left) then Result := zTrackPrev
-        else if (X >= R.Right) and (X < ClientWidth - 1) then Result := zTrackNext;
-      end
-      else
-      begin
-        if (Y > 0) and (Y < R.Top) then Result := zTrackPrev
-        else if (Y >= R.Bottom) and (Y < ClientHeight - 1) then Result := zTrackNext;
-      end;
-    end;
-  end;
+	if Result = zNone then
+	begin
+		R := GetHandleRect;
+		P := Point(X, Y);
+		if R.Contains(P) then
+			Result := zHandle
+		else
+		begin
+			if Kind = sbHorizontal then
+			begin
+				if (X > 0) and (X < R.Left) then
+					Result := zTrackPrev
+				else
+				if (X >= R.Right) and (X < ClientWidth - 1) then
+					Result := zTrackNext;
+			end
+			else
+			begin
+				if (Y > 0) and (Y < R.Top) then
+					Result := zTrackPrev
+				else
+				if (Y >= R.Bottom) and (Y < ClientHeight - 1) then
+					Result := zTrackNext;
+			end;
+		end;
+	end;
 end;
 
 function TDecksSlider.GetZoneRect(Zone: TRBZone): TRect;
 const
-  CEmptyRect: TRect = (Left: 0; Top: 0; Right: 0; Bottom: 0);
+	CEmptyRect: TRect = (Left: 0; Top: 0; Right: 0; Bottom: 0);
 var
-  BtnSize: Integer;
-  Horz: Boolean;
-  R: TRect;
+	BtnSize: Integer;
+	Horz: Boolean;
+	R: TRect;
 begin
-  Horz := Kind = sbHorizontal;
-  BtnSize:= GetButtonSize;
-  case Zone of
-    zNone: Result := CEmptyRect;
-    zBtnPrev:
-      begin
-        Result := ClientRect;
-        if Horz then Result.Right := Result.Left + BtnSize
-        else Result.Bottom := Result.Top + BtnSize;
-      end;
-    zTrackPrev..zTrackNext:
-      begin
-        Result := GetTrackBoundary;
-        R := GetHandleRect;
-        if not DrawEnabled or R.IsEmpty then
-        begin
-          R.Left := (Result.Left + Result.Right) div 2;
-          R.Top := (Result.Top + Result.Bottom) div 2;
-          R.Right := R.Left;
-          R.Bottom := R.Top;
-        end;
-        case Zone of
-          zTrackPrev:
-            if Horz then Result.Right := R.Left
-            else Result.Bottom := R.Top;
-          zHandle:
-            Result := R;
-          zTrackNext:
-            if Horz then Result.Left := R.Right
-            else Result.Top := R.Bottom;
-        end;
-      end;
-    zBtnNext:
-      begin
-        Result := ClientRect;
-        if Horz then Result.Left := Result.Right - BtnSize
-        else Result.Top := Result.Bottom - BtnSize;
-      end;
-  end;
+	Horz := Kind = sbHorizontal;
+	BtnSize:= GetButtonSize;
+
+	case Zone of
+
+		zNone:
+			Result := CEmptyRect;
+
+		zBtnPrev:
+		begin
+			Result := ClientRect;
+			if Horz then Result.Right := Result.Left + BtnSize
+			else Result.Bottom := Result.Top + BtnSize;
+		end;
+
+		zTrackPrev..zTrackNext:
+		begin
+			Result := GetTrackBoundary;
+			R := GetHandleRect;
+			if not DrawEnabled or R.IsEmpty then
+			begin
+				R.Left := (Result.Left + Result.Right) div 2;
+				R.Top := (Result.Top + Result.Bottom) div 2;
+				R.Right := R.Left;
+				R.Bottom := R.Top;
+			end;
+			case Zone of
+				zTrackPrev:
+					if Horz then Result.Right := R.Left
+					else Result.Bottom := R.Top;
+				zHandle:
+					Result := R;
+				zTrackNext:
+					if Horz then Result.Left := R.Right
+					else Result.Top := R.Bottom;
+			end;
+		end;
+
+		zBtnNext:
+		begin
+			Result := ClientRect;
+			if Horz then Result.Left := Result.Right - BtnSize
+			else Result.Top := Result.Bottom - BtnSize;
+		end;
+
+	end;
 end;
 
 procedure TDecksSlider.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
 	inherited;
+
 	if Button = mbLeft then
 	begin
 		FDragZone := GetZone(X, Y);
@@ -844,24 +886,26 @@ end;
 
 procedure TDecksSlider.MouseMove(Shift: TShiftState; X, Y: Integer);
 var
-  NewHotZone: TRBZone;
+	NewHotZone: TRBZone;
 begin
-  inherited;
-  if (FDragZone = zNone) and DrawEnabled then
-  begin
-    NewHotZone := GetZone(X, Y);
-    if NewHotZone <> FHotZone then
-    begin
-      FHotZone := NewHotZone;
-      if FHotZone <> zNone then StartHotTracking;
-      Invalidate;
-    end;
-  end;
+	inherited;
+
+	if (FDragZone = zNone) and DrawEnabled then
+	begin
+		NewHotZone := GetZone(X, Y);
+		if NewHotZone <> FHotZone then
+		begin
+			FHotZone := NewHotZone;
+			if FHotZone <> zNone then StartHotTracking;
+			Invalidate;
+		end;
+	end;
 end;
 
 procedure TDecksSlider.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
 	inherited;
+
 	FDragZone := zNone;
 	Invalidate;
 	StopDragTracking;
@@ -871,116 +915,124 @@ end;
 
 procedure TDecksSlider.Paint;
 const
-  CPrevDirs: array [Boolean] of TRBDirection = (drUp, drLeft);
-  CNextDirs: array [Boolean] of TRBDirection = (drDown, drRight);
+	CPrevDirs: array [Boolean] of TRBDirection = (drUp, drLeft);
+	CNextDirs: array [Boolean] of TRBDirection = (drDown, drRight);
 var
-  BSize: Integer;
-  ShowEnabled: Boolean;
-  R, BtnRect, HandleRect: TRect;
-  Horz, ShowHandle: Boolean;
+	BSize: Integer;
+	ShowEnabled: Boolean;
+	R, BtnRect, HandleRect: TRect;
+	Horz, ShowHandle: Boolean;
 begin
-  R := ClientRect;
-  Horz := Kind = sbHorizontal;
-  ShowEnabled := DrawEnabled;
-  BSize := GetButtonSize;
+	R := ClientRect;
+	Horz := Kind = sbHorizontal;
+	ShowEnabled := DrawEnabled;
+	BSize := GetButtonSize;
 
-  if ShowArrows then
-  begin
-    { left / top button }
-    BtnRect := R;
-    with BtnRect do if Horz then Right := Left + BSize else Bottom := Top + BSize;
-    DoDrawButton(BtnRect, CPrevDirs[Horz], FDragZone = zBtnPrev, ShowEnabled, FHotZone = zBtnPrev);
+	if ShowArrows then
+	begin
+		{ left / top button }
+		BtnRect := R;
+		with BtnRect do
+			if Horz then Right := Left + BSize else Bottom := Top + BSize;
+		DoDrawButton(BtnRect, CPrevDirs[Horz], FDragZone = zBtnPrev, ShowEnabled, FHotZone = zBtnPrev);
 
-    { right / bottom button }
-    BtnRect := R;
-    with BtnRect do if Horz then Left := Right - BSize else Top := Bottom - BSize;
-    DoDrawButton(BtnRect, CNextDirs[Horz], FDragZone = zBtnNext, ShowEnabled, FHotZone = zBtnNext);
-  end;
+		{ right / bottom button }
+		BtnRect := R;
+		with BtnRect do
+			if Horz then Left := Right - BSize else Top := Bottom - BSize;
+		DoDrawButton(BtnRect, CNextDirs[Horz], FDragZone = zBtnNext, ShowEnabled, FHotZone = zBtnNext);
+	end;
 
-  if Horz then R.Inflate(-BSize, 0) else R.Inflate(0, -BSize);
-  if ShowEnabled then HandleRect := GetHandleRect
-  else HandleRect := TRect.Empty;
-  ShowHandle := not HandleRect.IsEmpty;
+	if Horz then
+		R.Inflate(-BSize, 0)
+	else
+		R.Inflate(0, -BSize);
+	if ShowEnabled then
+		HandleRect := GetHandleRect
+	else
+		HandleRect := TRect.Empty;
+	ShowHandle := not HandleRect.IsEmpty;
 
-  DoDrawTrack(GetZoneRect(zTrackPrev), CPrevDirs[Horz], FDragZone = zTrackPrev, ShowEnabled, FHotZone = zTrackPrev);
-  DoDrawTrack(GetZoneRect(zTrackNext), CNextDirs[Horz], FDragZone = zTrackNext, ShowEnabled, FHotZone = zTrackNext);
-  if ShowHandle then DoDrawHandle(HandleRect, Horz, FDragZone = zHandle, FHotZone = zHandle);
+	DoDrawTrack(GetZoneRect(zTrackPrev), CPrevDirs[Horz], FDragZone = zTrackPrev, ShowEnabled, FHotZone = zTrackPrev);
+	DoDrawTrack(GetZoneRect(zTrackNext), CNextDirs[Horz], FDragZone = zTrackNext, ShowEnabled, FHotZone = zTrackNext);
+	if ShowHandle then
+		DoDrawHandle(HandleRect, Horz, FDragZone = zHandle, FHotZone = zHandle);
 end;
 
 procedure TDecksSlider.SetBorderStyle(Value: TBorderStyle);
 begin
-  if Value <> FBorderStyle then
-  begin
-    FBorderStyle := Value;
-{$IFNDEF FPC}
-    RecreateWnd;
-{$ELSE}
-    Invalidate;
-{$ENDIF}
-  end;
+	if Value <> FBorderStyle then
+	begin
+		FBorderStyle := Value;
+		{$IFNDEF FPC}
+		RecreateWnd;
+		{$ELSE}
+		Invalidate;
+		{$ENDIF}
+	end;
 end;
 
 procedure TDecksSlider.SetFlat(Value: Boolean);
 begin
-  if Value <> FFlat then
-  begin
-    FFlat := Value;
-    Invalidate;
-  end;
+	if Value <> FFlat then
+	begin
+		FFlat := Value;
+		Invalidate;
+	end;
 end;
 
 procedure TDecksSlider.SetButtonSize(Value: Integer);
 begin
-  if Value <> FButtonSize then
-  begin
-    FButtonSize := Value;
-    Invalidate;
-  end;
+	if Value <> FButtonSize then
+	begin
+		FButtonSize := Value;
+		Invalidate;
+	end;
 end;
 
 procedure TDecksSlider.SetHandleColor(Value: TColor);
 begin
-  if Value <> FHandleColor then
-  begin
-    FHandleColor := Value;
-    Invalidate;
-  end;
+	if Value <> FHandleColor then
+	begin
+		FHandleColor := Value;
+		Invalidate;
+	end;
 end;
 
 procedure TDecksSlider.SetHighLightColor(Value: TColor);
 begin
-  if Value <> FHighLightColor then
-  begin
-    FHighLightColor := Value;
-    Invalidate;
-  end;
+	if Value <> FHighLightColor then
+	begin
+		FHighLightColor := Value;
+		Invalidate;
+	end;
 end;
 
 procedure TDecksSlider.SetButtonColor(Value: TColor);
 begin
-  if Value <> FButtonColor then
-  begin
-    FButtonColor := Value;
-    Invalidate;
-  end;
+	if Value <> FButtonColor then
+	begin
+		FButtonColor := Value;
+		Invalidate;
+	end;
 end;
 
 procedure TDecksSlider.SetBorderColor(Value: TColor);
 begin
-  if Value <> FBorderColor then
-  begin
-    FBorderColor := Value;
-    Invalidate;
-  end;
+	if Value <> FBorderColor then
+	begin
+		FBorderColor := Value;
+		Invalidate;
+	end;
 end;
 
 procedure TDecksSlider.SetShadowColor(Value: TColor);
 begin
-  if Value <> FShadowColor then
-  begin
-    FShadowColor := Value;
-    Invalidate;
-  end;
+	if Value <> FShadowColor then
+	begin
+		FShadowColor := Value;
+		Invalidate;
+	end;
 end;
 
 procedure TDecksSlider.SetArrowColor(Value: TColor);
@@ -1003,155 +1055,161 @@ end;
 
 procedure TDecksSlider.SetKind(Value: TScrollBarKind);
 var
-  Tmp: Integer;
+	Tmp: Integer;
 begin
-  if Value <> FKind then
-  begin
-    FKind := Value;
-    if (csDesigning in ComponentState) and not (csLoading in ComponentState) then
-    begin
-      Tmp := Width;
-      Width := Height;
-      Height := Tmp;
-    end;
-    Invalidate;
-  end;
+	if Value <> FKind then
+	begin
+		FKind := Value;
+		if (csDesigning in ComponentState) and not (csLoading in ComponentState) then
+		begin
+			Tmp := Width;
+			Width := Height;
+			Height := Tmp;
+		end;
+		Invalidate;
+	end;
 end;
 
 procedure TDecksSlider.SetShowArrows(Value: Boolean);
 begin
-  if Value <> FShowArrows then
-  begin
-    FShowArrows := Value;
-    Invalidate;
-  end;
+	if Value <> FShowArrows then
+	begin
+		FShowArrows := Value;
+		Invalidate;
+	end;
 end;
 
 procedure TDecksSlider.StartDragTracking;
 begin
-  FTimer.Interval := FIRST_DELAY;
-  FTimerMode := tmScroll;
-  TimerHandler(Self);
-  FTimerMode := tmScrollFirst;
-  FTimer.Enabled := True;
+	FTimer.Interval := FIRST_DELAY;
+	FTimerMode := tmScroll;
+	TimerHandler(Self);
+	FTimerMode := tmScrollFirst;
+	FTimer.Enabled := True;
 end;
 
 procedure TDecksSlider.StartHotTracking;
 begin
-  FTimer.Interval := HOTTRACK_INTERVAL;
-  FTimerMode := tmHotTrack;
-  FTimer.Enabled := True;
+	FTimer.Interval := HOTTRACK_INTERVAL;
+	FTimerMode := tmHotTrack;
+	FTimer.Enabled := True;
 end;
 
 procedure TDecksSlider.StopDragTracking;
 begin
-  StartHotTracking;
+	StartHotTracking;
 end;
 
 procedure TDecksSlider.StopHotTracking;
 begin
-  FTimer.Enabled := False;
-  FHotZone := zNone;
-  Invalidate;
+	FTimer.Enabled := False;
+	FHotZone := zNone;
+	Invalidate;
 end;
 
 procedure TDecksSlider.TimerHandler(Sender: TObject);
 var
-  Pt: TPoint;
+	Pt: TPoint;
 begin
-  case FTimerMode of
-    tmScrollFirst:
-      begin
-        FTimer.Interval := SCROLL_INTERVAL;
-        FTimerMode := tmScroll;
-      end;
-    tmHotTrack:
-      begin
-        Pt := ScreenToClient(Mouse.CursorPos);
-        if not ClientRect.Contains(Pt) then
-        begin
-          StopHotTracking;
-          Invalidate;
-        end;
-      end;
-  end;
+	case FTimerMode of
+		tmScrollFirst:
+		begin
+			FTimer.Interval := SCROLL_INTERVAL;
+			FTimerMode := tmScroll;
+		end;
+		tmHotTrack:
+		begin
+			Pt := ScreenToClient(Mouse.CursorPos);
+			if not ClientRect.Contains(Pt) then
+			begin
+				StopHotTracking;
+				Invalidate;
+			end;
+		end;
+	end;
 end;
 
 {$IFDEF FPC}
 procedure TDecksSlider.WMEraseBkgnd(var Message: TLmEraseBkgnd);
 begin
-  Message.Result := -1;
+	Message.Result := -1;
 end;
 
 procedure TDecksSlider.WMNCCalcSize(var Message: TLMNCCalcSize);
 var
-  Sz: Integer;
+	Sz: Integer;
 begin
-  Sz := GetBorderSize;
-  Message.CalcSize_Params.rgrc[0].Inflate(-Sz, -Sz);
+	Sz := GetBorderSize;
+	Message.CalcSize_Params.rgrc[0].Inflate(-Sz, -Sz);
 end;
 
 {$IFDEF Windows}
 procedure TDecksSlider.WMNCPaint(var Message: TWMNCPaint);
 
-  procedure DrawNCArea(ADC: HDC; const Clip: HRGN);
-  var
-    DC: HDC;
-    R: TRect;
-  begin
-    if BorderStyle = bsNone then Exit;
-    if ADC = 0 then DC := GetWindowDC(Handle)
-    else DC := ADC;
-    try
-      GetWindowRect(Handle, R{%H-});
-      OffsetRect(R, -R.Left, -R.Top);
-      DrawEdge(DC, R, BDR_SUNKENOUTER, BF_RECT);
-    finally
-      if ADC = 0 then ReleaseDC(Handle, DC);
-    end;
-  end;
+	procedure DrawNCArea(ADC: HDC; const Clip: HRGN);
+	var
+		DC: HDC;
+		R: TRect;
+	begin
+		if BorderStyle = bsNone then Exit;
+
+		if ADC = 0 then
+			DC := GetWindowDC(Handle)
+		else
+			DC := ADC;
+		try
+			GetWindowRect(Handle, R{%H-});
+			OffsetRect(R, -R.Left, -R.Top);
+			DrawEdge(DC, R, BDR_SUNKENOUTER, BF_RECT);
+		finally
+			if ADC = 0 then
+				ReleaseDC(Handle, DC);
+		end;
+	end;
 
 begin
-  DrawNCArea(0, Message.RGN);
+	DrawNCArea(0, Message.RGN);
 end;
 {$ENDIF}
-
 {$ELSE}
-
 procedure TDecksSlider.WMEraseBkgnd(var Message: TWmEraseBkgnd);
 begin
-  Message.Result := -1;
+	Message.Result := -1;
 end;
 
 procedure TDecksSlider.WMNCCalcSize(var Message: TWMNCCalcSize);
 var
-  Sz: Integer;
+	Sz: Integer;
 begin
-  Sz := GetBorderSize;
-  GR32.InflateRect(Message.CalcSize_Params.rgrc[0], -Sz, -Sz);
+	Sz := GetBorderSize;
+	GR32.InflateRect(Message.CalcSize_Params.rgrc[0], -Sz, -Sz);
 end;
 
 procedure TDecksSlider.WMNCPaint(var Message: TWMNCPaint);
 
-  procedure DrawNCArea(ADC: HDC; const Clip: HRGN);
-  var
-    DC: HDC;
-    R: TRect;
-  begin
-    if BorderStyle = bsNone then Exit;
-    if ADC = 0 then DC := GetWindowDC(Handle)
-    else DC := ADC;
-    try
-      GetWindowRect(Handle, R);
-      GR32.OffsetRect(R, -R.Left, -R.Top);
-      DrawEdge(DC, R, BDR_SUNKENOUTER, BF_RECT);
-    finally
-      if ADC = 0 then ReleaseDC(Handle, DC);
-    end;
-  end;
+	procedure DrawNCArea(ADC: HDC; const Clip: HRGN);
+	var
+		DC: HDC;
+		R: TRect;
+	begin
+		if BorderStyle = bsNone then Exit;
+
+		if ADC = 0 then
+			DC := GetWindowDC(Handle)
+		else
+			DC := ADC;
+		try
+			GetWindowRect(Handle, R);
+			GR32.OffsetRect(R, -R.Left, -R.Top);
+			DrawEdge(DC, R, BDR_SUNKENOUTER, BF_RECT);
+		finally
+			if ADC = 0 then
+				ReleaseDC(Handle, DC);
+		end;
+	end;
 
 begin
-  DrawNCArea(0, Message.RGN);
+	DrawNCArea(0, Message.RGN);
 end;
 {$ENDIF}
 
@@ -1159,273 +1217,331 @@ end;
 
 procedure TCustomRangeBar.AdjustPosition;
 begin
-  if FPosition > Range - EffectiveWindow then FPosition := Range - EffectiveWindow;
-  if FPosition < 0 then FPosition := 0;
+	if FPosition > Range - FEffectiveWindow then
+		FPosition := Range - FEffectiveWindow;
+	if FPosition < 0 then
+		FPosition := 0;
 end;
 
 constructor TCustomRangeBar.Create(AOwner: TComponent);
 begin
-  inherited;
-  FIncrement := 8;
+	inherited;
+	FIncrement := 8;
 end;
 
-function TCustomRangeBar.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
-  MousePos: TPoint): Boolean;
+function TCustomRangeBar.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean;
 const OneHundredTwenteenth = 1 / 120;
 begin
-  if Kind = sbVertical then WheelDelta := -WheelDelta;
-  Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
-  if not Result then Position := Position + Increment * WheelDelta * OneHundredTwenteenth;
-  Result := True;
+	if Kind = sbVertical then WheelDelta := -WheelDelta;
+	Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
+	if not Result then Position := Position + Increment * WheelDelta * OneHundredTwenteenth;
+	Result := True;
 end;
 
 function TCustomRangeBar.DrawEnabled: Boolean;
 begin
-  Result := Enabled and (Range > EffectiveWindow);
+	Result := Enabled and (Range > EffectiveWindow);
 end;
 
 function TCustomRangeBar.GetHandleRect: TRect;
 var
-  BtnSz, ClientSz: Integer;
-  HandleSz, HandlePos: Integer;
-  R: TRect;
-  Horz: Boolean;
+	BtnSz, ClientSz: Integer;
+	HandleSz, HandlePos: Integer;
+	R: TRect;
+	Horz: Boolean;
 begin
-  R := Rect(0, 0, ClientWidth, ClientHeight);
-  Horz := Kind = sbHorizontal;
-  BtnSz := GetButtonSize;
-  if Horz then
-  begin
-    R.Inflate(-BtnSz, 0);
-    ClientSz := R.Right - R.Left;
-  end
-  else
-  begin
-    R.Inflate(0, -BtnSz);
-    ClientSz := R.Bottom - R.Top;
-  end;
-  if ClientSz < 18 then
-  begin
-    Result := Rect(0, 0, 0, 0);
-    Exit;
-  end;
+	R := Rect(0, 0, ClientWidth, ClientHeight);
+	Horz := Kind = sbHorizontal;
+	BtnSz := GetButtonSize;
 
-  if Range > EffectiveWindow then
-  begin
-    HandleSz := Round(ClientSz * EffectiveWindow / Range);
-    if HandleSz >= MIN_SIZE then HandlePos := Round(ClientSz * Position / Range)
-    else
-    begin
-      HandleSz := MIN_SIZE;
-      HandlePos := Round((ClientSz - MIN_SIZE) * Position / (Range - EffectiveWindow));
-    end;
-    Result := R;
-    if Horz then
-    begin
-      Result.Left := R.Left + HandlePos;
-      Result.Right := R.Left + HandlePos + HandleSz;
-    end
-    else
-    begin
-      Result.Top := R.Top + HandlePos;
-      Result.Bottom := R.Top + HandlePos + HandleSz;
-    end;
-  end
-  else Result := R;
+	if Horz then
+	begin
+		R.Inflate(-BtnSz, 0);
+		ClientSz := R.Right - R.Left;
+	end
+	else
+	begin
+		R.Inflate(0, -BtnSz);
+		ClientSz := R.Bottom - R.Top;
+	end;
+	if ClientSz < 18 then
+	begin
+		Result := Rect(0, 0, 0, 0);
+		Exit;
+	end;
+
+	if Range > EffectiveWindow then
+	begin
+		HandleSz := Round(ClientSz * EffectiveWindow / Range);
+		if HandleSz >= MIN_SIZE then HandlePos := Round(ClientSz * Position / Range)
+		else
+		begin
+			HandleSz := MIN_SIZE;
+			HandlePos := Round((ClientSz - MIN_SIZE) * Position / (Range - EffectiveWindow));
+		end;
+
+		Result := R;
+
+		if Horz then
+		begin
+			Result.Left  := R.Left + HandlePos;
+			Result.Right := R.Left + HandlePos + HandleSz;
+		end
+		else
+		begin
+			Result.Top    := R.Top + HandlePos;
+			Result.Bottom := R.Top + HandlePos + HandleSz;
+		end;
+	end
+	else
+		Result := R;
 end;
 
 function TCustomRangeBar.IsPositionStored: Boolean;
 begin
-  Result := FPosition > 0;
+	Result := FPosition > 0;
 end;
 
-procedure TCustomRangeBar.MouseDown(Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+procedure TCustomRangeBar.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+	R, H: TRect;
+	P: Single;
 begin
 	if Button = mbRight then
 	begin
 		case GetZone(X, Y) of
-			zBtnPrev: Position := 0;
-			zBtnNext: Position := Range;
+
+			// jump to start
+			zBtnPrev:
+				Position := 0;
+
+			// jump to end
+			zBtnNext:
+				Position := Range;
+
+			// jump slider to mouse position on right click
+			zTrackPrev, zTrackNext:
+			begin
+				R := GetTrackBoundary;
+				H := GetHandleRect;
+
+				if Kind = sbVertical then
+				begin
+					Dec(Y, GetButtonSize);
+					Dec(Y, H.Height div 2);
+					P := Y / R.Height;
+				end
+				else
+				begin
+					Dec(X, GetButtonSize);
+					Dec(X, H.Width div 2);
+					P := R.Width / X;
+				end;
+
+				SetPosition(Range * P);
+			end;
 		else
 			inherited;
 		end;
 	end
 	else
 	begin
-	  if Range <= EffectiveWindow then
-		FDragZone := zNone
-	  else
-	  begin
-	    inherited;
-	    if FDragZone = zHandle then
-	    begin
-	      StopDragTracking;
-	      FPosBeforeDrag := Position;
-	    end;
-	  end;
+		if Range <= EffectiveWindow then
+			FDragZone := zNone
+		else
+		begin
+			inherited;
+
+			if FDragZone = zHandle then
+			begin
+				StopDragTracking;
+				FPosBeforeDrag := Position;
+			end;
+		end;
 	end;
 end;
 
 procedure TCustomRangeBar.MouseMove(Shift: TShiftState; X, Y: Integer);
 var
-  Delta: Single;
-  WinSz: Single;
-  ClientSz, HandleSz: Integer;
+	Delta: Single;
+	WinSz: Single;
+	ClientSz, HandleSz: Integer;
 begin
-  inherited;
-  if FDragZone = zHandle then
-  begin
-    WinSz := EffectiveWindow;
+	inherited;
 
-    if Range <= WinSz then Exit;
-    if Kind = sbHorizontal then Delta := X - FStored.X else Delta := Y - FStored.Y;
+	if FDragZone <> zHandle then Exit;
+	WinSz := EffectiveWindow;
+	if Range <= WinSz then Exit;
 
-    if Kind = sbHorizontal then ClientSz := ClientWidth  else ClientSz := ClientHeight;
-    Dec(ClientSz, GetButtonSize * 2);
-    if BorderStyle = bsSingle then Dec(ClientSz, 2);
-    HandleSz := Round(ClientSz * WinSz / Range);
+	if Kind = sbHorizontal then
+		Delta := X - FStored.X
+	else
+		Delta := Y - FStored.Y;
 
-    if HandleSz < MIN_SIZE then Delta := Round(Delta * (Range - WinSz) / (ClientSz - MIN_SIZE))
-    else Delta := Delta * Range / ClientSz;
+	if Kind = sbHorizontal then
+		ClientSz := ClientWidth
+	else
+		ClientSz := ClientHeight;
 
-    FGenChange := True;
-    Position := FPosBeforeDrag + Delta;
-    FGenChange := False;
-  end;
+	Dec(ClientSz, GetButtonSize * 2);
+	if BorderStyle = bsSingle then
+		Dec(ClientSz, 2);
+	HandleSz := Round(ClientSz * WinSz / Range);
+
+	if HandleSz < MIN_SIZE then
+		Delta := Round(Delta * (Range - WinSz) / (ClientSz - MIN_SIZE))
+	else
+		Delta := Delta * Range / ClientSz;
+
+	FGenChange := True;
+	Position := FPosBeforeDrag + Delta;
+	FGenChange := False;
 end;
 
 procedure TCustomRangeBar.Resize;
 var
-  OldWindow: Integer;
-  Center: Single;
+	OldWindow: Integer;
+	Center: Single;
 begin
-  if Centered then
-  begin
-    OldWindow := EffectiveWindow;
-    UpdateEffectiveWindow;
-    if Range > EffectiveWindow then
-    begin
-      if (Range > OldWindow) and (Range <> 0) then Center := (FPosition + OldWindow * 0.5) / Range
-      else Center := 0.5;
-      FPosition := Center * Range - EffectiveWindow * 0.5;
-    end;
-  end;
-  AdjustPosition;
-  inherited;
+	if Centered then
+	begin
+		OldWindow := EffectiveWindow;
+		UpdateEffectiveWindow;
+		if Range > EffectiveWindow then
+		begin
+			if (Range > OldWindow) and (Range <> 0) then
+				Center := (FPosition + OldWindow * 0.5) / Range
+			else
+				Center := 0.5;
+			FPosition := Center * Range - EffectiveWindow * 0.5;
+		end;
+	end;
+
+	AdjustPosition;
+
+	inherited;
 end;
 
 procedure TCustomRangeBar.SetParams(NewRange, NewWindow: Integer);
 var
-  OldWindow, OldRange: Integer;
-  Center: Single;
+	OldWindow, OldRange: Integer;
+	Center: Single;
 begin
-  if NewRange < 0 then NewRange := 0;
-  if NewWindow < 0 then NewWindow := 0;
-  if (NewRange <> FRange) or (NewWindow <> EffectiveWindow) then
-  begin
-    OldWindow := EffectiveWindow;
-    OldRange := Range;
-    FRange := NewRange;
-    FWindow := NewWindow;
-    UpdateEffectiveWindow;
-    if Centered and (Range > EffectiveWindow) then
-    begin
-      if (OldRange > OldWindow) and (OldRange <> 0) then
-        Center := (FPosition + OldWindow * 0.5) / OldRange
-      else
-        Center := 0.5;
-      FPosition := Center * Range - EffectiveWindow * 0.5;
-    end;
-    AdjustPosition;
-    Invalidate;
-  end;
+	if NewRange  < 0 then NewRange  := 0;
+	if NewWindow < 0 then NewWindow := 0;
+
+	if (NewRange <> FRange) or (NewWindow <> EffectiveWindow) then
+	begin
+		OldWindow := EffectiveWindow;
+		OldRange := Range;
+		FRange := NewRange;
+		FWindow := NewWindow;
+		UpdateEffectiveWindow;
+
+		if Centered and (Range > EffectiveWindow) then
+		begin
+			if (OldRange > OldWindow) and (OldRange <> 0) then
+				Center := (FPosition + OldWindow * 0.5) / OldRange
+			else
+				Center := 0.5;
+			FPosition := Center * Range - EffectiveWindow * 0.5;
+		end;
+
+		AdjustPosition;
+		Invalidate;
+	end;
 end;
 
 procedure TCustomRangeBar.SetPosition(Value: Single);
 var
-  OldPosition: Single;
+	OldPosition: Single;
 begin
-  if Value <> FPosition then
-  begin
-    OldPosition := FPosition;
-    FPosition := Value;
-    AdjustPosition;
-    if OldPosition <> FPosition then
-    begin
-      Invalidate;
-      DoChange;
-    end;
-  end;
+	if Value <> FPosition then
+	begin
+		OldPosition := FPosition;
+		FPosition := Value;
+		AdjustPosition;
+		if OldPosition <> FPosition then
+		begin
+			Invalidate;
+			DoChange;
+		end;
+	end;
 end;
 
 procedure TCustomRangeBar.SetRange(Value: Integer);
 begin
-  SetParams(Value, Window);
+	SetParams(Value, Window);
 end;
 
 procedure TCustomRangeBar.SetWindow(Value: Integer);
 begin
-  SetParams(Range, Value);
+	SetParams(Range, Value);
 end;
 
 procedure TCustomRangeBar.TimerHandler(Sender: TObject);
 var
-  OldPosition: Single;
-  Pt: TPoint;
+	OldPosition: Single;
+	Pt: TPoint;
 
-  function MousePos: TPoint;
-  begin
-    Result := ScreenToClient(Mouse.CursorPos);
-    if Result.X < 0 then Result.X := 0;
-    if Result.Y < 0 then Result.Y := 0;
-    if Result.X >= ClientWidth then Result.X := ClientWidth - 1;
-    if Result.Y >= ClientHeight then Result.Y := ClientHeight - 1
-  end;
+	function MousePos: TPoint;
+	begin
+		Result := ScreenToClient(Mouse.CursorPos);
+		if Result.X < 0 then Result.X := 0;
+		if Result.Y < 0 then Result.Y := 0;
+		if Result.X >= ClientWidth  then Result.X := ClientWidth  - 1;
+		if Result.Y >= ClientHeight then Result.Y := ClientHeight - 1
+	end;
 
 begin
-  inherited;
-  FGenChange := True;
-  OldPosition := Position;
+	inherited;
 
-  case FDragZone of
-    zBtnPrev:
-      begin
-        Position := Position - Increment;
-        if Position = OldPosition then StopDragTracking;
-      end;
+	FGenChange := True;
+	OldPosition := Position;
 
-    zBtnNext:
-      begin
-        Position := Position + Increment;
-        if Position = OldPosition then StopDragTracking;
-      end;
+	case FDragZone of
 
-    zTrackNext:
-      begin
-        Pt := MousePos;
-        if GetZone(Pt.X, Pt.Y) in [zTrackNext, zBtnNext] then
-        Position := Position + EffectiveWindow;
-      end;
+		zBtnPrev:
+		begin
+			Position := Position - Increment;
+			if Position = OldPosition then StopDragTracking;
+		end;
 
-    zTrackPrev:
-      begin
-        Pt := MousePos;
-        if GetZone(Pt.X, Pt.Y) in [zTrackPrev, zBtnPrev] then
-        Position := Position - EffectiveWindow;
-      end;
-  end;
-  FGenChange := False;
+		zBtnNext:
+		begin
+			Position := Position + Increment;
+			if Position = OldPosition then StopDragTracking;
+		end;
+
+		zTrackNext:
+		begin
+			Pt := MousePos;
+			if GetZone(Pt.X, Pt.Y) in [zTrackNext, zBtnNext] then
+				Position := Position + EffectiveWindow;
+		end;
+
+		zTrackPrev:
+		begin
+			Pt := MousePos;
+			if GetZone(Pt.X, Pt.Y) in [zTrackPrev, zBtnPrev] then
+				Position := Position - EffectiveWindow;
+		end;
+	end;
+
+	FGenChange := False;
 end;
 
 procedure TCustomRangeBar.UpdateEffectiveWindow;
 begin
-  if FWindow > 0 then FEffectiveWindow := FWindow
-  else
-  begin
-    if Kind = sbHorizontal then FEffectiveWindow := Width
-    else FEffectiveWindow := Height;
-  end;
+	if FWindow > 0 then
+		FEffectiveWindow := FWindow
+	else
+	begin
+		if Kind = sbHorizontal then
+			FEffectiveWindow := Width
+		else
+			FEffectiveWindow := Height;
+	end;
 end;
 
 //----------------------------------------------------------------------------//
@@ -1434,69 +1550,85 @@ end;
 
 procedure TCustomGaugeBar.AdjustPosition;
 begin
-	if Position < Min then Position := Min
-	else if Position > Max then Position := Max;
+	if Position < Min then
+		Position := Min
+	else
+	if Position > Max then
+		Position := Max;
 end;
 
 constructor TCustomGaugeBar.Create(AOwner: TComponent);
 begin
-  inherited;
-  FLargeChange := 1;
-  FMax := 100;
-  FSmallChange := 1;
+	inherited;
+
+	FLargeChange := 1;
+	FMax := 100;
+	FSmallChange := 1;
 end;
 
 function TCustomGaugeBar.DoMouseWheel(Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint): Boolean;
 begin
-  if Kind = sbVertical then WheelDelta := -WheelDelta;
-  Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
-  if not Result then Position := Position + FLargeChange * WheelDelta div 120;
-  Result := True;
+	if Kind = sbVertical then WheelDelta := -WheelDelta;
+	Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
+	if not Result then
+		Position := Position + FLargeChange * WheelDelta div 120;
+	Result := True;
 end;
 
 function TCustomGaugeBar.GetHandleRect: TRect;
 var
-  Sz, HandleSz: Integer;
-  Horz: Boolean;
-  Pos: Integer;
+	Sz, HandleSz: Integer;
+	Horz: Boolean;
+	Pos: Integer;
 begin
-  Result := GetTrackBoundary;
-  Horz := Kind = sbHorizontal;
-  HandleSz := GetHandleSize;
+	Result := GetTrackBoundary;
+	Horz := Kind = sbHorizontal;
+	HandleSz := GetHandleSize;
 
-  if Horz then Sz := Result.Right - Result.Left
-  else Sz := Result.Bottom - Result.Top;
+	if Horz then
+		Sz := Result.Right - Result.Left
+	else
+		Sz := Result.Bottom - Result.Top;
 
-  Pos := Round((Position - Min) / (Max - Min) * (Sz - GetHandleSize));
+	Pos := Round((Position - Min) / (Max - Min) * (Sz - GetHandleSize));
 
-  if Horz then
-  begin
-    Inc(Result.Left, Pos);
-    Result.Right := Result.Left + HandleSz;
-  end
-  else
-  begin
-    Inc(Result.Top, Pos);
-    Result.Bottom := Result.Top + HandleSz;
-  end;
+	if Horz then
+	begin
+		Inc(Result.Left, Pos);
+		Result.Right := Result.Left + HandleSz;
+	end
+	else
+	begin
+		Inc(Result.Top, Pos);
+		Result.Bottom := Result.Top + HandleSz;
+	end;
 end;
 
 function TCustomGaugeBar.GetHandleSize: Integer;
 var
-  R: TRect;
-  Sz: Integer;
+	R: TRect;
+	Sz: Integer;
 begin
-  Result := HandleSize;
-  if Result = 0 then
-  begin
-    if Kind = sbHorizontal then Result := ClientHeight else Result := ClientWidth;
-  end;
-  R := GetTrackBoundary;
-  if Kind = sbHorizontal then Sz := R.Right - R.Left
-  else Sz := R.Bottom - R.Top;
-  if Sz - Result < 1 then Result := Sz - 1;
-  if Result < 0 then Result := 0;
+	Result := HandleSize;
+
+	if Result = 0 then
+	begin
+		if Kind = sbHorizontal then
+			Result := ClientHeight
+		else
+			Result := ClientWidth;
+	end;
+
+	R := GetTrackBoundary;
+	if Kind = sbHorizontal then
+		Sz := R.Right - R.Left
+	else
+		Sz := R.Bottom - R.Top;
+	if Sz - Result < 1 then
+		Result := Sz - 1;
+	if Result < 0 then
+		Result := 0;
 end;
 
 procedure TCustomGaugeBar.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -1506,80 +1638,109 @@ begin
 		case GetZone(X, Y) of
 			zBtnPrev: Position := Min;
 			zBtnNext: Position := Max;
+			{zTrackPrev, zTrackNext: // !!! TODO
+			begin
+				// jump slider to mouse position on right click
+				R := GetTrackBoundary;
+				H := GetHandleRect;
+
+				if Kind = sbVertical then
+				begin
+					Dec(Y, GetButtonSize);
+					Dec(Y, H.Height div 2);
+					P := Y / R.Height;
+				end
+				else
+				begin
+					Dec(X, GetButtonSize);
+					Dec(X, H.Width div 2);
+					P := R.Width / X;
+				end;
+				SetPosition(Range * P);
+			end;}
 		else
 			inherited;
 		end;
 	end
 	else
 	begin
-	  inherited;
-	  if FDragZone = zHandle then
-	  begin
-	    StopDragTracking;
-	    FPosBeforeDrag := Position;
-	  end;
+		inherited;
+
+		if FDragZone = zHandle then
+		begin
+			StopDragTracking;
+			FPosBeforeDrag := Position;
+		end;
 	end;
 end;
 
 procedure TCustomGaugeBar.MouseMove(Shift: TShiftState; X, Y: Integer);
 var
-  Delta: Single;
-  R: TRect;
-  ClientSz: Integer;
+	Delta: Single;
+	R: TRect;
+	ClientSz: Integer;
 begin
-  inherited;
-  if FDragZone = zHandle then
-  begin
-    if Kind = sbHorizontal then Delta := X - FStored.X else Delta := Y - FStored.Y;
-    R := GetTrackBoundary;
+	inherited;
 
-    if Kind = sbHorizontal then ClientSz := R.Right - R.Left
-    else ClientSz := R.Bottom - R.Top;
+	if FDragZone = zHandle then
+	begin
+		if Kind = sbHorizontal then
+			Delta := X - FStored.X
+		else
+			Delta := Y - FStored.Y;
 
-    Delta := Delta * (Max - Min) / (ClientSz - GetHandleSize);
+		R := GetTrackBoundary;
 
-    FGenChange := True;
-    Position := Round(FPosBeforeDrag + Delta);
-    FGenChange := False;
-  end;
+		if Kind = sbHorizontal then
+			ClientSz := R.Right - R.Left
+		else
+			ClientSz := R.Bottom - R.Top;
+
+		Delta := Delta * (Max - Min) / (ClientSz - GetHandleSize);
+		FGenChange := True;
+		Position := Round(FPosBeforeDrag + Delta);
+		FGenChange := False;
+	end;
 end;
 
 procedure TCustomGaugeBar.SetHandleSize(Value: Integer);
 begin
-  if Value < 0 then Value := 0;
-  if Value <> FHandleSize then
-  begin
-    FHandleSize := Value;
-    Invalidate;
-  end;
+	if Value < 0 then Value := 0;
+	if Value <> FHandleSize then
+	begin
+		FHandleSize := Value;
+		Invalidate;
+	end;
 end;
 
 procedure TCustomGaugeBar.SetLargeChange(Value: Integer);
 begin
-  if Value < 1 then Value := 1;
-  FLargeChange := Value;
+	if Value < 1 then Value := 1;
+	FLargeChange := Value;
 end;
 
 procedure TCustomGaugeBar.SetMax(Value: Integer);
 begin
-  if (Value <= FMin) and not (csLoading in ComponentState) then Value := FMin + 1;
-  if Value <> FMax then
-  begin
-    FMax := Value;
-    AdjustPosition;
-    Invalidate;
-  end;
+	if (Value <= FMin) and not (csLoading in ComponentState) then
+		Value := FMin + 1;
+	if Value <> FMax then
+	begin
+		FMax := Value;
+		AdjustPosition;
+		Invalidate;
+	end;
 end;
 
 procedure TCustomGaugeBar.SetMin(Value: Integer);
 begin
-  if (Value >= FMax) and not (csLoading in ComponentState) then Value := FMax - 1;
-  if Value <> FMin then
-  begin
-    FMin := Value;
-    AdjustPosition;
-    Invalidate;
-  end;
+	if (Value >= FMax) and not (csLoading in ComponentState) then
+		Value := FMax - 1;
+	if Value <> FMin then
+	begin
+		FMin := Value;
+		AdjustPosition;
+		Invalidate;
+	end;
 end;
 
 procedure TCustomGaugeBar.SetPosition(Value: Integer);
@@ -1611,53 +1772,55 @@ end;
 
 procedure TCustomGaugeBar.TimerHandler(Sender: TObject);
 var
-  OldPosition: Single;
-  Pt: TPoint;
+	OldPosition: Single;
+	Pt: TPoint;
 
-  function MousePos: TPoint;
-  begin
-    Result := ScreenToClient(Mouse.CursorPos);
-    if Result.X < 0 then Result.X := 0;
-    if Result.Y < 0 then Result.Y := 0;
-    if Result.X >= ClientWidth then Result.X := ClientWidth - 1;
-    if Result.Y >= ClientHeight then Result.Y := ClientHeight - 1
-  end;
+	function MousePos: TPoint;
+	begin
+		Result := ScreenToClient(Mouse.CursorPos);
+		if Result.X < 0 then Result.X := 0;
+		if Result.Y < 0 then Result.Y := 0;
+		if Result.X >= ClientWidth then Result.X := ClientWidth - 1;
+		if Result.Y >= ClientHeight then Result.Y := ClientHeight - 1
+	end;
 
 begin
-  inherited;
-  FGenChange := True;
-  OldPosition := Position;
+	inherited;
 
-  case FDragZone of
-    zBtnPrev:
-      begin
-        Position := Position - SmallChange;
-        if Position = OldPosition then StopDragTracking;
-      end;
+	FGenChange := True;
+	OldPosition := Position;
 
-    zBtnNext:
-      begin
-        Position := Position + SmallChange;
-        if Position = OldPosition then StopDragTracking;
-      end;
+	case FDragZone of
 
-    zTrackNext:
-      begin
-        Pt := MousePos;
-        if GetZone(Pt.X, Pt.Y) in [zTrackNext, zBtnNext] then
-        Position := Position + LargeChange;
-      end;
+		zBtnPrev:
+		begin
+			Position := Position - SmallChange;
+			if Position = OldPosition then StopDragTracking;
+		end;
 
-    zTrackPrev:
-      begin
-        Pt := MousePos;
-        if GetZone(Pt.X, Pt.Y) in [zTrackPrev, zBtnPrev] then
-        Position := Position - LargeChange;
-      end;
-  end;
-  FGenChange := False;
+		zBtnNext:
+		begin
+			Position := Position + SmallChange;
+			if Position = OldPosition then StopDragTracking;
+		end;
+
+		zTrackNext:
+		begin
+			Pt := MousePos;
+			if GetZone(Pt.X, Pt.Y) in [zTrackNext, zBtnNext] then
+				Position := Position + LargeChange;
+		end;
+
+		zTrackPrev:
+		begin
+			Pt := MousePos;
+			if GetZone(Pt.X, Pt.Y) in [zTrackPrev, zBtnPrev] then
+				Position := Position - LargeChange;
+		end;
+	end;
+
+	FGenChange := False;
 end;
 
 end.
-
 
