@@ -38,9 +38,19 @@ const
 	BASS_FX_FREESOURCE = $10000;		// Free the source handle as well?
 
 	{$IFDEF MSWINDOWS}
-		bass_fxdll = 'bass_fx.dll';
-	{$ELSE}
-		bass_fxdll = 'libbass_fx.so';
+	  bass_fxdll = 'bass_fx.dll';
+	{$ENDIF}
+	{$IFDEF LINUX}
+	  bass_fxdll = 'libbass_fx.so';
+	{$ENDIF}
+	{$IFDEF ANDROID}
+	  bass_fxdll = 'libbass_fx.so';
+	{$ENDIF}
+	{$IFDEF OSX}
+	  bass_fxdll = 'libbass_fx.dylib';
+	{$ENDIF}
+	{$IFDEF IOS}
+	  bass_fxdll = 'bass_fx.framework/bass_fx';
 	{$ENDIF}
 
 // BASS_FX Version
