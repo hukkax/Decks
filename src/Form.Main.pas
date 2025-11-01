@@ -149,6 +149,7 @@ type
 		sFilterL: ThKnob;
 		sFilterR: ThKnob;
 		bRecord: TDecksButton;
+		miSettings: TMenuItem;
 		procedure DeckPanelResize(Sender: TObject);
 		procedure FileListDblClick(Sender: TObject);
 		procedure FileListEnter(Sender: TObject);
@@ -221,6 +222,7 @@ type
 			X, Y: Integer);
 		procedure sFilterLChange(Sender: TObject);
 		procedure bRecordSetDown(Sender: TObject);
+		procedure miSettingsClick(Sender: TObject);
 	private
 		PlayedFilenames: TStringList;
 		IsShiftDown: Boolean;
@@ -329,6 +331,7 @@ uses
 	BCTypes, BCButton, TeeGenericTree, FocusRectangleUnit,
 	Form.Tracklist,
 	BASS, BASSenc, AudioTag, basetag, file_Wave, file_mp3, file_ogg,
+	Form.Config,
 	Decks.Song, Decks.Beatgraph, Decks.TapTempo;
 
 var
@@ -1021,6 +1024,11 @@ begin
 	Config.Deck.WarnSpeed := 25;
 	Config.Deck.Waveform.Height := 60;
 
+	with Config.Theme.Colors.Base do
+	begin
+		Background := $212223;
+	end;
+
 	with Config.Theme.Colors.FileList do
 	begin
 		Background.Normal  := $212223;
@@ -1286,6 +1294,14 @@ end;
 
 procedure TMainForm.ApplyTheme;
 begin
+	with Config.Theme.Colors.Base do
+	begin
+//		PanelMain.Background.Color   := Background;
+		DeckPanel.Background.Color   := Background;
+		MixerPanel.Background.Color  := Background;
+		BottomPanel.Background.Color := Background;
+	end;
+
 	with Config.Theme.Colors.FileList do
 	begin
 		FileList.Color := Background.Normal;
@@ -3000,5 +3016,10 @@ begin
 		//InitDevice(i, Config.Audio.CueDevice); TODO
 	end;
 end;*)
+
+procedure TMainForm.miSettingsClick(Sender: TObject);
+begin
+	ConfigForm.ShowModal;
+end;
 
 end.

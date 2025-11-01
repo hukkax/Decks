@@ -61,9 +61,6 @@
           </Linking>
           <Other>
             <WriteFPCLogo Value="False"/>
-            <CompilerMessages>
-              <IgnoredMessages idx6060="True" idx3124="True" idx3123="True"/>
-            </CompilerMessages>
             <CustomOptions Value="-Si
 -OoFASTMATH
 -OoPEEPHOLE
@@ -251,9 +248,6 @@
     </Linking>
     <Other>
       <WriteFPCLogo Value="False"/>
-      <CompilerMessages>
-        <IgnoredMessages idx6060="True" idx6058="True" idx3124="True" idx3123="True"/>
-      </CompilerMessages>
       <CustomOptions Value="-Si
 -OoFASTMATH
 -OoPEEPHOLE

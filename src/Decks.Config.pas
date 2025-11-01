@@ -61,7 +61,7 @@ type
 		MODE_PADS_PAGE
 	);
 
-	TConfigItemType   = ( cfgBoolean, cfgByte, cfgWord, cfgInteger, cfgFloat, cfgString );
+	TConfigItemType   = ( cfgBoolean, cfgByte, cfgWord, cfgInteger, cfgFloat, cfgString, cfgColor );
 	TConfigItemAccess = ( cfgRead, cfgWrite, cfgReadWrite );
 
 	TConfigItem = class
@@ -105,6 +105,11 @@ type
 		end;
 
 		Colors: record
+
+			Base: record
+				Background: TDecksColor;
+			end;
+
 			FileList: record
 				GridLines,
 				BgHover,
@@ -288,6 +293,88 @@ begin
 	Result.BoolFalseStrings := ['false', 'no',  '0'];
 end;
 
+// adapted from https://wiki.freepascal.org/Convert_color_to/from_HTML
+
+const
+	HTML_COLOR_PREFIX = '$';
+
+function ColorToHTML(Color: TColor): String;
+var
+  N: Longint;
+begin
+	if Color = clNone then Exit('');
+
+	N := ColorToRGB(Color);
+	Result := HTML_COLOR_PREFIX +
+		IntToHex(Red(N), 2) + IntToHex(Green(N), 2) + IntToHex(Blue(N), 2);
+end;
+
+function HTMLToColor(S: String; Default: TColor = clNone): TColor;
+
+	function IsCharWord(C: Char): Boolean; inline;
+	begin
+		Result := C in ['a'..'z', 'A'..'Z', '_', '0'..'9'];
+	end;
+
+	function IsCharHex(C: Char): Boolean; inline;
+	begin
+		Result := C in ['0'..'9', 'a'..'f', 'A'..'F'];
+	end;
+
+var
+	i, N1, N2, N3, Len: Integer;
+begin
+	Result := Default;
+	Len := 0;
+	if S.StartsWith(HTML_COLOR_PREFIX) then
+		Delete(S, 1, Length(HTML_COLOR_PREFIX));
+	if S.IsEmpty then Exit;
+
+	// delete after first nonword char
+	i := 1;
+	while (i <= Length(S)) and IsCharWord(S[i]) do Inc(i);
+	Delete(S, i, Maxint);
+
+	// allow only #rgb, #rrggbb
+	Len := Length(S);
+	if (Len <> 3) and (Len <> 6) then Exit;
+
+	for i := 1 to Len do
+		if not IsCharHex(S[i]) then Exit;
+
+	if Len = 6 then
+	begin
+		N1 := StrToInt('$' + Copy(S, 1, 2));
+		N2 := StrToInt('$' + Copy(S, 3, 2));
+		N3 := StrToInt('$' + Copy(S, 5, 2));
+	end
+	else
+	begin
+		N1 := StrToInt('$' + S[1] + S[1]);
+		N2 := StrToInt('$' + S[2] + S[2]);
+		N3 := StrToInt('$' + S[3] + S[3]);
+	end;
+
+	Result:= RGBToColor(N1, N2, N3);
+end;
+
+{function ColorToString(C: TColor): String;
+var
+	N: LongInt;
+begin
+	N := ColorToRGB(C);
+	Result := '$' + Format('%.2x%.2x%.2x', [ Red(N), Green(N), Blue(N) ]);
+end;
+
+function StringToColor(const S: String): TColor;
+var
+	C: Cardinal;
+begin
+	if S.IsEmpty then Exit(clNone);
+	C := Abs(S.ToInteger);
+	Result := RGBToColor(C shr 16 and $FF, C shr 8 and $FF, C and $FF);
+end;}
+
 procedure TConfigManager.Load(const Filename: String);
 var
 	Ini: TIniFile;
@@ -312,6 +399,12 @@ begin
 					S := Ini.ReadString(Item.Section, Item.Name, PS^);
 					PS^ := S;
 				end;
+				cfgColor:
+				begin
+					S := Ini.ReadString(Item.Section, Item.Name, '');
+					if not S.IsEmpty then
+						PColor(Item.Data)^ := HTMLToColor(S);
+				end;
 			end;
 		end;
 	finally
@@ -330,12 +423,13 @@ begin
 		begin
 			if Item.Access in [cfgWrite, cfgReadWrite] then
 			case Item.Kind of
-				cfgBoolean:		Ini.WriteBool   (Item.Section, Item.Name, Boolean(Item.Data^));
-				cfgByte:		Ini.WriteInteger(Item.Section, Item.Name, Byte(Item.Data^));
-				cfgWord:		Ini.WriteInteger(Item.Section, Item.Name, Word(Item.Data^));
-				cfgInteger:		Ini.WriteInteger(Item.Section, Item.Name, Integer(Item.Data^));
-				cfgFloat:		Ini.WriteFloat  (Item.Section, Item.Name, Double(Item.Data^));
-				cfgString:		Ini.WriteString (Item.Section, Item.Name, String(Item.Data^));
+				cfgBoolean:     Ini.WriteBool   (Item.Section, Item.Name, Boolean(Item.Data^));
+				cfgByte:        Ini.WriteInteger(Item.Section, Item.Name, Byte(Item.Data^));
+				cfgWord:        Ini.WriteInteger(Item.Section, Item.Name, Word(Item.Data^));
+				cfgInteger:     Ini.WriteInteger(Item.Section, Item.Name, Integer(Item.Data^));
+				cfgFloat:       Ini.WriteFloat  (Item.Section, Item.Name, Double(Item.Data^));
+				cfgString:      Ini.WriteString (Item.Section, Item.Name, String(Item.Data^));
+				cfgColor:       Ini.WriteString (Item.Section, Item.Name, ColorToHTML(TColor(Item.Data^)));
 			end;
 		end;
 	finally
@@ -343,24 +437,6 @@ begin
 	end;
 end;
 
-
-
-{function ColorToString(C: TColor): String;
-var
-	N: LongInt;
-begin
-	N := ColorToRGB(C);
-	Result := '$' + Format('%.2x%.2x%.2x', [ Red(N), Green(N), Blue(N) ]);
-end;
-
-function StringToColor(const S: String): TColor;
-var
-	C: Cardinal;
-begin
-	if S.IsEmpty then Exit(clNone);
-	C := Abs(S.ToInteger);
-	Result := RGBToColor(C shr 16 and $FF, C shr 8 and $FF, C and $FF);
-end;}
 
 { TDecksConfig }
 
@@ -411,52 +487,14 @@ end;
 function TDecksConfig.Load: Boolean;
 var
 	Fn: String;
-
-	{procedure ReadColor(Color: PColor; const Item: String);
-	var
-		S: String;
-	begin
-		S := Ini.ReadString(Sect, Item, '');
-		if (not S.IsEmpty) then
-			Color^ := StringToColor(S);
-	end;}
-
 begin
 	Fn := GetConfigFilePath;
 	ForceDirectories(ExtractFilePath(Fn));
-	//if not FileExists(Sect) then Exit(False);
 
 	Manager.Load(Fn);
 	Directory.BPM   := ReadPath(Directory.BPM);
 	Directory.Audio := ReadPath(Directory.Audio);
 
-{	Sect := 'theme.colors';
-	with Theme.Colors.FileList do
-	begin
-		ReadColor(@GridLines, 'list.gridlines');
-		ReadColor(@FgHeader,  'list.fg.header');
-		ReadColor(@BgHeader,  'list.bg.header');
-		ReadColor(@BgHover,   'list.hover');
-		ReadColor(@FgSelection, 'list.fg.selected');
-		ReadColor(@BgSelection, 'list.bg.selected');
-
-		ReadColor(@Background.Normal,  'filelist.background');
-		ReadColor(@Background.Focused, 'filelist.background.focused');
-
-		ReadColor(@FileItem.FgDefault, 'filelist.fg');
-		ReadColor(@FileItem.FgHasBPM,  'filelist.fg.hasbpm');
-		ReadColor(@FileItem.FgPlayed,  'filelist.fg.played');
-
-		ReadColor(@DirectoryItem.FgParent, 'filelist.fg.parent');
-		ReadColor(@DirectoryItem.BgParent, 'filelist.bg.parent');
-		ReadColor(@DirectoryItem.FgDirectory, 'filelist.fg.dir');
-		ReadColor(@DirectoryItem.BgDirectory, 'filelist.bg.dir');
-		ReadColor(@DirectoryItem.FgDrive, 'filelist.fg.drive');
-		ReadColor(@DirectoryItem.BgDrive, 'filelist.bg.drive');
-	end;
-
-	Ini.Free;
-}
 	Result := True;
 end;
 
@@ -539,6 +577,37 @@ begin
 		Cfg.Add(cfgString, Sect, 'filelist.directory', @Directory, '');
 		Cfg.Add(cfgString, Sect, 'filelist.parent',    @ParentDirectory, '');
 		Cfg.Add(cfgString, Sect, 'filelist.drives',    @Drives, '');
+	end;
+
+	Sect := 'theme.colors';
+
+	with Theme.Colors.Base do
+	begin
+		Cfg.Add(cfgColor, Sect, 'base.background',     @Background,  Background);
+	end;
+
+	with Theme.Colors.FileList do
+	begin
+		Cfg.Add(cfgColor, Sect, 'list.gridlines',      @GridLines,   GridLines);
+		Cfg.Add(cfgColor, Sect, 'list.fg.header',      @FgHeader,    FgHeader);
+		Cfg.Add(cfgColor, Sect, 'list.bg.header',      @BgHeader,    BgHeader);
+		Cfg.Add(cfgColor, Sect, 'list.hover',          @BgHover,     FgSelection);
+		Cfg.Add(cfgColor, Sect, 'list.fg.selected',    @FgSelection, FgSelection);
+		Cfg.Add(cfgColor, Sect, 'list.bg.selected',    @BgSelection, BgSelection);
+
+		Cfg.Add(cfgColor, Sect, 'filelist.background', @Background.Normal, Background.Normal);
+		Cfg.Add(cfgColor, Sect, 'filelist.background.focused', @Background.Focused, Background.Focused);
+
+		Cfg.Add(cfgColor, Sect, 'filelist.fg',         @FileItem.FgDefault, FileItem.FgDefault);
+		Cfg.Add(cfgColor, Sect, 'filelist.fg.hasbpm',  @FileItem.FgHasBPM,  FileItem.FgHasBPM);
+		Cfg.Add(cfgColor, Sect, 'filelist.fg.played',  @FileItem.FgPlayed,  FileItem.FgPlayed);
+
+		Cfg.Add(cfgColor, Sect, 'filelist.fg.parent',  @DirectoryItem.FgParent,    DirectoryItem.FgParent);
+		Cfg.Add(cfgColor, Sect, 'filelist.bg.parent',  @DirectoryItem.BgParent,    DirectoryItem.BgParent);
+		Cfg.Add(cfgColor, Sect, 'filelist.fg.dir',     @DirectoryItem.FgDirectory, DirectoryItem.FgDirectory);
+		Cfg.Add(cfgColor, Sect, 'filelist.bg.dir',     @DirectoryItem.BgDirectory, DirectoryItem.BgDirectory);
+		Cfg.Add(cfgColor, Sect, 'filelist.fg.drive',   @DirectoryItem.FgDrive,     DirectoryItem.FgDrive);
+		Cfg.Add(cfgColor, Sect, 'filelist.bg.drive',   @DirectoryItem.BgDrive,     DirectoryItem.BgDrive);
 	end;
 end;
 

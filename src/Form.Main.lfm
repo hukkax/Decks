@@ -12,6 +12,8 @@ object MainForm: TMainForm
   DoubleBuffered = False
   Font.Color = clSilver
   KeyPreview = True
+  ParentDoubleBuffered = False
+  Position = poScreenCenter
   OnActivate = FormActivate
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -21,8 +23,6 @@ object MainForm: TMainForm
   OnKeyUp = FormKeyUp
   OnResize = FormResize
   OnShow = FormShow
-  ParentDoubleBuffered = False
-  Position = poScreenCenter
   object PanelTop: TPanel
     Left = 0
     Height = 45
@@ -1612,22 +1612,19 @@ object MainForm: TMainForm
         ExpandSignType = tvestArrowFill
         Font.Color = 9366009
         Font.Height = -16
-        FileSortType = fstNone
         HideSelection = False
         HotTrack = True
         ParentFont = False
         PopupMenu = PopupDir
-        ReadOnly = True
         RowSelect = True
         ScrollBars = ssNone
         TabOrder = 0
+        Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+        ExpandSignColor = 748784
         OnChange = ListDirsChange
         OnCollapsed = ListDirsCollapsed
         OnExpanded = ListDirsCollapsed
         OnMouseMove = ListDirsMouseMove
-        Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
-        ExpandSignColor = 748784
-        ObjectTypes = [otFolders]
         ScrolledLeft = 0
         ScrolledTop = 0
         DoubleBuffered = True
@@ -1659,10 +1656,10 @@ object MainForm: TMainForm
         Width = 331
         AntialiasingMode = amOn
         Align = alBottom
-        OnMouseDown = EmbeddedImageMouseDown
-        OnMouseUp = EmbeddedImageMouseUp
         Proportional = True
         Stretch = True
+        OnMouseDown = EmbeddedImageMouseDown
+        OnMouseUp = EmbeddedImageMouseUp
       end
       object Memo1: TMemo
         Left = 0
@@ -2470,6 +2467,10 @@ object MainForm: TMainForm
     end
     object MenuItem2: TMenuItem
       Caption = '-'
+    end
+    object miSettings: TMenuItem
+      Caption = 'Settings...'
+      OnClick = miSettingsClick
     end
     object miAbout: TMenuItem
       Caption = 'About...'

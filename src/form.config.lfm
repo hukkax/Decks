@@ -1,22 +1,27 @@
 object ConfigForm: TConfigForm
   Left = 453
-  Height = 774
+  Height = 386
   Top = 30
-  Width = 834
+  Width = 561
+  BorderIcons = []
   Caption = 'Settings'
-  ClientHeight = 774
-  ClientWidth = 834
+  ClientHeight = 386
+  ClientWidth = 561
+  Position = poMainFormCenter
+  OnClose = FormClose
+  OnShow = FormShow
   object PageControl1: TPageControl
     Left = 16
-    Height = 400
+    Height = 312
     Top = 16
     Width = 528
     ActivePage = TabSheet1
+    Anchors = [akTop, akLeft, akRight, akBottom]
     TabIndex = 0
     TabOrder = 0
     object TabSheet1: TTabSheet
-      Caption = 'Program'
-      ClientHeight = 367
+      Caption = 'Devices'
+      ClientHeight = 279
       ClientWidth = 520
       object GroupBox1: TGroupBox
         Left = 16
@@ -27,6 +32,7 @@ object ConfigForm: TConfigForm
         ClientHeight = 199
         ClientWidth = 476
         TabOrder = 0
+        Visible = False
         object RadioButton1: TRadioButton
           Left = 24
           Height = 24
@@ -76,11 +82,110 @@ object ConfigForm: TConfigForm
           Text = 'ComboBox1'
         end
       end
+      object GroupBox2: TGroupBox
+        Left = 8
+        Height = 253
+        Top = 11
+        Width = 499
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        Caption = 'Gear Configuration'
+        ClientHeight = 228
+        ClientWidth = 495
+        TabOrder = 1
+        object Label18: TLabel
+          Left = 16
+          Height = 20
+          Top = 9
+          Width = 98
+          Caption = 'Output Device:'
+        end
+        object Label19: TLabel
+          Left = 16
+          Height = 20
+          Top = 168
+          Width = 69
+          Anchors = [akLeft, akBottom]
+          Caption = 'Controller:'
+        end
+        object cmbController: TComboBox
+          Left = 144
+          Height = 28
+          Top = 165
+          Width = 336
+          Anchors = [akLeft, akRight, akBottom]
+          ItemHeight = 20
+          ItemIndex = 0
+          Items.Strings = (
+            'None'
+          )
+          Style = csDropDownList
+          TabOrder = 0
+          Text = 'None'
+        end
+        object cbHardwareCue: TCheckBox
+          Left = 144
+          Height = 24
+          Top = 195
+          Width = 182
+          Anchors = [akLeft, akBottom]
+          Caption = 'Device has hardware cue'
+          TabOrder = 1
+        end
+        object cmbCue: TComboBox
+          Left = 144
+          Height = 28
+          Top = 101
+          Width = 336
+          Anchors = [akLeft, akRight, akBottom]
+          ItemHeight = 20
+          ItemIndex = 0
+          Items.Strings = (
+            'None or external mixer'
+            'Normal (Front=Master, Rear=Cue)'
+            'Split Cue (Left=Master, Right=Cue)'
+          )
+          Style = csDropDownList
+          TabOrder = 2
+          Text = 'None or external mixer'
+          OnChange = cmbCueChange
+        end
+        object cbCueOnFront: TCheckBox
+          Left = 144
+          Height = 24
+          Top = 131
+          Width = 178
+          Anchors = [akLeft, akBottom]
+          Caption = 'Use Front output for cue'
+          TabOrder = 3
+        end
+        object Label20: TLabel
+          Left = 16
+          Height = 20
+          Top = 104
+          Width = 71
+          Anchors = [akLeft, akBottom]
+          Caption = 'Cue Mode:'
+        end
+        object lbDevices: TListBox
+          Left = 144
+          Height = 80
+          Top = 9
+          Width = 336
+          Anchors = [akTop, akLeft, akRight, akBottom]
+          Items.Strings = (
+            'Default'
+          )
+          ItemHeight = 20
+          ItemIndex = 0
+          TabOrder = 4
+        end
+      end
     end
     object TabSheet3: TTabSheet
       Caption = 'Audio'
-      ClientHeight = 367
+      ClientHeight = 279
       ClientWidth = 520
+      TabVisible = False
       object Label1: TLabel
         Left = 16
         Height = 20
@@ -257,6 +362,7 @@ object ConfigForm: TConfigForm
     end
     object TabSheet2: TTabSheet
       Caption = 'Input'
+      TabVisible = False
     end
   end
   object Label8: TLabel
@@ -264,5 +370,15 @@ object ConfigForm: TConfigForm
     Height = 1
     Top = 16
     Width = 1
+  end
+  object Button1: TButton
+    Left = 469
+    Height = 25
+    Top = 344
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    ModalResult = 1
+    TabOrder = 1
   end
 end

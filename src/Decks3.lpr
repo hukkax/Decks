@@ -6,7 +6,7 @@ program Decks3;
 uses
 	{$IFDEF UNIX}cthreads, Classes,{$ENDIF}
 	Interfaces, // this includes the LCL widgetset
-	{$IFDEF WINDOWS}uDarkStyleParams, uMetaDarkStyle, uDarkStyleSchemes,{$ENDIF}
+	{$IFDEF WINDOWS}{$IFNDEF DEBUG}uDarkStyleParams, uMetaDarkStyle, uDarkStyleSchemes,{$ENDIF}{$ENDIF}
 	Forms, lazcontrols, Form.Main, Frame.Deck,
 	Decks.Audio, Decks.Song, Decks.Beatgraph,
 	Decks.SongInfo, Decks.TagScanner, Decks.Effects, TextInputDialog,
@@ -40,11 +40,11 @@ begin
 	Application.Title := 'CaniMix';
 	RequireDerivedFormResource := True;
 
-	{$IFDEF WINDOWS}
+	{$IFDEF WINDOWS}{$IFNDEF DEBUG}
 	PreferredAppMode := pamAllowDark;
 	DefaultDark.DrawControl.CustomDrawPushButtons := True;
 	uMetaDarkStyle.ApplyMetaDarkStyle(DefaultDark);
-	{$ENDIF}
+	{$ENDIF}{$ENDIF}
 
 	Application.Initialize;
 	Application.CreateForm(TMainForm, MainForm);
