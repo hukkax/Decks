@@ -205,6 +205,7 @@ type
 		property Anchors;
 		property Constraints;
 		property Color;
+		property BorderSpacing;
 		property BorderStyle;
 		property ButtonSize;
 		property Enabled;

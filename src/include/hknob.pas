@@ -233,6 +233,8 @@ type
 		property Indicators: TKnobIndicators read FIndicators write FIndicators  stored True;
 		//property ExtraIndicators
 		property Anchors;
+		property Align;
+		property BorderSpacing;
 		property ParentShowHint;
 		property ShowHint;
 		property Min: Integer read FMin write SetMin default 0;
@@ -763,7 +765,13 @@ begin
 		if fAngleInterval = 0 then
 			Result := fMin
 		else
-			Result := fMin + Round(((180+FArc) - TheAngle) / fAngleInterval);
+		begin
+			n := Math.Max(0, (180 + FArc) - TheAngle);
+			if n > 0 then
+				Result := Round(fMin + n / fAngleInterval)
+			else
+				Result := fMin;
+		end;
 	end;
 end;
 
