@@ -262,8 +262,8 @@ begin
 	with Devices[Device].DeviceInfo do
 	begin
 		Initialized := True;
-		MinRate := Info.minrate;
-		MaxRate := Info.maxrate;
+//		MinRate := Info.minrate;
+//		MaxRate := Info.maxrate;
 		MinBuffer := Info.minbuf;
 		Latency := Info.latency;
 		Outputs := Info.speakers;

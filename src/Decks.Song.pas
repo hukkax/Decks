@@ -163,7 +163,7 @@ begin
 	UF := UnicodeString(AFilename);
 
 	// load song from file
-	OrigStream := BASS_StreamCreateFile(False, PWideChar(UF), 0, 0,
+	OrigStream := BASS_StreamCreateFile(BASS_FILE_NAME, PWideChar(UF), 0, 0,
 		BASS_STREAM_DECODE or BASS_STREAM_PRESCAN or
 		BASS_SAMPLE_FLOAT or BASS_UNICODE);
 	if OrigStream = 0 then Exit(False);
@@ -307,7 +307,7 @@ begin
 		Filename := AFilename;
 		UFilename := UnicodeString(AFilename);
 
-		FileStream := BASS_StreamCreateFile(False, PWideChar(UFilename), 0, 0,
+		FileStream := BASS_StreamCreateFile(BASS_FILE_NAME, PWideChar(UFilename), 0, 0,
 			BASS_STREAM_DECODE or BASS_SAMPLE_FLOAT or BASS_UNICODE or BASS_SAMPLE_LOOP);
 		if FileStream = 0 then Exit;
 
