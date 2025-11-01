@@ -82,3 +82,33 @@ tracklist*.txt
 src/bin/win64/
 
 bin/win32/
+
+*.ogg
+
+*.wav
+
+libbassloud.so
+
+Config.exe
+
+mididebug.txt
+
+src/configurator/
+
+src/include/hknob - Copy.pas
+
+src/Decks.MIDI - Copy.pas
+
+bin/
+
+data/CaniMix.ini
+
+data/midi/
+
+data/plugins/disabled/
+
+data/themes/default-old/
+
+docs/DDJ-FLX4_HardwareDiagram_CaniMix.odg
+
+docs/DDJ-FLX4.odt
